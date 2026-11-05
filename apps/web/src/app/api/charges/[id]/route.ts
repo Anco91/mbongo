@@ -1,9 +1,9 @@
 /**
  * Charge API Route (Dynamic Segment)
- * 
+ *
  * Pure wiring for individual charge operations.
  * All requests are delegated to the ChargesController.
- * 
+ *
  * @module API/Charges/[id]
  */
 

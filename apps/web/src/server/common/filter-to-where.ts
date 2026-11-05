@@ -1,10 +1,10 @@
 /**
  * Filter to Prisma Where Translator
- * 
+ *
  * This module provides a single translator for converting validated query filters
  * into Prisma where conditions. It's used by services to translate between
  * the generic filter syntax and Prisma's specific query format.
- * 
+ *
  * @module Server/Common/FilterToWhere
  */
 
@@ -13,10 +13,10 @@ import { Prisma } from '@prisma/client';
 
 /**
  * Convert a generic Filter to a Prisma condition object
- * 
+ *
  * @param filter - Generic filter object from Zod validation
  * @returns Prisma condition object
- * 
+ *
  * @example
  * ```typescript
  * const filter: Filter = { eq: 'value', gte: 100 };
@@ -67,13 +67,13 @@ function filterToCondition(filter: Filter): Record<string, unknown> {
 
 /**
  * Convert a query object to a Prisma where clause
- * 
+ *
  * This function filters out pagination-related keys (limit, cursor, page, offset)
  * and converts each field's filter to a Prisma condition.
- * 
+ *
  * @param query - Query object from request validation
  * @returns Prisma where input type
- * 
+ *
  * @example
  * ```typescript
  * const query = {
@@ -82,7 +82,7 @@ function filterToCondition(filter: Filter): Record<string, unknown> {
  *   limit: 50,
  *   cursor: 'abc123',
  * };
- * 
+ *
  * const where = queryToWhere(query);
  * // { type: { equals: 'FIXED_RECURRING' }, amount: { gte: 100 } }
  * ```
@@ -114,12 +114,12 @@ export function queryToWhere<T>(
 
 /**
  * Create a query to where function for a specific model
- * 
+ *
  * This allows for type-safe where clause generation for specific Prisma models.
- * 
+ *
  * @param model - Prisma model type
  * @returns Type-safe queryToWhere function
- * 
+ *
  * @example
  * ```typescript
  * const chargeQueryToWhere = createQueryToWhere<Prisma.ChargeWhereInput>();
@@ -159,7 +159,7 @@ export interface NumericFilter extends Filter {
 
 /**
  * Create a Prisma where input for a charge query
- * 
+ *
  * @param query - Charge query parameters
  * @returns Prisma ChargeWhereInput
  */
@@ -174,7 +174,7 @@ export function chargeQueryToWhere(
 
 /**
  * Create a Prisma where input for a scheduled payment query
- * 
+ *
  * @param query - Scheduled payment query parameters
  * @returns Prisma ScheduledPaymentWhereInput
  */

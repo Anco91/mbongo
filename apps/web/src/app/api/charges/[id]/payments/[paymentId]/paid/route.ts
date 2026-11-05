@@ -1,8 +1,8 @@
 /**
  * Mark Payment as Paid API Route
- * 
+ *
  * Mark a scheduled payment as paid.
- * 
+ *
  * @module API/Charges/[id]/Payments/[paymentId]/Paid
  */
 

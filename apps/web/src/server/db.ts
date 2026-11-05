@@ -1,9 +1,9 @@
 /**
  * Prisma Database Service
- * 
+ *
  * This is the NestJS PrismaService equivalent: extends the generated client,
  * instantiated once as a singleton. Cached across HMR reloads in dev.
- * 
+ *
  * @module Server/DB
  */
 
@@ -17,7 +17,8 @@ import { PrismaClient } from '@prisma/client';
 class Database extends PrismaClient {
   constructor() {
     super({
-      log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+      log:
+        process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
     });
   }
 }
@@ -31,11 +32,11 @@ const globalForDb = globalThis as unknown as {
 
 /**
  * Singleton instance of the Prisma database client
- * 
+ *
  * Usage:
  * ```typescript
  * import { prisma } from '@/server/db';
- * 
+ *
  * // Use prisma in your services
  * const charges = await prisma.charge.findMany();
  * ```

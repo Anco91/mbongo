@@ -1,8 +1,8 @@
 /**
  * Charge Payments API Route
- * 
+ *
  * Operations for managing scheduled payments of a charge.
- * 
+ *
  * @module API/Charges/[id]/Payments
  */
 

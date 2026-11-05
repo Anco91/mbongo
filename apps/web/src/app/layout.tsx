@@ -1,9 +1,9 @@
 /**
  * Root Layout
- * 
+ *
  * Main layout component for the Next.js application.
  * Wraps all pages with common providers and styling.
- * 
+ *
  * @module App/Layout
  */
 
@@ -21,13 +21,13 @@ export const metadata: Metadata = {
 
 /**
  * Root Layout Component
- * 
+ *
  * This layout:
  * 1. Sets up the HTML structure
  * 2. Adds global CSS
  * 3. Wraps children with QueryProvider for React Query
  * 4. Can be extended with other providers (auth, theme, etc.)
- * 
+ *
  * @param props - Layout props with children
  * @returns JSX Element
  */
