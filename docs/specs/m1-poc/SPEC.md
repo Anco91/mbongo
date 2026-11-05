@@ -4,7 +4,7 @@
 
 ```yaml
 spec_id: "M1-POC-001"
-version: "1.0.0"
+version: "1.1.0"
 title: "Socle Mbongo — Comptes, Transactions, Transfert 2 phases, Snapshots de solde"
 status: "IN_REVIEW"
 author: "Agent IA Expert Architect"
@@ -80,6 +80,7 @@ Le M1 du cahier des charges (§10) est la première brique utilisable : sans com
 - [ ] **Contrats HTTP typés** partagés : opérations CRUD par ressource et types dérivés des schémas Zod.
 - [ ] **Domaine pur** `packages/shared/src/domain/` : calculs réutilisables nécessaires à l’interface, sans orchestration de données ni règles dupliquées dans le backend.
 - [ ] **Modèle Prisma** : `Member`, `Account`, `Transaction`, `Transfer`, `BalanceSnapshot` (+ conservation de `Charge`/`ScheduledPayment` en l'état, refonte M2)
+- [ ] **Migration compatible** du modèle `Account` existant : conserver les identifiants, soldes et relation `Charge.accountId` ; convertir `balance` en `openingBalance` et `isActive` en statut sans perte d'historique.
 - [ ] **Services** CRUD et filtres validés, avec opérations transactionnelles uniquement quand un invariant l’exige.
 - [ ] **Controllers + routes API** correspondants
 - [ ] **Repository frontend** mince par ressource pour les appels navigateur à `/api` ; aucune logique métier dans les repositories.
@@ -221,6 +222,7 @@ model Account {
   closedAt      DateTime?
   transactions  Transaction[]
   snapshots     BalanceSnapshot[]
+  charges       Charge[]                  // relation existante conservée pour le module charges
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -415,6 +417,7 @@ Mobile-first, bottom-nav 4 onglets, bottom-sheets de détail, tappable partout �
 | R-001 | `Charge` existant bloque le build après réécriture du schéma Prisma | vérifier la compilation du module conservé à l'étape 2 |
 | R-002 | Pennes des taux en phase 1 → confusion | la UI impose l'affichage « taux au JJ/MM » sur tout montant estimé |
 | R-003 | Montants signés contre-intuitifs | UI « sens + montant positif », validation zod garantit le signe |
+| R-004 | Le modèle `Account` existe déjà et est référencé par `Charge` | Migration non destructive : préserver `id`, `Charge.accountId` et le solde courant en l'initialisant dans `openingBalance` ; maintenir `charges` sur `Account` |
 
 ---
 
@@ -429,3 +432,4 @@ Mobile-first, bottom-nav 4 onglets, bottom-sheets de détail, tappable partout �
 | Version | Date | Auteur | Changement |
 |---------|------|--------|------------|
 | 1.0.0 | 2026-11-05 | Agent IA Expert Architect | Version initiale |
+| 1.1.0 | 2026-11-05 | Agent IA Expert Architect | CRUD filtrable, contrats/repository frontend, calculs côté UI et migration Account non destructive |
