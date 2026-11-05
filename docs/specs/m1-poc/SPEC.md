@@ -4,7 +4,7 @@
 
 ```yaml
 spec_id: "M1-POC-001"
-version: "1.1.0"
+version: "1.4.0"
 title: "Socle Mbongo — Comptes, Transactions, Transfert 2 phases, Snapshots de solde"
 status: "IN_REVIEW"
 author: "Agent IA Expert Architect"
@@ -107,6 +107,7 @@ Le M1 du cahier des charges (§10) est la première brique utilisable : sans com
 5. Montants de `Transaction` **signés** (négatif = débit) — le solde est une somme directe, KISS ; la UI traduit « sens » (débit/crédit) en signe.
 6. Les pages RSC appellent les services directement conformément au CDC R5 ; le repository frontend sert aux appels navigateur.
 7. Les services ne calculent pas les soldes de présentation ni les agrégats : les fonctions partagées calculent côté UI quand les données y sont déjà chargées.
+8. En M1, un transfert relie deux comptes distincts, CHF vers EUR, conformément au flux Telexoo du CDC.
 
 ### 🔄 Modèles existants conservés
 
@@ -219,6 +220,8 @@ model Account {
   transactions  Transaction[]
   snapshots     BalanceSnapshot[]
   charges       Charge[]                  // relation existante conservée pour le module charges
+  outgoingTransfers Transfer[] @relation("TransferSourceAccount")
+  incomingTransfers Transfer[] @relation("TransferTargetAccount")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -234,8 +237,9 @@ model Transaction {
   amount     Float                     // SIGNÉ : négatif = débit, positif = crédit
   category   String?                   // "Logement", "Vie courante"… (exigeable plus tard via zod)
   note       String?
-  transferId String?                   // lien vers le transfert qui l'a générée
+  transferId String?                   // renseigné pour les jambes d'un transfert
   transfer   Transfer? @relation(fields: [transferId], references: [id])
+  transferRole String?                 // "SOURCE" | "TARGET" pour distinguer les deux jambes
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
@@ -246,7 +250,9 @@ model Transaction {
 model Transfer {
   id               String    @id @default(uuid())
   sourceAccountId  String
+  sourceAccount    Account   @relation("TransferSourceAccount", fields: [sourceAccountId], references: [id])
   targetAccountId  String
+  targetAccount    Account   @relation("TransferTargetAccount", fields: [targetAccountId], references: [id])
   amountSent       Float                 // montant CHF (devise source) envoyé
   rateEstimated    Float                 // taux de référence appliqué dès la phase 1
   rateDate         DateTime              // date du taux de référence — affichage "taux au JJ/MM"
@@ -257,14 +263,14 @@ model Transfer {
   status           String    @default("ESTIMATED") // "ESTIMATED" | "COMPLETED"
   sentAt           DateTime              // date d'envoi (phase 1)
   receivedAt       DateTime?             // date du crédit réel (phase 2)
-  sourceTransaction Transaction? @relation("TransferSource", fields: [sourceTransactionId], references: [id])
-  sourceTransactionId String?
-  targetTransaction Transaction? @relation("TransferTarget", fields: [targetTransactionId], references: [id])
-  targetTransactionId String?
+  transactions     Transaction[]
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
-  @@index([status]) @@map("transfers")
+  @@index([status])
+  @@index([sourceAccountId])
+  @@index([targetAccountId])
+  @@map("transfers")
 }
 
 // ─── Snapshot de solde (cdc §3.5) ───
@@ -284,7 +290,7 @@ model BalanceSnapshot {
 
 **Choix notables :**
 - `Transaction.amount` signé → `Solde = openingBalance + Σ(amounts)` ; la UI expose « sens débit/crédit » et traduit en signe à la validation.
-- Transfert : à la phase 1, la **transaction de débit source est créée** (l'argent est parti) ; la transaction de crédit cible naît à la phase 2 avec le vrai montant → recalcul automatique de tout l'aval (cdc §3.3).
+- Transfert : `Account` référence les transferts source et cible par deux relations Prisma nommées. Le `Transfer` référence ses jambes via `Transaction.transferId` et `transferRole` (`SOURCE`/`TARGET`) : à la phase 1, le débit source est créé ; le crédit cible naît à la phase 2 avec le montant reçu réel (cdc §3.3).
 - **Pas de table `ExchangeRate`** (YAGNI) : le « dernier taux saisi » est dérivé du dernier transfert estimé ou réalisé ; un taux saisi à la main est simplement saisissable dans le formulaire.
 - `Charge`/`ScheduledPayment` du squelette conservés en l'état — refonde complète en spec M2.
 
@@ -312,7 +318,7 @@ model BalanceSnapshot {
 
 **Contrats HTTP :** les schémas Zod partagés définissent les entrées/sorties ; les contrats par ressource exposent `findMany`, `findOne`, `create`, `update`, `remove` quand ces opérations s'appliquent. Les opérations spécifiques du transfert restent explicitement typées. Le repository frontend implémente ces contrats via HTTP et ne porte aucune logique métier.
 
-Pour les filtres, les champs simples acceptent une valeur directe en égalité (`?type=...`). Les expressions imbriquées passent dans un paramètre `where` JSON encodé par `URLSearchParams`, avec `AND`/`OR` et les opérateurs de champ `eq`, `not`, `in`, `gte`, `lte`, `contains`. Le schéma Zod de chaque ressource borne les champs autorisés ; le helper traduit l'expression validée en Prisma.
+Pour les filtres, les champs simples acceptent une valeur directe en égalité (`?type=...`). Les expressions imbriquées passent dans un paramètre `where` JSON encodé par `URLSearchParams`, avec `AND`/`OR` et les opérateurs de champ `eq`, `not`, `in`, `gte`, `lte`, `contains`. Si les deux formes sont présentes, elles se combinent par `AND`. Le schéma Zod de chaque ressource borne les champs autorisés ; le helper traduit l'expression validée en Prisma.
 
 **Règles de controller (R1) :** zod à l'entrée (`parseBody` / `parseQuery` de `server/common/http.ts`), délégation au service, mapping d'erreurs centralisé (400 validation, 404, 409 invariant, 500). Les `route.ts` sont du wiring pur.
 
@@ -335,11 +341,11 @@ transferFees(amountEstimated: number, amountReceived: number): number // écart 
 Ces fonctions sont utilisées là où leurs données sont déjà disponibles, principalement dans l'UI. Les services n'exposent pas de `getBalance`, `getNextPayment` ni d'agrégats dédiés lorsqu'un CRUD filtré suffit. Chaque montant converti est affiché avec sa devise d'origine et son taux daté (CDC §6).
 
 **Services : CRUD d'abord ; opérations atomiques uniquement pour préserver un invariant (CDC R4) :**
-- `TransferService.create` : transfert + transaction de débit source en un `$transaction`.
-- `TransferService.complete` : phase 2 — appelle les fonctions pures partagées pour les valeurs persistées (`rateEffective`/`fees`), met à jour le transfert et crée la transaction de crédit cible dans un `$transaction`. Aucun calcul métier n'est réimplémenté dans le service.
+- `TransferService.create` : vérifie deux comptes actifs distincts (source CHF, cible EUR), puis crée le transfert et la transaction de débit source en un `$transaction`.
+- `TransferService.complete` : refuse un transfert déjà complété ; appelle les fonctions pures partagées pour les valeurs persistées (`rateEffective`/`fees`), met à jour le transfert et crée la transaction de crédit cible dans un `$transaction`. Aucun calcul métier n'est réimplémenté dans le service.
 - `SnapshotService.create` : crée le snapshot ; l'écart et la proposition d'ajustement sont calculés côté UI, puis une transaction CRUD séparée est créée après validation explicite.
 - `AccountService.close` : `status=CLOSED`, `closedAt=aujourd'hui` (les récurrences liées s'arrêteront à cette date, mécanisme M2).
-- `AccountService.remove` : refuse si transactions/échéances existent (409 « compte non vierge — clôturer plutôt »).
+- `AccountService.remove` : refuse si le compte a une transaction, un transfert, un snapshot ou une charge liée (409 « compte non vierge — clôturer plutôt »).
 
 ---
 
@@ -432,3 +438,4 @@ Mobile-first, navigation adaptée aux trois écrans M1, bottom-sheets de détail
 | 1.1.0 | 2026-11-05 | Agent IA Expert Architect | CRUD filtrable, contrats/repository frontend, calculs côté UI et migration Account non destructive |
 | 1.2.0 | 2026-11-05 | Agent IA Expert Architect | Retire la consolidation globale du périmètre M1, conformément aux jalons du CDC |
 | 1.3.0 | 2026-11-05 | Agent IA Expert Architect | Garde M1 à trois écrans et précise l’affichage du solde par compte |
+| 1.4.0 | 2026-11-05 | Agent IA Expert Architect | Corrige les relations Prisma des transferts et précise le sens CHF vers EUR |
