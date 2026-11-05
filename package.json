@@ -17,9 +17,9 @@
     "lint:fix": "turbo run lint:fix",
     "format": "turbo run format",
     "format:check": "turbo run format:check",
-    "test": "turbo run test",
-    "test:watch": "turbo run test:watch",
-    "test:coverage": "turbo run test:coverage",
+    "test": "turbo run test --filter=@mbongo/web",
+    "test:watch": "turbo run test:watch --filter=@mbongo/web",
+    "test:coverage": "turbo run test:coverage --filter=@mbongo/web",
     "typecheck": "turbo run typecheck",
     "clean": "turbo run clean",
     "prisma:generate": "cd apps/web && npx prisma generate",
@@ -40,58 +40,5 @@
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
   },
-  "packageManager": "npm@9.0.0",
-  "turbo": {
-    "pipeline": {
-      "build": {
-        "dependsOn": ["^build"],
-        "outputs": [".next/**", "!.next/cache/**", "dist/**"]
-      },
-      "dev": {
-        "cache": false,
-        "persistent": true
-      },
-      "lint": {
-        "outputs": []
-      },
-      "lint:fix": {
-        "outputs": []
-      },
-      "format": {
-        "outputs": []
-      },
-      "format:check": {
-        "outputs": []
-      },
-      "test": {
-        "outputs": []
-      },
-      "test:watch": {
-        "cache": false,
-        "outputs": []
-      },
-      "test:coverage": {
-        "outputs": []
-      },
-      "typecheck": {
-        "outputs": []
-      },
-      "clean": {
-        "cache": false,
-        "outputs": []
-      },
-      "db:generate": {
-        "cache": false
-      },
-      "db:migrate": {
-        "cache": false
-      },
-      "db:studio": {
-        "cache": false
-      },
-      "db:seed": {
-        "cache": false
-      }
-    }
-  }
+  "packageManager": "npm@9.0.0"
 }
