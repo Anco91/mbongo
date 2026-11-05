@@ -1,0 +1,1160 @@
+import React, { useRef, useState } from "react";
+import { Sankey, PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import {
+  IconChartPie,
+  IconCalendar,
+  IconArrowsTransaction,
+  IconBankStatement,
+  IconPlus,
+  IconClock,
+  IconArrowRight,
+  IconArrowsExpand,
+  IconChevronLeft,
+  IconTrash,
+} from "nucleo-sharp";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+
+/* ------------------------------------------------------------------ */
+/* Mock data — fictional figures, shaped after the real household.     */
+/* ------------------------------------------------------------------ */
+
+const eur = (n: number, digits = 0) =>
+  new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: digits }).format(n);
+const chf = (n: number, digits = 2) =>
+  new Intl.NumberFormat("fr-CH", { style: "currency", currency: "CHF", minimumFractionDigits: digits, maximumFractionDigits: digits }).format(n);
+
+const sankeyData = {
+  nodes: [
+    { name: "Salaire Anco" },
+    { name: "Salaire Épouse" },
+    { name: "UBS (CHF)" },
+    { name: "BNP perso" },
+    { name: "BNP joint" },
+    { name: "Charges GE" },
+    { name: "Vie courante" },
+    { name: "Épargne" },
+    { name: "Telexoo" },
+  ],
+  links: [
+    { source: 0, target: 2, value: 4400 },
+    { source: 1, target: 3, value: 830 },
+    { source: 2, target: 5, value: 2150 },
+    { source: 2, target: 8, value: 1500 },
+    { source: 2, target: 7, value: 750 },
+    { source: 8, target: 4, value: 1405 },
+    { source: 3, target: 4, value: 300 },
+    { source: 4, target: 6, value: 1150 },
+    { source: 3, target: 6, value: 480 },
+    { source: 3, target: 7, value: 200 },
+  ],
+};
+
+const donutData = [
+  { name: "Logement", value: 870, color: "#0f766e" },
+  { name: "Santé (LaMaL)", value: 535, color: "#0891b2" },
+  { name: "Impôts & taxes", value: 640, color: "#7c3aed" },
+  { name: "Assurances", value: 180, color: "#2563eb" },
+  { name: "Abonnements", value: 95, color: "#64748b" },
+  { name: "Vie courante", value: 1630, color: "#f59e0b" },
+  { name: "Épargne", value: 950, color: "#059669" },
+];
+
+const upcomingPayments = [
+  { label: "Loyer GE", amount: 1850, currency: "CHF", due: "1ᵉʳ nov.", status: "Dû", account: "UBS Courant", note: "Prélevé le 1ᵉʳ du mois sur le compte UBS courant. Montant révisable à chaque échéance de bail." },
+  { label: "LaMaL (prime révisée)", amount: 508.6, currency: "CHF", due: "1ᵉʳ nov.", status: "Dû", account: "UBS Courant", note: "Prime mensuelle d'assurance maladie révisée chaque 1ᵉʳ janvier." },
+  { label: "Facture carte UBS", amount: 640.2, currency: "CHF", due: "28 nov.", status: "À venir", account: "Carte UBS", note: "Encours du mois sur la carte de crédit, facturation mensuelle prélevée sur le courant." },
+  { label: "Mobile (abonnement)", amount: 19.99, currency: "EUR", due: "15 nov.", status: "À venir", account: "BNP Perso", note: "Engagement 12 mois — fin connue (06/2027), récurrences arrêtées automatiquement." },
+  { label: "Courses maison", amount: 420, currency: "EUR", due: "18 nov.", status: "À venir", account: "BNP Joint", note: "Budget mensuel du foyer sur le compte joint." },
+  { label: "Assurance RC", amount: 180, currency: "CHF", due: "12 janv.", status: "À venir", account: "UBS Courant", note: "Prime annuelle provisionnée : 15,00 CHF / mois." },
+  { label: "Impôt FR — 4ᵉ prélèvement", amount: 312, currency: "EUR", due: "28 déc.", status: "À venir", account: "BNP Perso", note: "4 prélèvements (25/09, 26/10, 25/11, 28/12) si solde > 300 €." },
+] as const;
+
+const provisions = [
+  {
+    label: "SERAFE",
+    total: 335,
+    perMonth: 27.92,
+    account: "UBS Courant",
+    note: "Facture annuelle — mois d'émission variable selon le groupe d'imposition (12 groupes). Option trimestrielle : 83,75 CHF.",
+  },
+  {
+    label: "Régularisation impôt GE",
+    total: 480,
+    perMonth: 40.0,
+    account: "UBS Courant",
+    note: "DRIS probable — dépôt avant le 31 mars de l'année suivante. Restitution typique : 1 500 – 6 000 CHF.",
+  },
+] as const;
+
+const charges = [
+  { label: "Loyer GE", type: "Fixe récurrente", category: "Logement", amount: "1 850,00 CHF / mois", due: "1ᵉʳ nov.", status: "Dû", account: "UBS Courant", note: "Montant révisable à chaque échéance de bail." },
+  { label: "LaMaL", type: "Fixe récurrente", category: "Santé", amount: "508,60 CHF / mois", due: "1ᵉʳ nov.", status: "Dû", account: "UBS Courant", note: "Prime révisée chaque 1ᵉʳ janvier (2027 : moyenne 508,60 CHF/mois)." },
+  { label: "SERAFE", type: "À venir (engagée)", category: "Médias", amount: "335 CHF / an · provision 27,92 / mois", due: "Oct. 2027", status: "Provisionnée", account: "UBS Courant", note: "Redevance obligatoire. 312 CHF dès 2027." },
+  { label: "Impôt FR", type: "Échelonnée", category: "Impôts & taxes", amount: "4 × 312,00 €", due: "28 déc.", status: "À venir", account: "BNP Perso", note: "4 prélèvements : 25/09, 26/10, 25/11, 28/12 si solde > 300 €." },
+  { label: "Mobile (abonnement)", type: "Temporaire", category: "Abonnements", amount: "19,99 € / mois · fin 06/2027", due: "15 nov.", status: "À venir", account: "BNP Perso", note: "Engagement 12 mois — fin connue, récurrences arrêtées automatiquement." },
+  { label: "Assurance RC", type: "Fixe récurrente", category: "Assurances", amount: "180,00 CHF / an", due: "12 janv.", status: "Provisionnée", account: "UBS Courant", note: "Prime annuelle provisionnée : 15,00 CHF / mois." },
+  { label: "Cadeau anniversaire", type: "Ponctuelle", category: "Divers", amount: "120,00 €", due: "22 nov.", status: "Payé", account: "BNP Joint", note: "Sans récurrence." },
+] as const;
+
+const transfers = [
+  {
+    status: "Réalisé",
+    date: "04 nov. 2026",
+    sent: 1500,
+    rateRef: "1,0634",
+    estimated: "1 410,73 €",
+    credited: 1403.6,
+    rateEffective: "1,0688",
+    fees: "7,13 €",
+  },
+  {
+    status: "Estimé",
+    date: "lancé le 29 nov. 2026",
+    sent: 1200,
+    rateRef: "1,0621",
+    estimated: "1 129,83 €",
+    credited: null,
+    rateEffective: null,
+    fees: null,
+  },
+] as const;
+
+const accounts = [
+  { name: "UBS Courant", bank: "CH · CHF", balance: "4 230,50 CHF", note: "Aucun découvert autorisé", badge: "Compte principal" },
+  { name: "Carte UBS (crédit)", bank: "CH · CHF", balance: "− 640,20 CHF", note: "Encours carte · facturation mensuelle, prélevée le 28/11", badge: "Carte de crédit" },
+  { name: "BNP Perso", bank: "FR · EUR", balance: "1 240,00 €", note: "Découvert autorisé : 500 €", badge: "Compte perso" },
+  { name: "BNP Joint", bank: "FR · EUR", balance: "3 150,00 €", note: "Carte à débit différé · prélèvement fin de mois", badge: "Compte joint" },
+  { name: "Livret A (Épouse)", bank: "FR · EUR", balance: "18 200,00 €", note: "Plafond 22 950 € · rempli à 79 %", badge: "Épargne" },
+];
+
+/* ------------------------------------------------------------------ */
+/* Shared bits                                                         */
+/* ------------------------------------------------------------------ */
+
+function StatusBadge({ status }: { status: string }) {
+  const styles: Record<string, string> = {
+    "Dû": "bg-amber-100 text-amber-800",
+    "À venir": "bg-slate-100 text-slate-700",
+    "Payé": "bg-emerald-100 text-emerald-700",
+    "Provisionnée": "bg-orange-100 text-orange-700",
+    "Réalisé": "bg-emerald-100 text-emerald-700",
+    "Estimé": "bg-amber-100 text-amber-800",
+  };
+  return <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${styles[status] ?? "bg-slate-100 text-slate-700"}`}>{status}</span>;
+}
+
+function TypeBadge({ type }: { type: string }) {
+  const styles: Record<string, string> = {
+    "Fixe récurrente": "bg-teal-50 text-teal-700 ring-1 ring-teal-200",
+    "Échelonnée": "bg-violet-50 text-violet-700 ring-1 ring-violet-200",
+    "Temporaire": "bg-cyan-50 text-cyan-700 ring-1 ring-cyan-200",
+    "Ponctuelle": "bg-slate-50 text-slate-600 ring-1 ring-slate-200",
+    "À venir (engagée)": "bg-orange-50 text-orange-700 ring-1 ring-orange-200",
+  };
+  return <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${styles[type] ?? "bg-slate-50 text-slate-600"}`}>{type}</span>;
+}
+
+/** Small chip naming the account a payment will be debited from. */
+function AccountChip({ name }: { name: string }) {
+  return (
+    <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600 ring-1 ring-slate-200">
+      {name}
+    </span>
+  );
+}
+
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return <h2 className="mb-2 text-sm font-semibold text-slate-900">{children}</h2>;
+}
+
+/** Bottom sheet: the detail view pattern for small screens. */
+function DetailSheet({ title, trigger, children }: { title: string; trigger: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <Sheet>
+      <SheetTrigger asChild>
+        <button className="block w-full text-left">{trigger}</button>
+      </SheetTrigger>
+      <SheetContent side="bottom" className="max-h-[72vh] overflow-y-auto rounded-t-3xl bg-white text-slate-900 shadow-2xl">
+        <div className="mx-auto mt-2 h-1.5 w-12 rounded-full bg-slate-200" />
+        <SheetHeader className="text-left">
+          <SheetTitle className="text-base">{title}</SheetTitle>
+        </SheetHeader>
+        <div className="space-y-3 px-4 pb-8">{children}</div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+/** A label/value row used inside detail sheets. */
+function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-start justify-between gap-4 text-sm">
+      <span className="shrink-0 text-slate-500">{label}</span>
+      <span className="text-right font-medium text-slate-800">{value}</span>
+    </div>
+  );
+}
+
+/** Fullscreen chart viewer: zoom controls + drag to pan + wheel zoom. */
+function ChartFullscreen({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const drag = useRef<{ px: number; py: number; x: number; y: number } | null>(null);
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col bg-white">
+      <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+        <div>
+          <p className="text-[11px] uppercase tracking-wider text-slate-400">Plein écran</p>
+          <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setZoom((z) => Math.max(1, z - 0.25))}
+            className="h-8 w-8 rounded-full bg-slate-100 text-base font-semibold text-slate-700"
+            aria-label="Zoom arrière"
+          >
+            −
+          </button>
+          <span className="w-10 text-center text-xs text-slate-500">{Math.round(zoom * 100)} %</span>
+          <button
+            onClick={() => setZoom((z) => Math.min(4, z + 0.25))}
+            className="h-8 w-8 rounded-full bg-slate-100 text-base font-semibold text-slate-700"
+            aria-label="Zoom avant"
+          >
+            +
+          </button>
+          <button
+            onClick={() => {
+              setZoom(1);
+              setPan({ x: 0, y: 0 });
+            }}
+            className="rounded-full bg-slate-100 px-2.5 py-1.5 text-[11px] font-medium text-slate-600"
+          >
+            Réinitialiser
+          </button>
+          <button onClick={onClose} className="h-8 w-8 rounded-full bg-slate-900 text-sm text-white" aria-label="Fermer">
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <div
+        className="flex-1 cursor-grab touch-none overflow-hidden active:cursor-grabbing"
+        onWheel={(e) => setZoom((z) => Math.min(4, Math.max(1, z * (e.deltaY < 0 ? 1.08 : 0.93))))}
+        onPointerDown={(e) => {
+          drag.current = { px: pan.x, py: pan.y, x: e.clientX, y: e.clientY };
+        }}
+        onPointerMove={(e) => {
+          if (drag.current)
+            setPan({
+              x: drag.current.px + (e.clientX - drag.current.x),
+              y: drag.current.py + (e.clientY - drag.current.y),
+            });
+        }}
+        onPointerUp={() => {
+          drag.current = null;
+        }}
+        onPointerLeave={() => {
+          drag.current = null;
+        }}
+      >
+        <div
+          className="h-full w-full"
+          style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: "center center" }}
+        >
+          {children}
+        </div>
+      </div>
+
+      <p className="border-t border-slate-100 px-4 py-2 text-center text-[11px] text-slate-400">
+        Glisser pour naviguer · boutons ou molette pour zoomer
+      </p>
+    </div>
+  );
+}
+
+/** Expandable-card header button. */
+function ExpandButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600 transition-colors hover:bg-slate-200"
+    >
+      <IconArrowsExpand className="h-3.5 w-3.5" /> Plein écran
+    </button>
+  );
+}
+
+function SankeyChart({ height = "100%" }: { height?: string | number }) {
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <Sankey
+        data={sankeyData}
+        nodeWidth={8}
+        nodePadding={14}
+        margin={{ top: 4, right: 70, bottom: 4, left: 4 }}
+        link={{ stroke: "#94a3b8", strokeOpacity: 0.35 }}
+      >
+        <Tooltip />
+      </Sankey>
+    </ResponsiveContainer>
+  );
+}
+
+function DonutChart({ size = "100%" }: { size?: string | number }) {
+  return (
+    <ResponsiveContainer width="100%" height={size}>
+      <PieChart>
+        <Pie data={donutData} dataKey="value" innerRadius="55%" outerRadius="90%" paddingAngle={2} stroke="none">
+          {donutData.map((d) => (
+            <Cell key={d.name} fill={d.color} />
+          ))}
+        </Pie>
+        <Tooltip />
+      </PieChart>
+    </ResponsiveContainer>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Form pages — "one page, one responsibility":                       */
+/* a dedicated creation page; reading and mutations (update, delete)   */
+/* cohabit on the same detail page. Native controls with explicit      */
+/* styling for the maquette; production uses shadcn <Input/> <Select/>. */
+/* ------------------------------------------------------------------ */
+
+const chargeTypes = [
+  { value: "FIXED_RECURRING", label: "Fixe récurrente", hint: "Loyer, LaMaL, assurance — montant révisable" },
+  { value: "INSTALLMENT", label: "Échelonnée", hint: "Impôt, crédit — N prélèvements programmés" },
+  { value: "TEMPORARY", label: "Temporaire", hint: "Abonnement — récurrence à fin connue" },
+  { value: "ONE_OFF", label: "Ponctuelle", hint: "Sans récurrence" },
+  { value: "UPCOMING", label: "À venir (engagée)", hint: "SERAFE, régularisation — provisionnable" },
+];
+
+const categories = ["Logement", "Santé", "Impôts & taxes", "Assurances", "Abonnements", "Médias", "Divers"];
+const debitAccounts = ["UBS Courant", "Carte UBS", "BNP Perso", "BNP Joint"];
+
+function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="space-y-3">
+      <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">{title}</p>
+      {children}
+    </section>
+  );
+}
+
+function TextField({ label, ...props }: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-xs font-medium text-slate-600">{label}</label>
+      <input
+        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none"
+        {...props}
+      />
+    </div>
+  );
+}
+
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[] | string[];
+}) {
+  const normalized = options.map((o) => (typeof o === "string" ? { value: o, label: o } : o));
+  return (
+    <div className="space-y-1.5">
+      <label className="text-xs font-medium text-slate-600">{label}</label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-slate-400 focus:outline-none"
+      >
+        {normalized.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+/** Segmented two-option toggle — canvas-safe stand-in for shadcn <Switch/>. */
+function SegmentedToggle({ value, options, onChange }: { value: string; options: [string, string]; onChange: (v: string) => void }) {
+  return (
+    <div className="flex rounded-lg bg-slate-100 p-0.5">
+      {options.map((o) => (
+        <button
+          key={o}
+          type="button"
+          onClick={() => onChange(o)}
+          className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+            value === o ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
+          }`}
+        >
+          {o}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** Two-step destructive action — inline confirmation, no extra modal. */
+function DeleteButton({
+  label,
+  message,
+  confirmLabel = "Supprimer",
+  onDone,
+}: {
+  label: string;
+  message: string;
+  confirmLabel?: string;
+  onDone?: () => void;
+}) {
+  const [confirming, setConfirming] = useState(false);
+  if (!confirming) {
+    return (
+      <button
+        type="button"
+        onClick={() => setConfirming(true)}
+        className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-red-200 px-3 text-xs font-medium text-red-600 transition-colors hover:bg-red-50"
+      >
+        <IconTrash className="h-3.5 w-3.5" /> {label}
+      </button>
+    );
+  }
+  return (
+    <div className="space-y-2 rounded-lg border border-red-200 bg-red-50 p-3">
+      <p className="text-xs leading-relaxed text-red-700">{message}</p>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => setConfirming(false)}
+          className="h-8 flex-1 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-600"
+        >
+          Annuler
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setConfirming(false);
+            onDone?.();
+          }}
+          className="h-8 flex-1 rounded-lg bg-red-600 text-xs font-medium text-white transition-colors hover:bg-red-700"
+        >
+          {confirmLabel}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ChargeFormPage({ mode, charge, onBack }: { mode: "create" | "edit"; charge?: (typeof charges)[number]; onBack: () => void }) {
+  const isEdit = mode === "edit";
+  const [type, setType] = useState(chargeTypes.find((t) => t.label === charge?.type)?.value ?? chargeTypes[0].value);
+  const [currency, setCurrency] = useState(charge?.amount.includes("CHF") ? "CHF" : "EUR");
+  const [provision, setProvision] = useState("Oui");
+  const activeType = chargeTypes.find((t) => t.value === type)!;
+
+  return (
+    <div className="space-y-5 pb-6">
+      <FormSection title="Général">
+        <TextField label="Intitulé" defaultValue={charge?.label} placeholder="Ex. Loyer GE, LaMaL…" />
+        <SelectField label="Type de charge" value={type} onChange={setType} options={chargeTypes} />
+        <p className="-mt-1 text-[11px] text-slate-400">{activeType.hint}</p>
+        <SelectField label="Catégorie" value={charge?.category ?? "Logement"} options={categories} />
+      </FormSection>
+
+      <FormSection title="Montant & compte">
+        <SegmentedToggle value={currency} options={["EUR", "CHF"]} onChange={setCurrency} />
+        <TextField label={`Montant (${currency})`} defaultValue={charge?.amount.split(" ")[0]?.replace(",", ".")} placeholder="0.00" />
+        <SelectField label="Compte débité" value={charge?.account ?? "UBS Courant"} options={debitAccounts} />
+      </FormSection>
+
+      {/* Conditional block — the form adapts to the charge type */}
+      {type === "FIXED_RECURRING" && (
+        <FormSection title="Récurrence">
+          <SelectField label="Périodicité" value="Mensuelle" options={["Mensuelle", "Trimestrielle", "Annuelle"]} />
+          <TextField label="Jour de prélèvement (jour du mois)" defaultValue="1" placeholder="1" />
+          <p className="rounded-lg bg-slate-50 p-2.5 text-[11px] text-slate-500">
+            Échéance générée chaque période, au jour indiqué. Montant révisable (ex. LaMaL révisée chaque 1ᵉʳ janvier).
+          </p>
+        </FormSection>
+      )}
+      {type === "INSTALLMENT" && (
+        <FormSection title="Échéancier">
+          <TextField label="Nombre d'échéances" defaultValue="4" />
+          <TextField label="Première échéance" type="date" defaultValue="2026-09-25" />
+          <p className="rounded-lg bg-slate-50 p-2.5 text-[11px] text-slate-500">
+            Aperçu : 4 × 312,00 € — prélèvements 25/09, 26/10, 25/11, 28/12.
+          </p>
+        </FormSection>
+      )}
+      {type === "TEMPORARY" && (
+        <FormSection title="Récurrence bornée">
+          <SelectField label="Récurrence" value="Mensuelle" options={["Mensuelle", "Trimestrielle", "Annuelle"]} />
+          <TextField label="Jour de prélèvement (jour du mois)" defaultValue="15" placeholder="15" />
+          <TextField label="Fin de l'engagement" placeholder="06/2027" />
+        </FormSection>
+      )}
+      {type === "ONE_OFF" && (
+        <FormSection title="Paiement">
+          <TextField label="Date" type="date" defaultValue="2026-11-22" />
+        </FormSection>
+      )}
+      {type === "UPCOMING" && (
+        <FormSection title="Prévision & provision">
+          <TextField label="Date prévue" type="date" defaultValue="2027-10-15" />
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-slate-600">Provisionner (lissage mensuel)</label>
+            <SegmentedToggle value={provision} options={["Oui", "Non"]} onChange={setProvision} />
+          </div>
+          {provision === "Oui" && (
+            <p className="rounded-lg bg-slate-50 p-2.5 text-[11px] text-slate-500">
+              335,00 CHF / an → <span className="font-semibold text-slate-700">27,92 CHF / mois</span> débités du compte sélectionné.
+            </p>
+          )}
+        </FormSection>
+      )}
+
+      <Button size="lg" className="w-full" onClick={onBack}>
+        {isEdit ? "Enregistrer les modifications" : "Créer la charge"}
+      </Button>
+
+      {isEdit && (
+        <>
+          <Separator />
+          <DeleteButton
+            label="Supprimer la charge"
+            message={`Supprimer « ${charge?.label} » ? Les récurrences seront arrêtées et l'historique des paiements conservé.`}
+            onDone={onBack}
+          />
+        </>
+      )}
+    </div>
+  );
+}
+
+const accountKinds = [
+  { value: "CURRENT", label: "Courant" },
+  { value: "CREDIT_CARD", label: "Carte de crédit" },
+  { value: "JOINT", label: "Compte joint" },
+  { value: "SAVINGS", label: "Épargne" },
+];
+
+const kindByBadge: Record<string, string> = {
+  "Compte principal": "CURRENT",
+  "Compte perso": "CURRENT",
+  "Carte de crédit": "CREDIT_CARD",
+  "Compte joint": "JOINT",
+  Épargne: "SAVINGS",
+};
+
+function AccountFormPage({ mode, account, onBack }: { mode: "create" | "edit"; account?: (typeof accounts)[number]; onBack: () => void }) {
+  const isEdit = mode === "edit";
+  const [currency, setCurrency] = useState(account?.bank.includes("CHF") ? "CHF" : "EUR");
+  const [kind, setKind] = useState(account ? (kindByBadge[account.badge] ?? "CURRENT") : "CURRENT");
+  const [overdraft, setOverdraft] = useState("Oui");
+
+  return (
+    <div className="space-y-5 pb-6">
+      <FormSection title="Identité">
+        <TextField label="Nom du compte" defaultValue={account?.name} placeholder="Ex. UBS Courant" />
+        <TextField
+          label="Banque"
+          defaultValue={account ? (account.name.includes("UBS") ? "UBS" : account.name.includes("BNP") ? "BNP Paribas" : "") : ""}
+          placeholder="UBS, BNP Paribas… (saisie libre)"
+        />
+        <TextField label="IBAN (optionnel)" placeholder="CH… / FR…" />
+        <p className="-mt-1 rounded-lg bg-slate-50 p-2.5 text-[11px] text-slate-500">
+          Le code établissement encodé dans l'IBAN (FR) ou le numéro de banque (CH) identifie la banque —
+          la saisie manuelle reste libre, aucune liste de référence à maintenir.
+        </p>
+        <SegmentedToggle value={currency} options={["EUR", "CHF"]} onChange={setCurrency} />
+        <SelectField label="Type de compte" value={kind} onChange={setKind} options={accountKinds} />
+      </FormSection>
+
+      <FormSection title="Solde">
+        <TextField
+          label={`Solde initial (${currency})`}
+          defaultValue={account?.balance.replace(/[^\d,]/g, "").replace(",", ".")}
+          placeholder="0.00"
+        />
+        {currency === "CHF" ? (
+          <p className="rounded-lg bg-amber-50 p-2.5 text-[11px] text-amber-700">
+            Pas de découvert autorisé en Suisse — l'app ne proposera que des alertes trésorerie.
+          </p>
+        ) : (
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-slate-600">Découvert autorisé</label>
+            <SegmentedToggle value={overdraft} options={["Oui", "Non"]} onChange={setOverdraft} />
+            {overdraft === "Oui" && <TextField label="Montant du découvert (EUR)" defaultValue="500.00" />}
+          </div>
+        )}
+      </FormSection>
+
+      {kind === "CREDIT_CARD" && (
+        <FormSection title="Carte">
+          <TextField label="Jour de facturation mensuelle" defaultValue="28" />
+          <p className="rounded-lg bg-slate-50 p-2.5 text-[11px] text-slate-500">
+            Encours suivi sur un compte carte distinct ; facture prélevée sur le compte courant lié.
+          </p>
+        </FormSection>
+      )}
+
+      {kind === "SAVINGS" && (
+        <FormSection title="Plafond">
+          <TextField label="Plafond (EUR)" defaultValue="22950.00" />
+          <div className="flex items-center gap-2">
+            <Progress value={79} className="h-1.5" />
+            <span className="text-[11px] text-slate-500">79 %</span>
+          </div>
+          <p className="rounded-lg bg-slate-50 p-2.5 text-[11px] text-slate-500">Livret A — plafond de 22 950 € par personne.</p>
+        </FormSection>
+      )}
+
+      <Button size="lg" className="w-full" onClick={onBack}>
+        {isEdit ? "Enregistrer les modifications" : "Créer le compte"}
+      </Button>
+
+      {isEdit && (
+        <>
+          <Separator />
+          <DeleteButton
+            label="Clôturer le compte"
+            confirmLabel="Clôturer"
+            message={`Clôturer « ${account?.name} » ? Les récurrences liées seront arrêtées, l'historique et les soldes conservés (soft delete). Suppression définitive possible uniquement si le compte est vierge.`}
+            onDone={onBack}
+          />
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Screens                                                            */
+/* ------------------------------------------------------------------ */
+
+function DashboardScreen({ onExpandChart }: { onExpandChart: (chart: "sankey" | "donut") => void }) {
+  const [showAllPayments, setShowAllPayments] = useState(false);
+  const shownPayments = showAllPayments ? upcomingPayments : upcomingPayments.slice(0, 3);
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardContent className="pt-5">
+          <p className="text-xs text-slate-500">Patrimoine consolidé · novembre 2026</p>
+          <div className="mt-1 flex items-end justify-between">
+            <div>
+              <p className="text-3xl font-semibold tracking-tight text-slate-900">{eur(24530)}</p>
+              <p className="mt-0.5 text-xs text-slate-500">≈ 26 410 CHF en parallèle</p>
+            </div>
+            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">+ 840 € ce mois</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div>
+        <SectionTitle>Flux du mois</SectionTitle>
+        <Card>
+          <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs font-medium text-slate-500">Revenus → comptes → charges</CardTitle>
+            <ExpandButton onClick={() => onExpandChart("sankey")} />
+          </CardHeader>
+          <CardContent className="h-56">
+            <SankeyChart />
+          </CardContent>
+        </Card>
+      </div>
+
+      <div>
+        <SectionTitle>Dépenses par catégorie</SectionTitle>
+        <Card>
+          <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs font-medium text-slate-500">Novembre · {eur(4905)}</CardTitle>
+            <ExpandButton onClick={() => onExpandChart("donut")} />
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4">
+              <div className="h-28 w-28 shrink-0">
+                <DonutChart />
+              </div>
+              <div className="grid flex-1 grid-cols-2 gap-x-3 gap-y-1.5">
+                {donutData.map((d) => (
+                  <div key={d.name} className="flex items-center gap-1.5 text-[11px] text-slate-600">
+                    <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: d.color }} />
+                    <span className="truncate">{d.name}</span>
+                    <span className="ml-auto text-slate-400">{eur(d.value)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div>
+        <SectionTitle>Échéances du mois</SectionTitle>
+        <Card>
+          <CardContent className="divide-y divide-slate-100 pt-2">
+            {shownPayments.map((p) => (
+              <DetailSheet
+                key={p.label}
+                title={p.label}
+                trigger={
+                  <div className="flex items-center justify-between py-2.5 transition-colors hover:bg-slate-50">
+                    <div>
+                      <p className="text-sm font-medium text-slate-800">{p.label}</p>
+                      <div className="mt-1 flex items-center gap-1.5">
+                        <AccountChip name={p.account} />
+                        <span className="text-[11px] text-slate-400">{p.due}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-slate-900">
+                        {p.currency === "CHF" ? chf(p.amount) : eur(p.amount, 2)}
+                      </span>
+                      <StatusBadge status={p.status} />
+                    </div>
+                  </div>
+                }
+              >
+                <div className="flex items-center gap-2">
+                  <StatusBadge status={p.status} />
+                  <AccountChip name={p.account} />
+                </div>
+                <Separator />
+                <DetailRow label="Montant" value={p.currency === "CHF" ? chf(p.amount) : eur(p.amount, 2)} />
+                <DetailRow label="Échéance" value={p.due} />
+                <DetailRow label="Compte débité" value={p.account} />
+                <DetailRow label="Statut" value={p.status} />
+                <Separator />
+                <p className="text-xs leading-relaxed text-slate-500">{p.note}</p>
+              </DetailSheet>
+            ))}
+            {upcomingPayments.length > 3 && (
+              <button
+                onClick={() => setShowAllPayments((v) => !v)}
+                className="w-full py-2.5 text-xs font-medium text-emerald-700"
+              >
+                {showAllPayments
+                  ? "Réduire la liste"
+                  : `Afficher les ${upcomingPayments.length - 3} autres échéances`}
+              </button>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div>
+        <SectionTitle>Provisions · lissage mensuel</SectionTitle>
+        <Card>
+          <CardContent className="space-y-2 pt-4">
+            {provisions.map((p) => (
+              <DetailSheet
+                key={p.label}
+                title={p.label}
+                trigger={
+                  <div className="flex items-center justify-between rounded-lg px-0 py-2 text-sm transition-colors">
+                    <div>
+                      <p className="font-medium text-slate-800">{p.label}</p>
+                      <div className="mt-1">
+                        <AccountChip name={p.account} />
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-slate-900">{chf(p.perMonth)} / mois</p>
+                      <p className="text-[11px] text-slate-400">{chf(p.total, 0)} / an</p>
+                    </div>
+                  </div>
+                }
+              >
+                <div className="flex items-center gap-2">
+                  <StatusBadge status="Provisionnée" />
+                  <AccountChip name={p.account} />
+                </div>
+                <Separator />
+                <DetailRow label="Total annuel" value={chf(p.total, 0)} />
+                <DetailRow label="Lissage mensuel" value={`${chf(p.perMonth)} / mois`} />
+                <DetailRow label="Compte débité" value={p.account} />
+                <Separator />
+                <p className="text-xs leading-relaxed text-slate-500">{p.note}</p>
+              </DetailSheet>
+            ))}
+            <Separator />
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium text-slate-700">Total provisionné</span>
+              <span className="font-semibold text-slate-900">67,92 CHF / mois</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function ChargesScreen({
+  onNewCharge,
+  onEditCharge,
+}: {
+  onNewCharge: () => void;
+  onEditCharge: (charge: (typeof charges)[number]) => void;
+}) {
+  const [filter, setFilter] = useState<string>("Toutes");
+  const filters = ["Toutes", "Fixes", "Échelonnées", "À venir"];
+  const visible =
+    filter === "Toutes" || filter === "Fixes"
+      ? charges
+      : charges.filter((c) =>
+          filter === "Échelonnées" ? c.type === "Échelonnée" : c.type.startsWith("À venir") || c.status === "Provisionnée",
+        );
+
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {filters.map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              filter === f ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600"
+            }`}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
+
+      <Card>
+        <CardContent className="divide-y divide-slate-100 pt-2">
+          {visible.map((c) => (
+            <DetailSheet
+              key={c.label}
+              title={c.label}
+              trigger={
+                <div className="py-3 transition-colors hover:bg-slate-50">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium text-slate-800">{c.label}</p>
+                    <StatusBadge status={c.status} />
+                  </div>
+                  <div className="mt-1 flex items-center gap-2">
+                    <TypeBadge type={c.type} />
+                  </div>
+                  <p className="mt-1.5 text-xs text-slate-500">{c.amount}</p>
+                  <p className="text-xs text-slate-400">Prochaine échéance : {c.due}</p>
+                </div>
+              }
+            >
+              <div className="flex items-center gap-2">
+                <TypeBadge type={c.type} />
+                <StatusBadge status={c.status} />
+                <AccountChip name={c.account} />
+              </div>
+              <Separator />
+              <DetailRow label="Catégorie" value={c.category} />
+              <DetailRow label="Montant" value={c.amount} />
+              <DetailRow label="Prochaine échéance" value={c.due} />
+              <DetailRow label="Compte débité" value={c.account} />
+              <Separator />
+              <p className="text-xs leading-relaxed text-slate-500">{c.note}</p>
+              <Separator />
+              {/* Reading and mutations cohabit on the same view */}
+              <div className="space-y-2 pt-1">
+                <Button size="sm" className="w-full" onClick={() => onEditCharge(c)}>
+                  Modifier
+                </Button>
+                <DeleteButton
+                  label="Supprimer la charge"
+                  message={`Supprimer « ${c.label} » ? Les récurrences seront arrêtées et l'historique des paiements conservé.`}
+                />
+              </div>
+            </DetailSheet>
+          ))}
+        </CardContent>
+      </Card>
+
+      <Button className="w-full" size="lg" onClick={onNewCharge}>
+        <IconPlus className="mr-1 h-4 w-4" /> Nouvelle charge
+      </Button>
+    </div>
+  );
+}
+
+function TransfertScreen() {
+  return (
+    <div className="space-y-4">
+      <div>
+        <SectionTitle>Transferts CHF → EUR · Telexoo</SectionTitle>
+        <p className="text-xs text-slate-500">
+          Deux phases : estimé à l'envoi, recalculé au crédit réel. Le taux est toujours daté, les frais jamais fondus dedans.
+        </p>
+      </div>
+
+      {transfers.map((t) => (
+        <Card key={t.date}>
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium text-slate-800">{chf(t.sent, 0)} envoyés</CardTitle>
+              <StatusBadge status={t.status} />
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3 pt-0">
+            <div className="flex items-center gap-2 text-xs text-slate-500">
+              <IconClock className="h-3.5 w-3.5" /> {t.date}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="rounded-lg bg-slate-50 p-2.5">
+                <p className="text-slate-500">Phase 1 · Estimé</p>
+                <p className="mt-1 font-semibold text-slate-800">{t.estimated}</p>
+                <p className="text-[11px] text-slate-400">taux de référence {t.rateRef}</p>
+              </div>
+              <div className={`rounded-lg p-2.5 ${t.credited !== null ? "bg-emerald-50" : "bg-slate-50 opacity-60"}`}>
+                <p className="text-slate-500">Phase 2 · Réalisé</p>
+                {t.credited !== null ? (
+                  <>
+                    <p className="mt-1 font-semibold text-slate-800">{eur(t.credited, 2)}</p>
+                    <p className="text-[11px] text-slate-400">
+                      taux effectif {t.rateEffective} · frais {t.fees}
+                    </p>
+                  </>
+                ) : (
+                  <p className="mt-1 text-[11px] italic text-slate-400">En attente du crédit</p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+
+      <Button variant="outline" className="w-full" size="lg">
+        Nouveau transfert <IconArrowRight className="ml-1 h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
+function AccountsScreen({
+  onNewAccount,
+  onEditAccount,
+}: {
+  onNewAccount: () => void;
+  onEditAccount: (account: (typeof accounts)[number]) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      <div>
+        <SectionTitle>Comptes</SectionTitle>
+        <p className="text-xs text-slate-500">
+          Consolidation en euros, devises natives conservées. Touchez un compte pour le modifier ou le clôturer.
+        </p>
+      </div>
+      {accounts.map((a) => (
+        <Card
+          key={a.name}
+          onClick={() => onEditAccount(a)}
+          className="cursor-pointer border-slate-200 transition-colors hover:border-slate-300"
+        >
+          <CardContent className="pt-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-slate-800">{a.name}</p>
+                <p className="text-[11px] uppercase tracking-wide text-slate-400">{a.bank}</p>
+              </div>
+              <Badge variant="outline" className="text-[10px] text-slate-500">
+                {a.badge}
+              </Badge>
+            </div>
+            <p className="mt-2 text-lg font-semibold text-slate-900">{a.balance}</p>
+            {a.name.startsWith("Livret") && (
+              <div className="mt-2 flex items-center gap-2">
+                <Progress value={79} className="h-1.5" />
+                <span className="text-[11px] text-slate-500">79 %</span>
+              </div>
+            )}
+            <p className="mt-1 text-xs text-slate-500">{a.note}</p>
+          </CardContent>
+        </Card>
+      ))}
+
+      <Button variant="outline" size="lg" className="w-full" onClick={onNewAccount}>
+        <IconPlus className="mr-1 h-4 w-4" /> Nouveau compte
+      </Button>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* App — phone frame, PWA-like                                        */
+/* ------------------------------------------------------------------ */
+
+type Screen = "dashboard" | "charges" | "transfert" | "comptes";
+type Chart = "sankey" | "donut";
+type Sub =
+  | { kind: "charge-new" }
+  | { kind: "charge-edit"; label: string }
+  | { kind: "account-new" }
+  | { kind: "account-edit"; name: string };
+
+export default function App() {
+  const [screen, setScreen] = useState<Screen>("dashboard");
+  const [fullscreenChart, setFullscreenChart] = useState<Chart | null>(null);
+  const [sub, setSub] = useState<Sub | null>(null);
+  const editedCharge = sub?.kind === "charge-edit" ? charges.find((c) => c.label === sub.label) : undefined;
+  const editedAccount = sub?.kind === "account-edit" ? accounts.find((a) => a.name === sub.name) : undefined;
+
+  const nav: { id: Screen; label: string; icon: React.ReactNode }[] = [
+    { id: "dashboard", label: "Tableau de bord", icon: <IconChartPie className="h-5 w-5" /> },
+    { id: "charges", label: "Charges", icon: <IconCalendar className="h-5 w-5" /> },
+    { id: "transfert", label: "Transferts", icon: <IconArrowsTransaction className="h-5 w-5" /> },
+    { id: "comptes", label: "Comptes", icon: <IconBankStatement className="h-5 w-5" /> },
+  ];
+
+  const titles: Record<Screen, string> = {
+    dashboard: "Tableau de bord",
+    charges: "Charges & échéancier",
+    transfert: "Transferts",
+    comptes: "Comptes",
+  };
+
+  const chartTitles: Record<Chart, string> = {
+    sankey: "Flux du mois (Sankey)",
+    donut: "Dépenses par catégorie",
+  };
+
+  const subTitles: Record<Sub["kind"], string> = {
+    "charge-new": "Nouvelle charge",
+    "charge-edit": "Modifier la charge",
+    "account-new": "Nouveau compte",
+    "account-edit": "Modifier le compte",
+  };
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-slate-100 p-6">
+      <div className="flex flex-col items-center gap-4">
+        {/* PWA phone frame */}
+        <div className="w-[390px] overflow-hidden rounded-[2.5rem] border-8 border-slate-900 bg-white shadow-2xl">
+          {/* status bar */}
+          <div className="flex items-center justify-between bg-slate-900 px-5 py-1.5 text-[11px] font-medium text-white">
+            <span>9:41</span>
+            <span>Mbongo</span>
+            <span className="flex items-center gap-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-white" /> PWA
+            </span>
+          </div>
+
+          {/* header — form sub-views take over when open */}
+          {sub ? (
+            <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3">
+              <button
+                onClick={() => setSub(null)}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-700"
+                aria-label="Retour"
+              >
+                <IconChevronLeft className="h-5 w-5" />
+              </button>
+              <div>
+                <p className="text-[11px] uppercase tracking-wider text-slate-400">
+                  {sub.kind.endsWith("new") ? "Création" : "Lecture & mutations"}
+                </p>
+                <h1 className="text-lg font-semibold tracking-tight text-slate-900">{subTitles[sub.kind]}</h1>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3">
+              <div>
+                <p className="text-[11px] uppercase tracking-wider text-slate-400">novembre 2026</p>
+                <h1 className="text-lg font-semibold tracking-tight text-slate-900">{titles[screen]}</h1>
+              </div>
+              <div className="flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">
+                <span className="rounded-full bg-white px-1.5 py-0.5 shadow-sm">EUR</span> <span className="px-1">CHF</span>
+              </div>
+            </div>
+          )}
+
+          {/* scrollable content — form sub-view or tab screen */}
+          <div className="h-[620px] overflow-y-auto bg-slate-50 p-4">
+            {sub?.kind === "charge-new" && <ChargeFormPage mode="create" onBack={() => setSub(null)} />}
+            {sub?.kind === "charge-edit" && <ChargeFormPage mode="edit" charge={editedCharge} onBack={() => setSub(null)} />}
+            {sub?.kind === "account-new" && <AccountFormPage mode="create" onBack={() => setSub(null)} />}
+            {sub?.kind === "account-edit" && <AccountFormPage mode="edit" account={editedAccount} onBack={() => setSub(null)} />}
+
+            {!sub && screen === "dashboard" && <DashboardScreen onExpandChart={setFullscreenChart} />}
+            {!sub && screen === "charges" && (
+              <ChargesScreen
+                onNewCharge={() => setSub({ kind: "charge-new" })}
+                onEditCharge={(c) => setSub({ kind: "charge-edit", label: c.label })}
+              />
+            )}
+            {!sub && screen === "transfert" && <TransfertScreen />}
+            {!sub && screen === "comptes" && (
+              <AccountsScreen
+                onNewAccount={() => setSub({ kind: "account-new" })}
+                onEditAccount={(a) => setSub({ kind: "account-edit", name: a.name })}
+              />
+            )}
+          </div>
+
+          {/* bottom navigation — hidden while a form sub-view is open */}
+          <div className={`flex border-t border-slate-100 bg-white px-2 pb-3 pt-1.5 ${sub ? "hidden" : ""}`}>
+            {nav.map((n) => (
+              <button
+                key={n.id}
+                onClick={() => setScreen(n.id)}
+                className={`flex flex-1 flex-col items-center gap-0.5 rounded-lg py-1 text-[10px] font-medium transition-colors ${
+                  screen === n.id ? "text-emerald-600" : "text-slate-400"
+                }`}
+              >
+                {n.icon}
+                {n.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <p className="max-w-[390px] text-center text-xs text-slate-500">
+          Maquette V2 — données fictives, parcours mobile-first (PWA). Une page une responsabilité : création dédiée, lecture
+          et mutations (modification, suppression, clôture) regroupées. Tout élément de liste est tappable.
+        </p>
+      </div>
+
+      {/* fullscreen chart overlay */}
+      {fullscreenChart && (
+        <ChartFullscreen title={chartTitles[fullscreenChart]} onClose={() => setFullscreenChart(null)}>
+          {fullscreenChart === "sankey" ? (
+            <div className="h-full w-full px-4">
+              <SankeyChart />
+            </div>
+          ) : (
+            <div className="flex h-full w-full flex-col items-center justify-center gap-4">
+              <div className="h-[360px] w-[360px]">
+                <DonutChart />
+              </div>
+              <div className="flex max-w-[320px] flex-wrap justify-center gap-x-3 gap-y-1.5">
+                {donutData.map((d) => (
+                  <div key={d.name} className="flex items-center gap-1.5 text-[11px] text-slate-600">
+                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: d.color }} />
+                    {d.name} · <span className="text-slate-400">{eur(d.value)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </ChartFullscreen>
+      )}
+    </div>
+  );
+}

@@ -1,243 +1,97 @@
 {
   "name": "mbongo",
-  "version": "1.0.0",
-  "description": "Projet configuré pour Agent IA Expert Architect - Spec-Driven Development, Clean Code, Craftsmanship",
-  "main": "dist/index.js",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Monorepo for mbongo project - AI Agent Configuration with Spec-Driven Development and Clean Code",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "tsc && copyfiles -u 1 "src/**/*.md" "src/**/*.json" dist",
-    "start": "node dist/index.js",
-    "lint": "eslint . --ext .ts,.js",
-    "lint:fix": "eslint . --ext .ts,.js --fix",
-    "format": "prettier --write \"src/**/*.{ts,js,json,md}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,js,json,md}\"",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "test:coverage:html": "jest --coverage && open coverage/lcov-report/index.html",
-    "typecheck": "tsc --noEmit",
-    "typecheck:watch": "tsc --noEmit --watch",
-    "clean": "rimraf dist coverage",
-    "prepare": "npm run build",
-    "precommit": "lint-staged",
+    "dev": "turbo run dev",
+    "dev:web": "cd apps/web && npm run dev",
+    "build": "turbo run build",
+    "build:web": "cd apps/web && npm run build",
+    "start": "cd apps/web && npm run start",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "format": "turbo run format",
+    "format:check": "turbo run format:check",
+    "test": "turbo run test",
+    "test:watch": "turbo run test:watch",
+    "test:coverage": "turbo run test:coverage",
+    "typecheck": "turbo run typecheck",
+    "clean": "turbo run clean",
+    "prisma:generate": "cd apps/web && npx prisma generate",
+    "prisma:migrate": "cd apps/web && npx prisma migrate dev",
+    "prisma:studio": "cd apps/web && npx prisma studio",
+    "prisma:push": "cd apps/web && npx prisma db push",
+    "prisma:seed": "cd apps/web && npm run db:seed",
     "quality": "npm run lint && npm run format:check && npm run typecheck && npm run test",
     "quality:fix": "npm run lint:fix && npm run format && npm run typecheck && npm run test",
-    "docs": "typedoc --out docs/api src",
-    "docs:serve": "typedoc --out docs/api src && npx serve docs/api",
-    "vibe:spec:init": "node scripts/init-spec.js",
-    "vibe:spec:validate": "node scripts/validate-spec.js",
-    "vibe:todo:sync": "node scripts/sync-todo.js"
+    "install:all": "npm install",
+    "setup": "npm run install:all && npm run prisma:generate && npm run prisma:push"
   },
-  "keywords": [
-    "agent-ia",
-    "spec-driven-development",
-    "clean-code",
-    "craftsmanship",
-    "typescript",
-    "architecture"
-  ],
-  "author": "Agent IA Expert Architect",
-  "license": "MIT",
   "devDependencies": {
-    "@types/jest": "^29.5.11",
-    "@types/node": "^20.10.5",
-    "@types/uuid": "^9.0.7",
-    "@typescript-eslint/eslint-plugin": "^6.15.0",
-    "@typescript-eslint/parser": "^6.15.0",
-    "copyfiles": "^2.4.1",
-    "eslint": "^8.56.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-jest": "^27.6.0",
-    "eslint-plugin-prettier": "^5.1.2",
-    "husky": "^8.0.3",
-    "jest": "^29.7.0",
-    "lint-staged": "^15.2.0",
-    "prettier": "^3.1.1",
-    "rimraf": "^5.0.5",
-    "serve": "^14.2.1",
-    "ts-jest": "^29.1.1",
-    "typedoc": "^0.25.7",
-    "typescript": "^5.3.3",
-    "ts-node-dev": "^2.0.0"
-  },
-  "dependencies": {
-    "reflect-metadata": "^0.2.1",
-    "uuid": "^9.0.1"
+    "turbo": "^2.0.0",
+    "typescript": "^5.3.3"
   },
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
   },
-  "lint-staged": {
-    "*.{ts,js}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{json,md}": [
-      "prettier --write"
-    ]
-  },
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node",
-    "roots": [
-      "<rootDir>/src",
-      "<rootDir>/tests"
-    ],
-    "testMatch": [
-      "**/__tests__/**/*.+(ts|tsx|js)",
-      "**/?(*.)+(spec|test).+(ts|tsx|js)"
-    ],
-    "transform": {
-      "^.+\\.(ts|tsx)$": [
-        "ts-jest",
-        {
-          "useESM": true
-        }
-      ]
-    },
-    "collectCoverageFrom": [
-      "src/**/*.ts",
-      "!src/**/*.d.ts",
-      "!src/index.ts"
-    ],
-    "coverageDirectory": "coverage",
-    "coverageReporters": [
-      "text",
-      "lcov",
-      "html"
-    ],
-    "coverageThreshold": {
-      "global": {
-        "branches": 80,
-        "functions": 80,
-        "lines": 80,
-        "statements": 80
-      }
-    },
-    "verbose": true,
-    "clearMocks": true,
-    "restoreMocks": true
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true,
-      "jest": true
-    },
-    "extends": [
-      "eslint:recommended",
-      "plugin:@typescript-eslint/recommended",
-      "plugin:@typescript-eslint/recommended-requiring-type-checking",
-      "plugin:jest/recommended",
-      "plugin:prettier/recommended"
-    ],
-    "parser": "@typescript-eslint/parser",
-    "parserOptions": {
-      "ecmaVersion": 2022,
-      "sourceType": "module",
-      "project": "./tsconfig.json",
-      "ecmaFeatures": {
-        "impliedStrict": true
-      }
-    },
-    "plugins": [
-      "@typescript-eslint",
-      "jest",
-      "prettier"
-    ],
-    "settings": {
-      "jest": {
-        "version": 29
-      }
-    },
-    "rules": {
-      "@typescript-eslint/explicit-function-return-type": ["error", {
-        "allowExpressions": true,
-        "allowConciseArrowFunctionExpressionsStartingWithVoid": true
-      }],
-      "@typescript-eslint/no-explicit-any": "error",
-      "@typescript-eslint/no-unused-vars": ["error", {
-        "argsIgnorePattern": "^_"
-      }],
-      "@typescript-eslint/no-non-null-assertion": "warn",
-      "@typescript-eslint/prefer-nullish-coalescing": "error",
-      "@typescript-eslint/prefer-optional-chain": "error",
-      "@typescript-eslint/prefer-readonly": "error",
-      "@typescript-eslint/explicit-module-boundary-types": "off",
-      "@typescript-eslint/no-inferrable-types": "error",
-      "@typescript-eslint/array-type": ["error", {
-        "default": "array-simple"
-      }],
-      "no-console": ["error", {
-        "allow": ["warn", "error"]
-      }],
-      "prefer-const": "error",
-      "no-var": "error",
-      "no-implicit-coercion": "error",
-      "no-param-reassign": "error",
-      "no-plusplus": ["error", {
-        "allowForLoopAfterthoughts": true
-      }],
-      "no-throw-literal": "error",
-      "require-await": "error",
-      "prettier/prettier": [
-        "error",
-        {
-          "semi": true,
-          "singleQuote": true,
-          "tabWidth": 2,
-          "trailingComma": "es5",
-          "printWidth": 80,
-          "endOfLine": "auto"
-        }
-      ]
-    },
-    "overrides": [
-      {
-        "files": ["*.test.ts", "*.spec.ts"],
-        "rules": {
-          "@typescript-eslint/no-explicit-any": "off"
-        }
-      }
-    ]
-  },
-  "prettier": {
-    "semi": true,
-    "singleQuote": true,
-    "tabWidth": 2,
-    "trailingComma": "es5",
-    "printWidth": 80,
-    "endOfLine": "auto",
-    "bracketSpacing": true,
-    "arrowParens": "always"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged",
-      "pre-push": "npm run quality"
-    }
-  },
-  "vibe": {
-    "skills": {
-      "spec-driven-development": {
-        "enabled": true,
-        "auto-activate": true,
-        "strict-mode": true
+  "packageManager": "npm@9.0.0",
+  "turbo": {
+    "pipeline": {
+      "build": {
+        "dependsOn": ["^build"],
+        "outputs": [".next/**", "!.next/cache/**", "dist/**"]
       },
-      "clean-code": {
-        "enabled": true,
-        "auto-activate": true
+      "dev": {
+        "cache": false,
+        "persistent": true
+      },
+      "lint": {
+        "outputs": []
+      },
+      "lint:fix": {
+        "outputs": []
+      },
+      "format": {
+        "outputs": []
+      },
+      "format:check": {
+        "outputs": []
+      },
+      "test": {
+        "outputs": []
+      },
+      "test:watch": {
+        "cache": false,
+        "outputs": []
+      },
+      "test:coverage": {
+        "outputs": []
+      },
+      "typecheck": {
+        "outputs": []
+      },
+      "clean": {
+        "cache": false,
+        "outputs": []
+      },
+      "db:generate": {
+        "cache": false
+      },
+      "db:migrate": {
+        "cache": false
+      },
+      "db:studio": {
+        "cache": false
+      },
+      "db:seed": {
+        "cache": false
       }
-    },
-    "todo": {
-      "auto-sync": true,
-      "file": "TODO.md"
-    },
-    "validation": {
-      "require-spec": true,
-      "require-tests": true,
-      "min-coverage": 80
     }
   }
 }

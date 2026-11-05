@@ -1,0 +1,87 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// Models
+// ============================================================================
+
+/// Charge represents a financial charge or recurring payment
+model Charge {
+  id           String            @id @default(uuid())
+  label        String
+  type         String            // ChargeType enum (validated by zod at the edge)
+  amount       Float
+  currency     String            // Currency enum
+  category     String
+  startDate    DateTime
+  endDate      DateTime?
+  frequency    String?           // Frequency enum
+  installments Int?
+  provisioned  Boolean           @default(false)
+  accountId    String
+  account      Account           @relation(fields: [accountId], references: [id])
+  payments     ScheduledPayment[]
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  // Indexes for better query performance
+  @@index([accountId])
+  @@index([type])
+  @@index([category])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([provisioned])
+
+  @@map("charges")
+}
+
+/// ScheduledPayment represents a payment scheduled for a charge
+model ScheduledPayment {
+  id         String    @id @default(uuid())
+  amount     Float
+  currency   String
+  dueDate    DateTime
+  status     String    @default("PENDING") // PaymentStatus enum
+  paidAt     DateTime?
+  chargeId   String
+  charge     Charge    @relation(fields: [chargeId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  // Indexes
+  @@index([chargeId])
+  @@index([dueDate])
+  @@index([status])
+  @@index([paidAt])
+
+  @@map("scheduled_payments")
+}
+
+/// Account represents a bank account or financial account
+model Account {
+  id          String   @id @default(uuid())
+  name        String
+  bankName    String?
+  accountType String?  // AccountType enum
+  balance     Float    @default(0)
+  currency    String   @default("CHF")
+  isActive    Boolean  @default(true)
+  charges     Charge[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Indexes
+  @@index([name])
+  @@index([isActive])
+
+  @@map("accounts")
+}

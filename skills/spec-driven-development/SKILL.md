@@ -1,13 +1,15 @@
-# SKILL.md - Spec-Driven Development (SDD)
+# SKILL.md - Spec-Driven Development (SDD) for Next.js BFF
 
 ## 🎯 Description
 
-**Skill de Specification-Driven Development** - Une approche systématique pour développer des logiciels à partir de spécifications détaillées et validées.
+**Skill de Specification-Driven Development** - Une approche systématique pour développer des applications **Next.js BFF Fullstack** à partir de spécifications détaillées et validées.
+
+**Philosophie:** KISS (Keep It Simple, Stupid) - Architecture simple, directe, lisible.
 
 Inspiré par:
 - [Kiro.dev](https://kiro.dev) - Spec-Driven Development Framework
-- [Google Agent Skills](https://developers.google.com/agent-skills) - Structured Development
-- Domain-Driven Design (DDD)
+- **NestJS Architecture** (mais sans le framework)
+- **Next.js Best Practices**
 - Test-Driven Development (TDD)
 
 ## 📌 Capabilités
@@ -20,20 +22,21 @@ Cette skill permet à l'Agent IA de:
 4. **Développer en suivant** strictement la spec
 5. **Vérifier la conformité** du code par rapport à la spec
 6. **Documenter automatiquement** à partir de la spec
+7. **Respecter l'architecture Next.js BFF** (Services, Controllers, Schémas Zod)
 
 ## 🚀 Activation
 
 Cette skill s'active automatiquement quand:
 - Un utilisateur demande une nouvelle feature
 - Un utilisateur dit "créer une spec"
-- Un utilisateur mentionne "specification"
-- Un projet est initialisé sans spec existante
+- Un utilisateur mentionne "spécification"
+- Un projet Next.js est initialisé sans spec existante
 
-## 📋 Workflow SDD
+## 📋 Workflow SDD (Next.js BFF Edition)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    SPEC-DRIVEN DEVELOPMENT                   │
+│              SPEC-DRIVEN DEVELOPMENT - NEXT.JS BFF            │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  1. CAPTURE DES BESOINS                                     │
@@ -41,15 +44,16 @@ Cette skill s'active automatiquement quand:
 │     ├─ Identifier les acteurs                               │
 │     └─ Définir le périmètre (In/Out of Scope)               │
 │                                                             │
-│  2. ANALYSE TECHNIQUE                                       │
-│     ├─ Identifier les composants impactés                   │
-│     ├─ Définir les interfaces/contrats                       │
+│  2. ANALYSE TECHNIQUE (Next.js BFF)                         │
+│     ├─ Définir les schémas Zod (packages/shared/schemas)   │
+│     ├─ Identifier les endpoints API                         │
+│     ├─ Définir les services nécessaires                    │
 │     └─ Analyser les contraintes techniques                  │
 │                                                             │
 │  3. RÉDACTION DE LA SPEC                                    │
 │     ├─ Utiliser le template SPEC_TEMPLATE.md                │
-│     ├─ Décrire les fonctionnalités                          │
-│     ├─ Définir les règles métier                            │
+│     ├─ Décrire les schémas Zod                              │
+│     ├─ Définir les endpoints API                            │
 │     └─ Spécifier les tests attendus                         │
 │                                                             │
 │  4. VALIDATION                                              │
@@ -59,13 +63,14 @@ Cette skill s'active automatiquement quand:
 │                                                             │
 │  5. PLANIFICATION                                           │
 │     ├─ Découper en tâches (todo list)                      │
-│     ├─ Estimer le temps pour chaque tâche                   │
 │     └─ Définir les dépendances entre tâches                │
 │                                                             │
-│  6. DÉVELOPPEMENT                                          │
-│     ├─ Coder UNIQUEMENT selon la spec                       │
-│     ├─ Respecter les conventions (CONVENTIONS.md)          │
-│     └─ Mettre à jour la todo list                           │
+│  6. DÉVELOPPEMENT (Next.js BFF)                            │
+│     ├─ Créer les schémas Zod (packages/shared/schemas)      │
+│     ├─ Implémenter les services (server/<module>.service.ts)│
+│     ├─ Créer les controllers (server/<module>.controller.ts)│
+│     ├─ Créer les routes API (app/api/<module>/route.ts)      │
+│     └─ Créer les pages RSC si nécessaire                     │
 │                                                             │
 │  7. VÉRIFICATION                                            │
 │     ├─ Vérifier chaque point de la spec                    │
@@ -73,16 +78,14 @@ Cette skill s'active automatiquement quand:
 │     └─ Validation finale avec le demandeur                 │
 │                                                             │
 │  8. DOCUMENTATION                                           │
-│     ├─ Mettre à jour la documentation                       │
-│     ├─ Archiver la spec validée                             │
-│     └─ Documenter les décisions techniques                  │
+│     └─ Mettre à jour la documentation                       │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ## 📝 Template de Spécification
 
-Voir `SPEC_TEMPLATE.md` dans ce dossier.
+Voir `SPEC_TEMPLATE.md` dans ce dossier (adapté pour Next.js BFF).
 
 ## 🎛️ Commandes & Triggers
 
@@ -106,51 +109,32 @@ L'agent DEVRA:
 ### Exemples de Triggers
 
 **Utilisateur:**
-> "J'ai besoin d'un système de gestion des utilisateurs"
+> "J'ai besoin d'un système de gestion des charges"
 
 **Agent (réponse automatique):**
 ```
 ⚠️ PAS DE CODE SANS SPEC VALIDÉE
 
-Je vais créer une spécification détaillée pour ce besoin.
-Souhaitez-vous utiliser le template SDD? (Oui/Non)
+Pour ce besoin, nous allons créer une architecture Next.js BFF:
+1. Schémas Zod dans packages/shared/schemas/charge.ts
+2. Service dans server/charges/charge.service.ts
+3. Controller dans server/charges/charges.controller.ts
+4. Routes API dans app/api/charges/
 
-Si Oui: /vibe spec:init user-management
+Je propose: /vibe spec:init charge-management
 ```
 
-**Utilisateur:**
-> "Créer une API pour les produits"
-
-**Agent (réponse automatique):**
-```
-⚠️ PAS DE CODE SANS SPEC VALIDÉE
-
-Pour créer une API produits, nous devons d'abord:
-1. Définir les endpoints nécessaires
-2. Spécifier les DTOs (Data Transfer Objects)
-3. Définir les règles métier
-4. Identifier les cas d'erreur
-
-Je propose de créer: /vibe spec:init product-api
-```
-
-## 📊 Structure d'une Spec
+## 📊 Structure d'une Spec (Next.js BFF)
 
 ```
 specs/
-├── <nom-de-la-feature>/          # Dossier de la spec
+├── charge-management/          # Dossier de la spec
 │   ├── SPEC.md                  # Spécification principale
-│   ├── diagrams/                # Diagrammes (Mermaid, PlantUML)
-│   │   ├── architecture.mmd     # Diagramme d'architecture
-│   │   ├── sequence.mmd         # Diagrammes de séquence
-│   │   └── class.mmd             # Diagrammes de classes
-│   ├── examples/                # Exemples concrets
-│   │   ├── request.json          # Exemple de requête
-│   │   └── response.json         # Exemple de réponse
-│   ├── tests/                   # Cas de test spécifiés
-│   │   └── test-cases.md         # Liste des cas de test
-│   └── decisions.md             # Décisions techniques
-└── INDEX.md                     # Index de toutes les specs
+│   ├── schemas/                # Exemples de schémas Zod
+│   │   └── charge.ts           # Exemple de schéma
+│   ├── diagrams/               # Diagrammes
+│   │   └── architecture.mmd    # Diagramme d'architecture
+│   └── decisions.md            # Décisions techniques
 ```
 
 ## ✅ Critères de Validation d'une Spec
@@ -158,6 +142,8 @@ specs/
 Pour qu'une spec soit considérée comme **VALIDÉE**, elle doit:
 
 - [ ] **Complétude**: Tous les aspects du besoin sont couverts
+- [ ] **Schéma Zod**: Tous les schémas Zod sont définis
+- [ ] **Endpoints API**: Tous les endpoints sont spécifiés
 - [ ] **Précision**: Aucune ambiguïté dans les descriptions
 - [ ] **Testabilité**: Chaque fonctionnalité a des critères de test clairs
 - [ ] **Cohérence**: Pas de contradictions internes
@@ -167,136 +153,217 @@ Pour qu'une spec soit considérée comme **VALIDÉE**, elle doit:
 
 ## 🛠️ Outils Intégrés
 
-### 1. Générateur de Todo List
+### 1. Générateur de Code (Next.js BFF)
 
-Transforme une spec en todo list exécutable:
+Transforme une spec en structure de code Next.js:
 
-**Input:** SPEC.md avec sections marquées `## 📋 Tâches`
-**Output:** TODO.md ou mise à jour de la todo list Vibe
+**Input:** SPEC.md avec description des endpoints
+**Output:** 
+- `packages/shared/schemas/<module>.ts` (schémas Zod)
+- `server/<module>/<module>.service.ts` (service)
+- `server/<module>/<module>s.controller.ts` (controller)
+- `app/api/<module>/route.ts` (routes API)
+- `tests/` (tests unitaires)
 
 ### 2. Vérificateur de Conformité
 
 Compare le code produit avec la spec:
-- Vérifie que toutes les fonctions spécifiées existent
-- Vérifie que les interfaces/contrats sont respectés
+- Vérifie que toutes les méthodes de service spécifiées existent
+- Vérifie que les schémas Zod sont complets
+- Vérifie que les endpoints API sont implémentés
 - Vérifie que les tests spécifiés sont implémentés
 
 ### 3. Générateur de Diagrammes
 
 Génère automatiquement des diagrammes Mermaid à partir de la spec:
-- Diagrammes d'architecture
-- Diagrammes de séquence
-- Diagrammes de classes
+- Diagrammes d'architecture Next.js BFF
+- Diagrammes de séquence pour les flux API
+- Diagrammes de classes (simplifiés)
 
-### 4. Estimateur de Temps
-
-Estime le temps de développement basé sur:
-- Complexité de la spec
-- Nombre de tâches
-- Expérience de l'agent
-- Historique des projets similaires
-
-## 📁 Fichiers de la Skill
+## 📁 Architecture Cible (Next.js BFF)
 
 ```
-skills/spec-driven-development/
-├── SKILL.md                     # Ce fichier
-├── SPEC_TEMPLATE.md             # Template pour les specs
-├── SPEC_INDEX_TEMPLATE.md      # Template pour l'index des specs
-├── validators/
-│   ├── spec-validator.ts        # Validation des specs
-│   └── code-compliance.ts       # Vérification code vs spec
-├── generators/
-│   ├── todo-generator.ts        # Génération de todo lists
-│   ├── diagram-generator.ts     # Génération de diagrammes
-│   └── test-generator.ts        # Génération de tests
-├── estimators/
-│   └── time-estimator.ts        # Estimation des temps
-└── utils/
-    ├── spec-parser.ts           # Parsing des specs
-    └── spec-writer.ts           # Écriture des specs
+┌─────────────────────────────────────────────────────────────┐
+│                    NEXT.JS BFF ARCHITECTURE                   │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────┐ │
+│  │   Client        │───▶│   API Routes    │───▶│  Server  │ │
+│  │   (React)       │    │   (Transport)   │    │ (Backend)│ │
+│  └─────────────────┘    └─────────────────┘    └─────────┘ │
+│                       │                                  │      │
+│                       ▼                                  ▼      │
+│              ┌─────────────────────────────────────┐        │
+│              │       packages/shared               │        │
+│              │  ┌──────────┐   ┌──────────┐       │        │
+│              │  │ Schemas  │   │  Domain  │       │        │
+│              │  │ (Zod)    │   │ (Pure)   │       │        │
+│              │  └──────────┘   └──────────┘       │        │
+│              └─────────────────────────────────────┘        │
+│                                                             │
+│  Server Layer:                                              │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │  services/     controllers/    db/                  │   │
+│  │  charge.svc ──▶ charges.ctrl ────▶ prisma            │   │
+│  │  user.svc    ──▶ users.ctrl   ────▶ db.ts           │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-## 🎯 Bonnes Pratiques SDD
+## 🎯 Bonnes Pratiques SDD pour Next.js BFF
 
-### 1. Principle of Least Surprise
+### 1. **Un Schéma Zod par Modèle**
 
-La spec doit décrire exactement ce que l'utilisateur attend, sans surprise.
+```typescript
+// packages/shared/schemas/charge.ts
+import { z } from "zod";
 
-### 2. Single Source of Truth
+const isoDate = z.string().refine((v) => !Number.isNaN(Date.parse(v)), "Invalid date");
 
-La spec est LA référence. Si le code diffère, c'est le code qui a tort.
+export const chargeTypeSchema = z.enum(["FIXED_RECURRING", "INSTALLMENT", "TEMPORARY", "ONE_OFF"]);
 
-### 3. Living Documentation
+export const chargeSchema = z.object({
+  id: z.string().uuid(),
+  label: z.string().min(1),
+  type: chargeTypeSchema,
+  amount: z.number().positive(),
+  // ...
+});
 
-La spec doit être mise à jour en temps réel avec les changements.
+export const createChargeSchema = chargeSchema.omit({ id: true });
+export const updateChargeSchema = createChargeSchema.partial();
 
-### 4. Test-First Mindset
+export type Charge = z.infer<typeof chargeSchema>;
+export type CreateChargeInput = z.infer<typeof createChargeSchema>;
+export type UpdateChargeInput = z.infer<typeof updateChargeSchema>;
+```
 
-La spec doit inclure les cas de test AVANT le développement.
+### 2. **Service avec Méthodes CRUD Standards**
 
-### 5. Iterative Refinement
+```typescript
+// server/charges/charge.service.ts
+import { prisma } from "@/server/db";
+import { ChargeQuery, CreateChargeInput, UpdateChargeInput } from "@mbongo/shared";
 
-Une spec peut être affiné itérativement, mais doit toujours être validée.
+export class ChargeService {
+  async findMany(query: ChargeQuery): Promise<Charge[]> {}
+  async findOne(id: string): Promise<Charge | null> {}
+  async create(input: CreateChargeInput): Promise<Charge> {}
+  async update(id: string, input: UpdateChargeInput): Promise<Charge> {}
+  async remove(id: string): Promise<void> {}
+}
+```
+
+### 3. **Controller avec Validation Zod**
+
+```typescript
+// server/charges/charges.controller.ts
+import { NextResponse } from "next/server";
+import { chargeQuerySchema, createChargeSchema } from "@mbongo/shared";
+import { parseBody, parseQuery, toErrorResponse } from "@/server/common/http";
+
+export class ChargesController {
+  constructor(private readonly charges: ChargeService) {}
+
+  async find(request: Request): Promise<NextResponse> {
+    const query = parseQuery(request, chargeQuerySchema);
+    return NextResponse.json(await this.charges.findMany(query));
+  }
+
+  async create(request: Request): Promise<NextResponse> {
+    const input = await parseBody(request, createChargeSchema);
+    return NextResponse.json(await this.charges.create(input), { status: 201 });
+  }
+}
+```
+
+### 4. **Routes API Minimales**
+
+```typescript
+// app/api/charges/route.ts
+import { chargesController } from "@/server/charges/charges.controller";
+
+export const GET = (request: Request) => chargesController.find(request);
+export const POST = (request: Request) => chargesController.create(request);
+```
+
+### 5. **Prisma Service Singleton**
+
+```typescript
+// server/db.ts
+import "server-only";
+import { PrismaClient } from "@prisma/client";
+
+class Database extends PrismaClient {
+  constructor() {
+    super({
+      log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+    });
+  }
+}
+
+const globalForDb = globalThis as unknown as { db?: Database };
+export const prisma = globalForDb.db ?? new Database();
+if (process.env.NODE_ENV !== "production") globalForDb.db = prisma;
+```
 
 ## 🚫 Anti-Patterns à Éviter
 
-### ❌ Spec Trop Vague
+### ❌ Spec Trop Complexe
 
 ```markdown
-# Gestion des Utilisateurs
+# Gestion des Charges
 
-Il faut gérer les utilisateurs.
+Il faut gérer les charges avec DDD, hexagonal architecture...
 ```
 
-**Problème:** Impossible de développer à partir de ça.
-
-### ❌ Spec Trop Technique (pour le demandeur)
-
-```markdown
-# Architecture
-
-Nous utiliserons Redis pour le caching avec une TTL de 3600 secondes...
-```
-
-**Problème:** Le demandeur ne comprend pas et ne peut pas valider.
-
-### ❌ Spec Non Testable
-
-```markdown
-# Performance
-
-Le système doit être rapide.
-```
-
-**Problème:** "Rapide" n'est pas mesurable.
+**Problème:** Trop complexe pour Next.js BFF.
 
 **Correction:**
 ```markdown
-# Performance
+# Gestion des Charges
 
-- Temps de réponse API < 200ms pour 95% des requêtes
-- Capacité à gérer 1000 requêtes simultanées
+## Architecture
+- Schémas Zod dans packages/shared/schemas/charge.ts
+- Service dans server/charges/charge.service.ts
+- Controller dans server/charges/charges.controller.ts
+- Routes API dans app/api/charges/
 ```
 
-### ❌ Spec avec Contradictions
+### ❌ Sur-Ingénierie
 
-```markdown
-# Authentification
+```typescript
+// ❌ MAUVAIS - Trop complexe
+class ChargeFactory {
+  static create(...): Charge {}
+}
 
-- Les utilisateurs doivent pouvoir se connecter avec email + mot de passe
-- Le système ne doit pas stocker les mots de passe
+class ChargeRepository {
+  // Abstraction inutile
+}
+
+class ChargeUseCase {
+  // Couche supplémentaire inutile
+}
 ```
 
-**Problème:** Contradiction entre les deux points.
+**Correction:**
+```typescript
+// ✅ BON - Simple et direct
+class ChargeService {
+  async create(input: CreateChargeInput): Promise<Charge> {
+    return prisma.charge.create({ data: input });
+  }
+}
+```
 
 ## 📚 Ressources
 
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Prisma Documentation](https://www.prisma.io/docs)
+- [Zod Documentation](https://zod.dev)
 - [Kiro.dev - Spec-Driven Development](https://kiro.dev)
-- [Google Agent Skills Documentation](https://developers.google.com/agent-skills)
-- [Domain-Driven Design](https://domainlanguage.com/ddd/)
-- [Test-Driven Development by Example](https://www.amazon.com/Test-Driven-Development-Example-Kent-Beck/dp/0321146530)
-- [Specification by Example](https://www.amazon.com/Specification-Example-Gojko-Adzic/dp/1617290084)
 
 ## 🔧 Intégration avec Vibe CLI
 
@@ -313,35 +380,14 @@ skills:
   spec-driven-development:
     enabled: true
     auto-activate: true
-    strict-mode: true  # Bloque le code sans spec
-    
-todo:
-  auto-sync: true  # Sync avec les specs
-  
-validation:
-  require-spec: true
-  require-tests: true
+    strict-mode: true
+    architecture: "nextjs-bff"
 ```
-
-## 🎓 Formation Recommandée
-
-Pour maîtriser le SDD:
-
-1. Lire `SPEC_TEMPLATE.md` et créer 3 specs d'exemple
-2. Utiliser le workflow SDD pour un petit projet
-3. Revoir les specs existantes et identifier les améliorations
-4. Participer à des sessions de review de specs
-
-## 📊 Métriques SDD
-
-- **Taux de specs validées**: Objectif 100%
-- **Temps moyen par spec**: < 2 heures
-- **Taux de conformité code/spec**: Objectif 100%
-- **Réduction des bugs**: Objectif -80% par rapport au développement sans spec
 
 ---
 
-**Version:** 1.0.0  
+**Version:** 2.0.0  
 **Auteur:** Agent IA Expert Architect  
+**Architecture:** Next.js BFF Fullstack + NestJS-like Style + KISS
 **Dernière mise à jour:** 2024-11-05  
 **Statut:** ✅ Opérationnelle

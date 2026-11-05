@@ -6,10 +6,5 @@
   "printWidth": 80,
   "endOfLine": "auto",
   "bracketSpacing": true,
-  "arrowParens": "always",
-  "jsxSingleQuote": true,
-  "quoteProps": "as-needed",
-  "proseWrap": "preserve",
-  "htmlWhitespaceSensitivity": "css",
-  "embeddedLanguageFormatting": "auto"
+  "arrowParens": "always"
 }

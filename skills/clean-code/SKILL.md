@@ -1,10 +1,12 @@
-# SKILL.md - Clean Code Craftsmanship
+# SKILL.md - Clean Code Craftsmanship (Next.js BFF Edition)
 
 ## 🎯 Description
 
-**Skill de Clean Code et Craftsmanship** - Une approche rigoureuse pour produire du code de haute qualité, maintenable et élégant.
+**Skill de Clean Code et Craftsmanship** - Une approche rigoureuse pour produire du code de haute qualité, maintenable et élégant **dans le contexte Next.js BFF Fullstack**.
 
-> "Clean code is not written by following a set of rules. You don’t become a software craftsman by learning a list of heuristics. Professionalism and craftsmanship come from values that drive discipline." - Robert C. Martin
+> "Clean code is code that looks like it was written by someone who cares." - Robert C. Martin
+
+**Philosophie:** KISS (Keep It Simple, Stupid) - On garde le code **simple, lisible et direct**.
 
 ## 📌 Capabilités
 
@@ -12,11 +14,12 @@ Cette skill permet à l'Agent IA de:
 
 1. **Appliquer les principes SOLID** systématiquement
 2. **Écrire du code auto-documenté** avec des noms explicites
-3. **Respecter les conventions** définies dans CONVENTIONS.md
+3. **Respecter les conventions Next.js BFF** (pas de DDD, pas d'Hexagonal)
 4. **Détecter et corriger** les code smells
 5. **Refactorer** du code existant de manière sûre
 6. **Reviewer du code** avec un œil critique
 7. **Optimiser** pour la lisibilité et la maintenabilité
+8. **Utiliser Zod** pour la validation des schémas
 
 ## 🚀 Activation
 
@@ -29,55 +32,85 @@ Cette skill s'active automatiquement quand:
 
 ## 🏆 Principes Fondamentaux
 
-### 1. SOLID Principles
+### 1. KISS - Keep It Simple, Stupid
 
-#### S - Single Responsibility Principle (SRP)
-> "A class should have only one reason to change."
+> "Simplicity is the ultimate sophistication." - Leonardo da Vinci
 
 **Exemple:**
 ```typescript
-// ✅ BON - Une classe, une responsabilité
-class UserRepository {
-  async findById(id: string): Promise<User | null> {}
-  async save(user: User): Promise<User> {}
+// ✅ BON - Simple et direct
+function isEven(number: number): boolean {
+  return number % 2 === 0;
 }
 
-class EmailService {
-  async sendWelcomeEmail(user: User): Promise<void> {}
-}
-
-// ❌ MAUVAIS - Plusieurs responsabilités
-class UserManager {
-  async findById(id: string) {}
-  async save(user: User) {}
-  async sendEmail(user: User) {} // Pas la responsabilité de UserManager
+// ❌ MAUVAIS - Trop complexe pour rien
+function isEven(number: number): boolean {
+  const remainder = number % 2;
+  const isRemainderZero = remainder === 0;
+  const result = isRemainderZero ? true : false;
+  return result;
 }
 ```
 
-#### O - Open/Closed Principle (OCP)
+### 2. SOLID Principles (Simplifiés)
+
+#### S - Single Responsibility Principle
+> "A class should have only one reason to change."
+
+**Exemple Next.js BFF:**
+```typescript
+// ✅ BON - Une classe, une responsabilité
+// Service: CRUD pour Charge
+class ChargeService {
+  async findMany(query: ChargeQuery): Promise<Charge[]> {}
+  async findOne(id: string): Promise<Charge | null> {}
+  async create(input: CreateChargeInput): Promise<Charge> {}
+  async update(id: string, input: UpdateChargeInput): Promise<Charge> {}
+  async remove(id: string): Promise<void> {}
+}
+
+// Controller: Validation + Délégation
+class ChargesController {
+  constructor(private readonly service: ChargeService) {}
+  async find(request: Request): Promise<NextResponse> {}
+  async create(request: Request): Promise<NextResponse> {}
+}
+
+// ❌ MAUVAIS - Plusieurs responsabilités
+class ChargeManager {
+  async findById(id: string) {}
+  async save(charge: Charge) {}
+  async sendEmail(charge: Charge) {} // Pas la responsabilité!
+  async validate(charge: Charge) {} // Pas la responsabilité!
+}
+```
+
+#### O - Open/Closed Principle
 > "Software entities should be open for extension, but closed for modification."
 
 **Exemple:**
 ```typescript
 // ✅ BON - Ouvert à l'extension
-interface DiscountStrategy {
-  calculate(price: number): number;
+// Utiliser des stratégies pour les différents types de paiements
+interface PaymentStrategy {
+  calculate(amount: number): number;
 }
 
-class PercentageDiscount implements DiscountStrategy {
+class PercentageDiscount implements PaymentStrategy {
   constructor(private readonly percentage: number) {}
-  calculate(price: number): number {
-    return price * (1 - this.percentage / 100);
+  calculate(amount: number): number {
+    return amount * (1 - this.percentage / 100);
   }
 }
 
-// On peut ajouter de nouvelles stratégies sans modifier le code existant
-class FixedDiscount implements DiscountStrategy {
+class FixedDiscount implements PaymentStrategy {
   constructor(private readonly amount: number) {}
   calculate(price: number): number {
     return Math.max(0, price - this.amount);
   }
 }
+
+// On peut ajouter de nouvelles stratégies sans modifier le code existant
 
 // ❌ MAUVAIS - Fermé à l'extension
 class Discount {
@@ -95,7 +128,7 @@ class Discount {
 }
 ```
 
-#### L - Liskov Substitution Principle (LSP)
+#### L - Liskov Substitution Principle
 > "Subtypes must be substitutable for their base types."
 
 **Exemple:**
@@ -123,18 +156,10 @@ class Square extends Rectangle {
     this.width = width;
     this.height = width; // Modifie aussi la hauteur!
   }
-  
-  setHeight(height: number): void {
-    this.height = height;
-    this.width = height; // Modifie aussi la largeur!
-  }
-  
-  // Si on a un Rectangle, on ne peut pas le remplacer par un Square
-  // sans casser la logique existante
 }
 ```
 
-#### I - Interface Segregation Principle (ISP)
+#### I - Interface Segregation Principle
 > "Clients should not be forced to depend on interfaces they do not use."
 
 **Exemple:**
@@ -155,7 +180,6 @@ class File implements IReadable, IWritable {
 
 class ReadOnlyFile implements IReadable {
   read(): string { /* ... */ }
-  // Pas besoin d'implémenter write()
 }
 
 // ❌ MAUVAIS - Interface trop grosse
@@ -164,11 +188,9 @@ interface IFile {
   write(data: string): void;
   delete(): void;
   rename(newName: string): void;
-  // ... beaucoup d'autres méthodes
 }
 
 class SimpleFile implements IFile {
-  // Doit implémenter toutes les méthodes, même celles qui ne sont pas nécessaires
   read(): string { /* ... */ }
   write(data: string): void { /* ... */ }
   delete(): void { throw new Error('Not implemented'); }
@@ -176,47 +198,54 @@ class SimpleFile implements IFile {
 }
 ```
 
-#### D - Dependency Inversion Principle (DIP)
+#### D - Dependency Inversion Principle
 > "High-level modules should not depend on low-level modules. Both should depend on abstractions."
 
-**Exemple:**
+**Exemple Next.js BFF:**
 ```typescript
 // ✅ BON - Dépendre d'abstractions
-interface IUserRepository {
-  findById(id: string): Promise<User | null>;
-  save(user: User): Promise<User>;
+// Interface dans packages/shared
+interface IChargeRepository {
+  findById(id: string): Promise<Charge | null>;
+  save(charge: Charge): Promise<Charge>;
 }
 
-class UserService {
-  constructor(private readonly userRepository: IUserRepository) {}
+// Service dépend de l'interface
+class ChargeService {
+  constructor(private readonly repository: IChargeRepository) {}
   
-  async register(userData: CreateUserDto): Promise<User> {
-    const existingUser = await this.userRepository.findById(userData.id);
-    if (existingUser) {
-      throw new Error('User already exists');
-    }
-    const user = new User(userData);
-    return this.userRepository.save(user);
+  async getCharge(id: string): Promise<Charge> {
+    const charge = await this.repository.findById(id);
+    if (!charge) throw new Error('Charge not found');
+    return charge;
   }
 }
 
-// On peut utiliser n'importe quelle implémentation
-class MongoUserRepository implements IUserRepository { /* ... */ }
-class PostgresUserRepository implements IUserRepository { /* ... */ }
+// Implémentation avec Prisma
+class PrismaChargeRepository implements IChargeRepository {
+  async findById(id: string): Promise<Charge | null> {
+    return prisma.charge.findUnique({ where: { id } });
+  }
+  
+  async save(charge: Charge): Promise<Charge> {
+    return prisma.charge.upsert({ where: { id: charge.id }, create: charge, update: charge });
+  }
+}
+
+// On peut changer l'implémentation sans modifier le service
+const repository = new PrismaChargeRepository();
+const service = new ChargeService(repository);
 
 // ❌ MAUVAIS - Dépendance concrète
-class UserService {
-  constructor(private readonly db: MongoDB) {}
-  
-  async register(userData: CreateUserDto) {
-    // Dépend directement de MongoDB
-    const existingUser = await this.db.collection('users').findOne({ id: userData.id });
-    // ...
+class ChargeService {
+  async getCharge(id: string): Promise<Charge> {
+    // Dépend directement de Prisma
+    return prisma.charge.findUnique({ where: { id } });
   }
 }
 ```
 
-### 2. DRY, KISS, YAGNI
+### 3. DRY, KISS, YAGNI
 
 #### DRY - Don't Repeat Yourself
 > "Every piece of knowledge must have a single, unambiguous, authoritative representation within a system."
@@ -224,83 +253,84 @@ class UserService {
 **Exemple:**
 ```typescript
 // ✅ BON - Pas de duplication
-function formatCurrency(amount: number, currency: string = 'EUR'): string {
-  return new Intl.NumberFormat('fr-FR', {
+// packages/shared/schemas/filter.ts
+import { z } from "zod";
+
+const filterValue = z.union([z.string(), z.number()]);
+
+export const filterSchema = z.object({
+  eq: filterValue.optional(),
+  not: filterValue.optional(),
+  in: z.array(filterValue).optional(),
+  gte: filterValue.optional(),
+  lte: filterValue.optional(),
+  contains: filterValue.optional(),
+});
+
+// Utilisé partout
+import { filterSchema } from "@mbongo/shared/schemas/filter";
+
+// ❌ MAUVAIS - Duplication
+// Dans chaque module...
+export const chargeFilterSchema = z.object({
+  eq: z.union([z.string(), z.number()]).optional(),
+  // ... même code répété
+});
+
+export const userFilterSchema = z.object({
+  eq: z.union([z.string(), z.number()]).optional(),
+  // ... même code répété
+});
+```
+
+#### KISS - Keep It Simple, Stupid
+
+**Exemple:**
+```typescript
+// ✅ BON - Simple et clair
+function formatCurrency(amount: number, currency: string = 'CHF'): string {
+  return new Intl.NumberFormat('fr-CH', {
     style: 'currency',
     currency,
   }).format(amount);
 }
 
-// Utilisation
-console.log(formatCurrency(100)); // 100,00 €
-console.log(formatCurrency(100, 'USD')); // $100.00
-
-// ❌ MAUVAIS - Duplication
-function formatEuro(amount: number): string {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'EUR',
-  }).format(amount);
-}
-
-function formatDollar(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(amount);
-}
-```
-
-#### KISS - Keep It Simple, Stupid
-> "Simplicity is the ultimate sophistication." - Leonardo da Vinci
-
-**Exemple:**
-```typescript
-// ✅ BON - Simple et clair
-function isEven(number: number): boolean {
-  return number % 2 === 0;
-}
-
-// ❌ MAUVAIS - Trop complexe pour rien
-function isEven(number: number): boolean {
-  const remainder = number % 2;
-  const isRemainderZero = remainder === 0;
-  const result = isRemainderZero ? true : false;
+// ❌ MAUVAIS - Trop complexe
+function formatCurrency(amount: number, currency: string = 'CHF'): string {
+  const formatter = new Intl.NumberFormat('fr-CH', { style: 'currency', currency });
+  const formatted = formatter.format(amount);
+  const result = formatted;
   return result;
 }
 ```
 
 #### YAGNI - You Aren't Gonna Need It
-> "Don't add functionality until it's necessary."
 
 **Exemple:**
 ```typescript
 // ✅ BON - On implémente seulement ce qui est nécessaire
-class User {
-  constructor(
-    public id: string,
-    public email: string,
-    public name: string,
-  ) {}
+class ChargeService {
+  constructor(private readonly prisma: PrismaClient) {}
+  
+  async findMany(query: ChargeQuery): Promise<Charge[]> {
+    return this.prisma.charge.findMany({ where: queryToWhere(query) });
+  }
 }
 
 // ❌ MAUVAIS - On implémente "au cas où"
-class User {
-  constructor(
-    public id: string,
-    public email: string,
-    public name: string,
-    public age?: number, // Pas utilisé maintenant, mais "peut-être un jour"
-    public address?: Address, // Pas utilisé
-    public preferences?: UserPreferences, // Pas utilisé
-    public lastLogin?: Date, // Pas utilisé
-  ) {}
+class ChargeService {
+  constructor(private readonly prisma: PrismaClient) {}
+  
+  async findMany(query: ChargeQuery): Promise<Charge[]> {}
+  async findManyWithPayments(query: ChargeQuery): Promise<Charge[]> {} // Pas utilisé
+  async findManyWithUser(query: ChargeQuery): Promise<Charge[]> {} // Pas utilisé
+  async findManyArchived(query: ChargeQuery): Promise<Charge[]> {} // Pas utilisé
 }
 ```
 
 ---
 
-## 🔍 Code Smells & Anti-Patterns
+## 🔍 Code Smells & Anti-Patterns (Next.js BFF)
 
 ### 1. Code Smells
 
@@ -311,31 +341,26 @@ class User {
 
 ```typescript
 // ✅ BON - Méthodes courtes et focalisées
-class OrderProcessor {
-  processOrder(order: Order): void {
-    this.validateOrder(order);
-    this.calculateTotals(order);
-    this.applyDiscounts(order);
-    this.saveOrder(order);
-    this.notifyCustomer(order);
+class ChargeService {
+  async createChargeWithPayments(input: CreateChargeInput): Promise<Charge> {
+    this.validateInput(input);
+    const charge = await this.createCharge(input);
+    await this.createScheduledPayments(charge);
+    return charge;
   }
   
-  private validateOrder(order: Order): void { /* ... */ }
-  private calculateTotals(order: Order): void { /* ... */ }
-  private applyDiscounts(order: Order): void { /* ... */ }
-  private saveOrder(order: Order): void { /* ... */ }
-  private notifyCustomer(order: Order): void { /* ... */ }
+  private validateInput(input: CreateChargeInput): void { /* ... */ }
+  private async createCharge(input: CreateChargeInput): Promise<Charge> { /* ... */ }
+  private async createScheduledPayments(charge: Charge): Promise<void> { /* ... */ }
 }
 
 // ❌ MAUVAIS - Méthode trop longue
-class OrderProcessor {
-  processOrder(order: Order): void {
+class ChargeService {
+  async createChargeWithPayments(input: CreateChargeInput): Promise<Charge> {
     // 50 lignes de validation
-    // 30 lignes de calcul
-    // 20 lignes d'application des réductions
-    // 40 lignes de sauvegarde
-    // 25 lignes de notification
-    // Total: 165 lignes!
+    // 30 lignes de création
+    // 40 lignes de génération de paiements
+    // Total: 120 lignes!
   }
 }
 ```
@@ -347,161 +372,28 @@ class OrderProcessor {
 
 ```typescript
 // ✅ BON - Classes petites et focalisées
-class UserValidator {
-  validate(user: User): boolean { /* ... */ }
+// ChargeService: CRUD pour Charge
+class ChargeService {
+  async findMany(query: ChargeQuery): Promise<Charge[]> {}
+  async findOne(id: string): Promise<Charge | null> {}
+  async create(input: CreateChargeInput): Promise<Charge> {}
+  async update(id: string, input: UpdateChargeInput): Promise<Charge> {}
+  async remove(id: string): Promise<void> {}
 }
 
-class UserRepository {
-  save(user: User): Promise<User> { /* ... */ }
-}
-
-class EmailService {
-  sendEmail(user: User): Promise<void> { /* ... */ }
+// PaymentService: Logique de paiement
+class PaymentService {
+  async generatePayments(charge: Charge): Promise<ScheduledPayment[]> {}
+  async processPayment(paymentId: string): Promise<void> {}
 }
 
 // ❌ MAUVAIS - Classe trop grosse
-class UserManager {
-  validate(user: User): boolean { /* ... */ }
-  save(user: User): Promise<User> { /* ... */ }
-  sendEmail(user: User): Promise<void> { /* ... */ }
+class ChargeManager {
+  async findMany(query: ChargeQuery): Promise<Charge[]> {}
+  async create(input: CreateChargeInput): Promise<Charge> {}
+  async generatePayments(charge: Charge): Promise<ScheduledPayment[]> {}
+  async processPayment(paymentId: string): Promise<void> {}
   // ... beaucoup d'autres méthodes
-}
-```
-
-#### Primitive Obsession
-> Utiliser des types primitifs pour représenter des concepts du domaine.
-
-**Solution:** Créer des Value Objects
-
-```typescript
-// ✅ BON - Value Objects
-class Email {
-  constructor(private readonly value: string) {
-    if (!this.isValid(value)) {
-      throw new Error('Invalid email');
-    }
-  }
-  
-  private isValid(email: string): boolean {
-    return /^[\w.-]+@[\w.-]+\.\w+$/.test(email);
-  }
-  
-  getValue(): string {
-    return this.value;
-  }
-}
-
-class User {
-  constructor(
-    public id: string,
-    public email: Email, // Type fort
-    public name: string,
-  ) {}
-}
-
-// ❌ MAUVAIS - Types primitifs
-class User {
-  constructor(
-    public id: string,
-    public email: string, // Just a string
-    public name: string,
-  ) {}
-}
-
-// Utilisation
-const user = new User('123', 'test@example.com', 'John');
-// Comment savoir si 'test@example.com' est un email valide?
-```
-
-#### Duplicate Code
-> Le même code apparaît dans plusieurs endroits.
-
-**Solution:** Extraire dans une fonction/méthode commune
-
-```typescript
-// ✅ BON - Code partagé
-function calculateTax(amount: number, rate: number): number {
-  return amount * (rate / 100);
-}
-
-// Utilisé partout
-const tax1 = calculateTax(100, 20);
-const tax2 = calculateTax(50, 10);
-
-// ❌ MAUVAIS - Code dupliqué
-const tax1 = 100 * (20 / 100);
-const tax2 = 50 * (10 / 100);
-// ... à d'autres endroits
-```
-
-#### Long Parameter List
-> Une méthode avec trop de paramètres est difficile à comprendre et à utiliser.
-
-**Solution:** Utiliser des Parameter Objects
-
-```typescript
-// ✅ BON - Parameter Object
-interface CreateUserParams {
-  email: string;
-  password: string;
-  name: string;
-  role?: UserRole;
-  isActive?: boolean;
-}
-
-class UserService {
-  createUser(params: CreateUserParams): Promise<User> { /* ... */ }
-}
-
-// Utilisation
-userService.createUser({
-  email: 'test@example.com',
-  password: 'secret',
-  name: 'John',
-});
-
-// ❌ MAUVAIS - Trop de paramètres
-class UserService {
-  createUser(
-    email: string,
-    password: string,
-    name: string,
-    role: UserRole = 'user',
-    isActive: boolean = true,
-    sendWelcomeEmail: boolean = true,
-    validateEmail: boolean = true,
-  ): Promise<User> { /* ... */ }
-}
-
-// Utilisation
-userService.createUser('test@example.com', 'secret', 'John', 'user', true, true, true);
-```
-
-#### Feature Envy
-> Une méthode qui utilise beaucoup les données d'une autre classe.
-
-**Solution:** Déplacer la méthode dans la classe appropriée
-
-```typescript
-// ✅ BON - Méthode dans la bonne classe
-class Order {
-  constructor(
-    public items: OrderItem[],
-    public discount: number = 0,
-  ) {}
-  
-  calculateTotal(): number {
-    const subtotal = this.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    return subtotal * (1 - this.discount / 100);
-  }
-}
-
-// ❌ MAUVAIS - Feature Envy
-class OrderCalculator {
-  calculateTotal(order: Order): number {
-    const subtotal = order.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    return subtotal * (1 - order.discount / 100);
-  }
 }
 ```
 
@@ -512,271 +404,393 @@ class OrderCalculator {
 
 ```typescript
 // ✅ BON - Constantes nommées
+// packages/shared/lib/constants.ts
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000;
-const DEFAULT_CURRENCY = 'EUR';
+const DEFAULT_CURRENCY = 'CHF';
+const DEFAULT_LIMIT = 100;
 
-function processPayment(amount: number, currency: string = DEFAULT_CURRENCY): void {
-  for (let i = 0; i < MAX_RETRIES; i++) {
-    // ...
-    await sleep(RETRY_DELAY_MS);
+export { MAX_RETRIES, RETRY_DELAY_MS, DEFAULT_CURRENCY, DEFAULT_LIMIT };
+
+// ✅ MAUVAIS - Magic Numbers/Strings
+function getCharges(limit: number = 100) {} // 100 est magique
+function formatCurrency(amount: number, currency: string = 'CHF') {} // 'CHF' est magique
+```
+
+#### Duplicate Code
+> Le même code apparaît dans plusieurs endroits.
+
+**Solution:** Extraire dans un module partagé
+
+```typescript
+// ✅ BON - Code partagé dans packages/shared
+// packages/shared/lib/calculation.ts
+export function monthlyProvision(charges: Charge[]): number {
+  return round2(charges.filter((c) => c.provisioned).reduce((sum, c) => sum + c.amount / 12, 0));
+}
+
+// Utilisé partout
+import { monthlyProvision } from "@mbongo/shared/lib/calculation";
+
+// ❌ MAUVAIS - Code dupliqué
+// Dans server/charges/charge.service.ts
+function calculateMonthlyProvision(charges: Charge[]): number {
+  return charges.filter(c => c.provisioned).reduce((sum, c) => sum + c.amount / 12, 0);
+}
+
+// Dans components/dashboard/Provision.tsx
+function calculateMonthly(charges: Charge[]): number {
+  return charges.filter(c => c.provisioned).reduce((sum, c) => sum + c.amount / 12, 0);
+}
+```
+
+#### Long Parameter List
+> Une méthode avec trop de paramètres est difficile à comprendre et à utiliser.
+
+**Solution:** Utiliser des Parameter Objects (Schémas Zod)
+
+```typescript
+// ✅ BON - Parameter Object avec Zod
+// packages/shared/schemas/charge.ts
+export const createChargeSchema = z.object({
+  label: z.string().min(1),
+  type: chargeTypeSchema,
+  amount: z.number().positive(),
+  currency: z.enum(["CHF", "EUR"]),
+  accountId: z.string().uuid(),
+  startDate: isoDate,
+  endDate: isoDate().nullable(),
+});
+
+export type CreateChargeInput = z.infer<typeof createChargeSchema>;
+
+// server/charges/charge.service.ts
+class ChargeService {
+  async create(input: CreateChargeInput): Promise<Charge> {
+    return prisma.charge.create({ data: input });
   }
 }
 
-// ❌ MAUVAIS - Magic Numbers/Strings
-function processPayment(amount: number, currency: string = 'EUR'): void {
-  for (let i = 0; i < 3; i++) {
-    // ...
-    await sleep(1000);
+// ❌ MAUVAIS - Trop de paramètres
+class ChargeService {
+  async create(
+    label: string,
+    type: string,
+    amount: number,
+    currency: string,
+    accountId: string,
+    startDate: string,
+    endDate: string | null,
+    frequency: string | null,
+    installments: number | null,
+  ): Promise<Charge> {
+    return prisma.charge.create({ data: { /* ... */ } });
   }
 }
 ```
 
-### 2. Anti-Patterns
+#### Feature Envy
+> Une méthode qui utilise beaucoup les données d'une autre classe.
 
-#### God Object
-> Une classe qui fait tout.
-
-**Solution:** Diviser en plusieurs classes avec responsabilités uniques
-
-#### Spaghetti Code
-> Code avec des dépendances circulaires et une logique peu claire.
-
-**Solution:** Restructurer avec des couches claires et des dépendances bien définies
-
-#### Copy-Paste Programming
-> Copier-coller du code avec des modifications mineures.
-
-**Solution:** Extraire le code commun et paramétrer les différences
-
-#### Golden Hammer
-> Utiliser la même solution pour tous les problèmes.
-
-**Solution:** Choisir la bonne solution pour chaque problème
-
-#### Vendor Lock-in
-> Dépendre trop d'une bibliothèque/technology spécifique.
-
-**Solution:** Utiliser des abstractions pour permettre le changement
-
----
-
-## 🛠️ Techniques de Refactoring
-
-### 1. Extract Method
-**Quand:** Une méthode est trop longue ou fait plusieurs choses.
+**Solution:** Déplacer la méthode dans la classe appropriée
 
 ```typescript
-// Avant
-function processOrder(order: Order): void {
-  // Validation
-  if (!order.items || order.items.length === 0) {
-    throw new Error('Order must have items');
+// ✅ BON - Méthode dans la bonne classe
+// packages/shared/domain/calculation.ts
+import { Charge } from "../schemas/charge";
+
+export function remainingBalance(charge: Charge, payments: ScheduledPayment[]): number {
+  const paid = payments.filter((p) => p.status === "PAID").reduce((s, p) => s + p.amount, 0);
+  return round2(charge.amount - paid);
+}
+
+// ❌ MAUVAIS - Feature Envy
+// server/charges/charge.service.ts
+class ChargeService {
+  remainingBalance(charge: Charge, payments: ScheduledPayment[]): number {
+    const paid = payments.filter((p) => p.status === "PAID").reduce((s, p) => s + p.amount, 0);
+    return charge.amount - paid;
   }
-  
-  // Calcul
-  const subtotal = order.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const tax = subtotal * 0.2;
-  const total = subtotal + tax;
-  
-  // Sauvegarde
-  await db.save(order);
-  
-  // Notification
-  await emailService.send(order.customer.email, 'Order confirmed');
-}
-
-// Après
-function processOrder(order: Order): void {
-  this.validateOrder(order);
-  const total = this.calculateTotal(order);
-  await this.saveOrder(order);
-  await this.notifyCustomer(order);
-}
-
-private validateOrder(order: Order): void {
-  if (!order.items || order.items.length === 0) {
-    throw new Error('Order must have items');
-  }
-}
-
-private calculateTotal(order: Order): number {
-  const subtotal = order.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const tax = subtotal * 0.2;
-  return subtotal + tax;
-}
-
-private async saveOrder(order: Order): Promise<void> {
-  await db.save(order);
-}
-
-private async notifyCustomer(order: Order): Promise<void> {
-  await emailService.send(order.customer.email, 'Order confirmed');
 }
 ```
 
-### 2. Extract Class
-**Quand:** Une classe a trop de responsabilités.
+### 2. Anti-Patterns Spécifiques à Next.js BFF
+
+#### ❌ Logique Métier dans les Routes
 
 ```typescript
-// Avant
-class OrderProcessor {
-  validateOrder(order: Order): boolean { /* ... */ }
-  calculateTotal(order: Order): number { /* ... */ }
-  saveOrder(order: Order): Promise<Order> { /* ... */ }
-  sendConfirmationEmail(order: Order): Promise<void> { /* ... */ }
-  updateInventory(order: Order): Promise<void> { /* ... */ }
-}
+// ❌ MAUVAIS - Logique dans les routes
+// app/api/charges/route.ts
+import { prisma } from "@/server/db";
 
-// Après
-class OrderValidator {
-  validate(order: Order): boolean { /* ... */ }
-}
-
-class OrderCalculator {
-  calculateTotal(order: Order): number { /* ... */ }
-}
-
-class OrderRepository {
-  save(order: Order): Promise<Order> { /* ... */ }
-}
-
-class EmailService {
-  sendConfirmation(order: Order): Promise<void> { /* ... */ }
-}
-
-class InventoryService {
-  updateForOrder(order: Order): Promise<void> { /* ... */ }
-}
-
-class OrderProcessor {
-  constructor(
-    private validator: OrderValidator,
-    private calculator: OrderCalculator,
-    private repository: OrderRepository,
-    private emailService: EmailService,
-    private inventoryService: InventoryService,
-  ) {}
+export const POST = async (request: Request) => {
+  const body = await request.json();
   
-  async process(order: Order): Promise<Order> {
-    if (!this.validator.validate(order)) {
-      throw new Error('Invalid order');
+  // ❌ Logique métier ici!
+  if (body.amount > 10000) {
+    // Validation complexe
+  }
+  
+  // ❌ Accès direct à Prisma
+  const charge = await prisma.charge.create({ data: body });
+  
+  return NextResponse.json(charge);
+};
+
+// ✅ BON - Délégation au controller
+// app/api/charges/route.ts
+import { chargesController } from "@/server/charges/charges.controller";
+
+export const POST = (request: Request) => chargesController.create(request);
+```
+
+#### ❌ Accès Direct à Prisma dans les Controllers
+
+```typescript
+// ❌ MAUVAIS - Prisma dans le controller
+// server/charges/charges.controller.ts
+import { prisma } from "@/server/db";
+
+export class ChargesController {
+  async findOne(id: string): Promise<NextResponse> {
+    // ❌ Accès direct à Prisma
+    const charge = await prisma.charge.findUnique({ where: { id } });
+    return NextResponse.json(charge);
+  }
+}
+
+// ✅ BON - Appel au service
+// server/charges/charges.controller.ts
+import { ChargeService } from "./charge.service";
+
+export class ChargesController {
+  constructor(private readonly service: ChargeService) {}
+  
+  async findOne(id: string): Promise<NextResponse> {
+    const charge = await this.service.findOne(id);
+    return NextResponse.json(charge);
+  }
+}
+```
+
+#### ❌ Schémas Zod Dupliqués
+
+```typescript
+// ❌ MAUVAIS - Schémas dupliqués
+// server/charges/charge.service.ts
+export const chargeSchema = z.object({
+  id: z.string().uuid(),
+  label: z.string().min(1),
+  // ...
+});
+
+// server/users/user.service.ts
+export const userSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1),
+  // ... même pattern
+});
+
+// ✅ BON - Schémas centralisés
+// packages/shared/schemas/charge.ts
+export const chargeSchema = z.object({ /* ... */ });
+
+// packages/shared/schemas/user.ts
+export const userSchema = z.object({ /* ... */ });
+```
+
+#### ❌ Validation Manuelle au lieu de Zod
+
+```typescript
+// ❌ MAUVAIS - Validation manuelle
+// server/charges/charges.controller.ts
+export class ChargesController {
+  async create(request: Request): Promise<NextResponse> {
+    const body = await request.json();
+    
+    // ❌ Validation manuelle
+    if (!body.label) {
+      return NextResponse.json({ error: "Label is required" }, { status: 400 });
+    }
+    if (!body.amount || body.amount <= 0) {
+      return NextResponse.json({ error: "Amount must be positive" }, { status: 400 });
+    }
+    if (!["CHF", "EUR"].includes(body.currency)) {
+      return NextResponse.json({ error: "Invalid currency" }, { status: 400 });
     }
     
-    const total = this.calculator.calculateTotal(order);
-    const savedOrder = await this.repository.save(order);
-    await this.emailService.sendConfirmation(savedOrder);
-    await this.inventoryService.updateForOrder(savedOrder);
-    
-    return savedOrder;
-  }
-}
-```
-
-### 3. Replace Conditional with Polymorphism
-**Quand:** Des conditionnels complexes sur le type.
-
-```typescript
-// Avant
-class PaymentProcessor {
-  processPayment(payment: Payment): void {
-    switch (payment.type) {
-      case 'credit_card':
-        // Logique carte de crédit
-        break;
-      case 'paypal':
-        // Logique PayPal
-        break;
-      case 'bank_transfer':
-        // Logique virement
-        break;
-    }
+    // ...
   }
 }
 
-// Après
-interface PaymentStrategy {
-  process(): void;
-}
+// ✅ BON - Validation avec Zod
+// server/charges/charges.controller.ts
+import { createChargeSchema } from "@mbongo/shared/schemas/charge";
+import { parseBody } from "@/server/common/http";
 
-class CreditCardPayment implements PaymentStrategy {
-  process(): void { /* Logique carte de crédit */ }
-}
-
-class PayPalPayment implements PaymentStrategy {
-  process(): void { /* Logique PayPal */ }
-}
-
-class BankTransferPayment implements PaymentStrategy {
-  process(): void { /* Logique virement */ }
-}
-
-class PaymentProcessor {
-  processPayment(strategy: PaymentStrategy): void {
-    strategy.process();
+export class ChargesController {
+  async create(request: Request): Promise<NextResponse> {
+    const input = await parseBody(request, createChargeSchema);
+    return NextResponse.json(await this.service.create(input), { status: 201 });
   }
 }
-```
-
-### 4. Introduce Parameter Object
-**Quand:** Une méthode a trop de paramètres.
-
-```typescript
-// Avant
-function createUser(
-  id: string,
-  email: string,
-  password: string,
-  name: string,
-  role: UserRole = 'user',
-  isActive: boolean = true,
-): User { /* ... */ }
-
-// Après
-interface CreateUserParams {
-  id: string;
-  email: string;
-  password: string;
-  name: string;
-  role?: UserRole;
-  isActive?: boolean;
-}
-
-function createUser(params: CreateUserParams): User { /* ... */ }
-```
-
-### 5. Replace Magic Number with Symbolic Constant
-**Quand:** Des valeurs codées en dur.
-
-```typescript
-// Avant
-if (status === 1) { /* Active */ }
-if (status === 2) { /* Inactive */ }
-
-// Après
-const USER_STATUS = {
-  ACTIVE: 1,
-  INACTIVE: 2,
-  PENDING: 3,
-} as const;
-
-type UserStatus = typeof USER_STATUS[keyof typeof USER_STATUS];
-
-if (status === USER_STATUS.ACTIVE) { /* Active */ }
 ```
 
 ---
 
-## 📊 Checklist Clean Code
+## 🛠️ Techniques de Refactoring (Next.js BFF)
+
+### 1. Extraire la Validation dans des Schémas Zod
+
+**Quand:** La validation est répétée ou complexe.
+
+```typescript
+// Avant
+class ChargesController {
+  async create(request: Request): Promise<NextResponse> {
+    const body = await request.json();
+    if (!body.label) throw new Error("Label required");
+    if (!body.amount || body.amount <= 0) throw new Error("Amount must be positive");
+    // ...
+  }
+}
+
+// Après
+// packages/shared/schemas/charge.ts
+export const createChargeSchema = z.object({
+  label: z.string().min(1, "Label is required"),
+  amount: z.number().positive("Amount must be positive"),
+  // ...
+});
+
+// server/charges/charges.controller.ts
+import { createChargeSchema } from "@mbongo/shared/schemas/charge";
+import { parseBody } from "@/server/common/http";
+
+class ChargesController {
+  async create(request: Request): Promise<NextResponse> {
+    const input = await parseBody(request, createChargeSchema);
+    return NextResponse.json(await this.service.create(input), { status: 201 });
+  }
+}
+```
+
+### 2. Extraire la Logique Métier dans packages/shared
+
+**Quand:** La logique peut être testée sans serveur.
+
+```typescript
+// Avant
+// server/charges/charge.service.ts
+class ChargeService {
+  async calculateRemainingBalance(chargeId: string): Promise<number> {
+    const charge = await this.findOne(chargeId);
+    const payments = await prisma.scheduledPayment.findMany({
+      where: { chargeId, status: "PAID" },
+    });
+    const paid = payments.reduce((sum, p) => sum + p.amount, 0);
+    return charge.amount - paid;
+  }
+}
+
+// Après
+// packages/shared/domain/calculation.ts
+export function remainingBalance(charge: Charge, payments: ScheduledPayment[]): number {
+  const paid = payments.filter((p) => p.status === "PAID").reduce((s, p) => s + p.amount, 0);
+  return round2(charge.amount - paid);
+}
+
+// server/charges/charge.service.ts
+import { remainingBalance } from "@mbongo/shared/domain/calculation";
+
+class ChargeService {
+  async calculateRemainingBalance(chargeId: string): Promise<number> {
+    const charge = await this.findOne(chargeId);
+    const payments = await prisma.scheduledPayment.findMany({
+      where: { chargeId },
+    });
+    return remainingBalance(charge, payments);
+  }
+}
+```
+
+### 3. Extraire le Traducteur de Filtres
+
+**Quand:** Les filtres sont utilisés dans plusieurs services.
+
+```typescript
+// Avant
+// server/charges/charge.service.ts
+class ChargeService {
+  async findMany(query: any): Promise<Charge[]> {
+    const where: any = {};
+    if (query.type) where.type = query.type;
+    if (query.category) where.category = query.category;
+    if (query.amount) where.amount = { gte: query.amount.min, lte: query.amount.max };
+    // ...
+    return prisma.charge.findMany({ where });
+  }
+}
+
+// server/users/user.service.ts
+class UserService {
+  async findMany(query: any): Promise<User[]> {
+    const where: any = {};
+    if (query.name) where.name = { contains: query.name };
+    if (query.email) where.email = query.email;
+    // ... même pattern
+    return prisma.user.findMany({ where });
+  }
+}
+
+// Après
+// packages/shared/lib/filter-to-where.ts
+export function queryToWhere(query: Record<string, any>): Record<string, any> {
+  const where: Record<string, any> = {};
+  for (const [field, filter] of Object.entries(query)) {
+    if (["limit", "cursor"].includes(field)) continue;
+    if (filter) where[field] = filterToCondition(filter);
+  }
+  return where;
+}
+
+function filterToCondition(filter: any): any {
+  const condition: any = {};
+  if (filter.eq !== undefined) condition.equals = filter.eq;
+  if (filter.not !== undefined) condition.not = filter.not;
+  if (filter.in !== undefined) condition.in = filter.in;
+  if (filter.gte !== undefined) condition.gte = filter.gte;
+  if (filter.lte !== undefined) condition.lte = filter.lte;
+  if (filter.contains !== undefined) condition.contains = filter.contains;
+  return condition;
+}
+
+// server/charges/charge.service.ts
+import { queryToWhere } from "@mbongo/shared/lib/filter-to-where";
+
+class ChargeService {
+  async findMany(query: ChargeQuery): Promise<Charge[]> {
+    return prisma.charge.findMany({
+      where: queryToWhere(query),
+      take: query.limit,
+    });
+  }
+}
+```
+
+---
+
+## 📊 Checklist Clean Code (Next.js BFF)
 
 ### Avant de Commiter
 
 - [ ] **Nommage**: Tous les noms (variables, fonctions, classes) sont clairs et explicites
 - [ ] **Fonctions**: Chaque fonction fait UNE seule chose et la fait bien
-- [ ] **Taille**: Aucune fonction ne dépasse 20-30 lignes (idéalement < 20)
-- [ ] **Paramètres**: Aucune fonction n'a plus de 3-4 paramètres (utiliser Parameter Objects)
+- [ ] **Taille**: Aucune fonction ne dépasse 20-30 lignes
+- [ ] **Paramètres**: Aucune fonction n'a plus de 4 paramètres (utiliser des schémas Zod)
 - [ ] **Classes**: Chaque classe a une seule responsabilité (SRP)
 - [ ] **Duplication**: Aucune duplication de code (DRY)
+- [ ] **Schémas Zod**: Tous les types sont définis dans packages/shared/schemas/
 - [ ] **Commentaires**: Les commentaires expliquent le POURQUOI, pas le COMMENT
 - [ ] **Tests**: Chaque fonction a des tests unitaires
 - [ ] **Linting**: Le code passe ESLint sans erreurs
@@ -786,215 +800,12 @@ if (status === USER_STATUS.ACTIVE) { /* Active */ }
 
 - [ ] **Spec**: Le code respecte la spécification validée
 - [ ] **Conventions**: Le code suit CONVENTIONS.md
+- [ ] **Architecture**: L'architecture suit Next.js BFF (Services, Controllers, Schémas)
+- [ ] **Validation**: Toutes les entrées sont validées avec Zod
+- [ ] **Séparation des concerns**: Controllers = Validation + Délégation, Services = Logique
 - [ ] **Documentation**: La documentation est à jour
 - [ ] **Tests**: Tous les tests passent
 - [ ] **Performance**: Pas de problèmes de performance évidents
-- [ ] **Sécurité**: Pas de vulnérabilités de sécurité
-- [ ] **Accessibilité**: Le code respecte les standards d'accessibilité (si UI)
-
----
-
-## 🎓 Ressources Recommandées
-
-### Livres
-- [Clean Code: A Handbook of Agile Software Craftsmanship](https://www.amazon.com/Clean-Code-Handbook-Software-Craftsmanship/dp/0132350882) - Robert C. Martin
-- [The Clean Coder: A Code of Conduct for Professional Programmers](https://www.amazon.com/Clean-Coder-Conduct-Professional-Programmers/dp/0137081073) - Robert C. Martin
-- [Refactoring: Improving the Design of Existing Code](https://www.amazon.com/Refactoring-Improving-Design-Existing-Code/dp/0201485672) - Martin Fowler
-
-### Sites Web
-- [Clean Code Cheat Sheet](https://github.com/thoughtbot/guides/tree/main/style)
-- [Refactoring Guru](https://refactoring.guru/)
-- [Martin Fowler's Blog](https://martinfowler.com/)
-- [The Pragmatic Programmer](https://pragprog.com/titles/tpp20/the-pragmatic-programmer-20th-anniversary-edition/)
-
-### Outils
-- [ESLint](https://eslint.org/) - Linting
-- [Prettier](https://prettier.io/) - Formatage
-- [SonarQube](https://www.sonarqube.org/) - Analyse de code
-- [CodeClimate](https://codeclimate.com/) - Qualité de code
-
----
-
-## 📝 Exemples Pratiques
-
-### Exemple 1: De Spaghetti à Clean
-
-**Avant (Spaghetti Code):**
-```typescript
-// userManager.ts
-class UserManager {
-  constructor(private db: any) {}
-  
-  async handleUserRequest(req: any, res: any): Promise<void> {
-    if (req.method === 'GET' && req.url === '/users') {
-      const users = await this.db.collection('users').find({}).toArray();
-      res.json(users);
-    } else if (req.method === 'POST' && req.url === '/users') {
-      const user = req.body;
-      if (!user.email || !user.password) {
-        res.status(400).json({ error: 'Email and password required' });
-        return;
-      }
-      const existing = await this.db.collection('users').findOne({ email: user.email });
-      if (existing) {
-        res.status(400).json({ error: 'Email already exists' });
-        return;
-      }
-      user.password = this.hashPassword(user.password);
-      const result = await this.db.collection('users').insertOne(user);
-      res.status(201).json({ id: result.insertedId, ...user });
-    } else if (req.method === 'GET' && req.url.match(>/users/\w+/)) {
-      const id = req.url.split('/')[2];
-      const user = await this.db.collection('users').findOne({ _id: id });
-      if (!user) {
-        res.status(404).json({ error: 'User not found' });
-        return;
-      }
-      res.json(user);
-    } else {
-      res.status(404).json({ error: 'Not found' });
-    }
-  }
-  
-  private hashPassword(password: string): string {
-    // Implémentation basique
-    return require('crypto').createHash('sha256').update(password).digest('hex');
-  }
-}
-```
-
-**Après (Clean Code):**
-```typescript
-// types/user.ts
-interface User {
-  id: string;
-  email: string;
-  passwordHash: string;
-  name?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface CreateUserDto {
-  email: string;
-  password: string;
-  name?: string;
-}
-
-// interfaces/IUserRepository.ts
-interface IUserRepository {
-  findAll(): Promise<User[]>;
-  findById(id: string): Promise<User | null>;
-  findByEmail(email: string): Promise<User | null>;
-  create(user: CreateUserDto): Promise<User>;
-}
-
-// services/PasswordService.ts
-class PasswordService {
-  hash(password: string): string {
-    return require('crypto').createHash('sha256').update(password).digest('hex');
-  }
-}
-
-// repositories/UserRepository.ts
-class UserRepository implements IUserRepository {
-  constructor(private db: any, private passwordService: PasswordService) {}
-  
-  async findAll(): Promise<User[]> {
-    return this.db.collection('users').find({}).toArray();
-  }
-  
-  async findById(id: string): Promise<User | null> {
-    return this.db.collection('users').findOne({ _id: id });
-  }
-  
-  async findByEmail(email: string): Promise<User | null> {
-    return this.db.collection('users').findOne({ email });
-  }
-  
-  async create(userDto: CreateUserDto): Promise<User> {
-    const existing = await this.findByEmail(userDto.email);
-    if (existing) {
-      throw new Error('Email already exists');
-    }
-    
-    const user: User = {
-      id: require('uuid').v4(),
-      email: userDto.email,
-      passwordHash: this.passwordService.hash(userDto.password),
-      name: userDto.name,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    
-    await this.db.collection('users').insertOne(user);
-    return user;
-  }
-}
-
-// usecases/GetAllUsers.ts
-class GetAllUsers {
-  constructor(private userRepository: IUserRepository) {}
-  
-  async execute(): Promise<User[]> {
-    return this.userRepository.findAll();
-  }
-}
-
-// usecases/GetUserById.ts
-class GetUserById {
-  constructor(private userRepository: IUserRepository) {}
-  
-  async execute(id: string): Promise<User> {
-    const user = await this.userRepository.findById(id);
-    if (!user) {
-      throw new Error('User not found');
-    }
-    return user;
-  }
-}
-
-// usecases/CreateUser.ts
-class CreateUser {
-  constructor(private userRepository: IUserRepository) {}
-  
-  async execute(userDto: CreateUserDto): Promise<User> {
-    if (!userDto.email || !userDto.password) {
-      throw new Error('Email and password required');
-    }
-    return this.userRepository.create(userDto);
-  }
-}
-
-// controllers/UserController.ts
-class UserController {
-  constructor(
-    private getAllUsers: GetAllUsers,
-    private getUserById: GetUserById,
-    private createUser: CreateUser,
-  ) {}
-  
-  async handleRequest(req: any, res: any): Promise<void> {
-    try {
-      if (req.method === 'GET' && req.url === '/users') {
-        const users = await this.getAllUsers.execute();
-        res.json(users);
-      } else if (req.method === 'POST' && req.url === '/users') {
-        const user = await this.createUser.execute(req.body);
-        res.status(201).json(user);
-      } else if (req.method === 'GET' && req.url.match(>/users/\w+/)) {
-        const id = req.url.split('/')[2];
-        const user = await this.getUserById.execute(id);
-        res.json(user);
-      } else {
-        res.status(404).json({ error: 'Not found' });
-      }
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
-    }
-  }
-}
-```
 
 ---
 
@@ -1017,21 +828,21 @@ class UserController {
 
 ```typescript
 // ✅ BON - Fail Fast
-function processOrder(order: Order): void {
-  if (!order) {
-    throw new Error('Order is required');
+function processCharge(charge: Charge | null): void {
+  if (!charge) {
+    throw new Error('Charge is required');
   }
-  if (!order.items || order.items.length === 0) {
-    throw new Error('Order must have items');
+  if (!charge.isActive) {
+    throw new Error('Charge must be active');
   }
   // ... reste de la logique
 }
 
 // ❌ MAUVAIS - Fail Late
-function processOrder(order: Order): void {
+function processCharge(charge: Charge | null): void {
   // Beaucoup de logique...
   // Puis au milieu:
-  if (!order.items) {
+  if (!charge?.isActive) {
     return; // Échec silencieux!
   }
 }
@@ -1039,7 +850,30 @@ function processOrder(order: Order): void {
 
 ---
 
-**Version:** 1.0.0  
+## 📚 Ressources Recommandées
+
+### Livres
+- [Clean Code: A Handbook of Agile Software Craftsmanship](https://www.amazon.com/Clean-Code-Handbook-Software-Craftsmanship/dp/0132350882) - Robert C. Martin
+- [The Pragmatic Programmer](https://pragprog.com/titles/tpp20/the-pragmatic-programmer-20th-anniversary-edition/) - David Thomas & Andrew Hunt
+- [Refactoring: Improving the Design of Existing Code](https://www.amazon.com/Refactoring-Improving-Design-Existing-Code/dp/0201485672) - Martin Fowler
+
+### Sites Web
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Prisma Documentation](https://www.prisma.io/docs)
+- [Zod Documentation](https://zod.dev)
+- [Clean Code Cheat Sheet](https://github.com/thoughtbot/guides/tree/main/style)
+- [Refactoring Guru](https://refactoring.guru/)
+
+### Outils
+- [ESLint](https://eslint.org/) - Linting
+- [Prettier](https://prettier.io/) - Formatage
+- [Prisma](https://www.prisma.io/) - ORM
+- [Zod](https://zod.dev/) - Validation
+
+---
+
+**Version:** 2.0.0  
 **Auteur:** Agent IA Expert Architect  
+**Architecture:** Next.js BFF Fullstack + NestJS-like Style + KISS
 **Dernière mise à jour:** 2024-11-05  
 **Statut:** ✅ Opérationnelle

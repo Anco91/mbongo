@@ -2,54 +2,39 @@
   "root": true,
   "env": {
     "node": true,
-    "jest": true,
     "es2022": true
   },
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
-    "plugin:@typescript-eslint/recommended-requiring-type-checking",
-    "plugin:jest/recommended",
-    "plugin:prettier/recommended"
+    "plugin:@typescript-eslint/recommended-requiring-type-checking"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaVersion": 2022,
     "sourceType": "module",
-    "project": "./tsconfig.json",
-    "ecmaFeatures": {
-      "impliedStrict": true
-    }
+    "project": true
   },
   "plugins": [
     "@typescript-eslint",
-    "jest",
     "prettier"
   ],
-  "settings": {
-    "jest": {
-      "version": 29
-    }
-  },
   "rules": {
     "@typescript-eslint/explicit-function-return-type": [
       "error",
       {
         "allowExpressions": true,
-        "allowConciseArrowFunctionExpressionsStartingWithVoid": true,
-        "allowedNames": ["test", "it", "describe", "beforeEach", "afterEach", "beforeAll", "afterAll"]
+        "allowConciseArrowFunctionExpressionsStartingWithVoid": true
       }
     ],
     "@typescript-eslint/no-explicit-any": "error",
     "@typescript-eslint/no-unused-vars": [
       "error",
       {
-        "argsIgnorePattern": "^_",
-        "varsIgnorePattern": "^_"
+        "argsIgnorePattern": "^_"
       }
     ],
     "@typescript-eslint/no-non-null-assertion": "warn",
-    "@typescript-eslint/no-non-null-asserted-optional-chain": "warn",
     "@typescript-eslint/prefer-nullish-coalescing": "error",
     "@typescript-eslint/prefer-optional-chain": "error",
     "@typescript-eslint/prefer-readonly": "error",
@@ -59,135 +44,6 @@
       "error",
       {
         "default": "array-simple"
-      }
-    ],
-    "@typescript-eslint/no-empty-interface": [
-      "error",
-      {
-        "allowSingleExtends": true
-      }
-    ],
-    "@typescript-eslint/no-empty-function": [
-      "error",
-      {
-        "allowDecoratorKeyFunctions": true,
-        "allowArrowFunctions": true
-      }
-    ],
-    "@typescript-eslint/member-ordering": "warn",
-    "@typescript-eslint/naming-convention": [
-      "error",
-      {
-        "selector": "default",
-        "format": ["camelCase"],
-        "leadingUnderscore": "allow",
-        "trailingUnderscore": "allow"
-      },
-      {
-        "selector": "variable",
-        "format": ["camelCase", "UPPER_CASE", "PascalCase"],
-        "leadingUnderscore": "allow",
-        "trailingUnderscore": "allow"
-      },
-      {
-        "selector": "typeLike",
-        "format": ["PascalCase"]
-      },
-      {
-        "selector": "enumMember",
-        "format": ["PascalCase", "UPPER_CASE"]
-      },
-      {
-        "selector": "classProperty",
-        "modifiers": ["private", "readonly"],
-        "format": ["camelCase"],
-        "leadingUnderscore": "require"
-      },
-      {
-        "selector": "classProperty",
-        "modifiers": ["public"],
-        "format": ["camelCase"]
-      },
-      {
-        "selector": "classMethod",
-        "format": ["camelCase"]
-      },
-      {
-        "selector": "accessor",
-        "format": ["camelCase"]
-      },
-      {
-        "selector": "parameter",
-        "format": ["camelCase"],
-        "leadingUnderscore": "allow"
-      },
-      {
-        "selector": "memberLike",
-        "modifiers": ["private"],
-        "format": ["camelCase"],
-        "leadingUnderscore": "require"
-      },
-      {
-        "selector": "variable",
-        "modifiers": ["const"],
-        "types": ["boolean", "number", "string"],
-        "format": ["UPPER_CASE"]
-      }
-    ],
-    "@typescript-eslint/no-magic-numbers": [
-      "warn",
-      {
-        "ignore": [0, 1, -1, 100, 1000],
-        "ignoreArrayIndexes": true,
-        "ignoreNumericLiteralTypes": true,
-        "ignoreEnums": true
-      }
-    ],
-    "@typescript-eslint/no-unnecessary-type-assertion": "warn",
-    "@typescript-eslint/no-unnecessary-type-constraint": "warn",
-    "@typescript-eslint/no-unnecessary-boolean-literal-compare": "warn",
-    "@typescript-eslint/no-unnecessary-condition": "warn",
-    "@typescript-eslint/prefer-includes": "warn",
-    "@typescript-eslint/prefer-string-starts-ends-with": "warn",
-    "@typescript-eslint/prefer-for-of": "warn",
-    "@typescript-eslint/no-unnecessary-qualifier": "warn",
-    "@typescript-eslint/no-unnecessary-type-arguments": "warn",
-    "@typescript-eslint/ban-types": [
-      "error",
-      {
-        "types": {
-          "String": {
-            "message": "Use string instead",
-            "fixWith": "string"
-          },
-          "Number": {
-            "message": "Use number instead",
-            "fixWith": "number"
-          },
-          "Boolean": {
-            "message": "Use boolean instead",
-            "fixWith": "boolean"
-          },
-          "Symbol": {
-            "message": "Use symbol instead",
-            "fixWith": "symbol"
-          },
-          "{}": {
-            "message": "Use Record<string, unknown> instead"
-          },
-          "Object": {
-            "message": "Use Record<string, unknown> instead",
-            "fixWith": "Record<string, unknown>"
-          },
-          "object": {
-            "message": "Use Record<string, unknown> instead",
-            "fixWith": "Record<string, unknown>"
-          },
-          "Function": {
-            "message": "Use specific function type instead"
-          }
-        },
-        "extendDefaults": true
       }
     ],
     "no-console": [
@@ -208,134 +64,6 @@
     ],
     "no-throw-literal": "error",
     "require-await": "error",
-    "no-return-await": "warn",
-    "no-promise-executor-return": "warn",
-    "no-async-promise-executor": "warn",
-    "no-template-curly-in-string": "warn",
-    "no-unmodified-loop-condition": "warn",
-    "no-unreachable-loop": "warn",
-    "no-unsafe-optional-chaining": "warn",
-    "no-use-before-define": [
-      "error",
-      {
-        "functions": false,
-        "classes": true,
-        "variables": true
-      }
-    ],
-    "no-useless-computed-key": "warn",
-    "no-useless-constructor": "warn",
-    "no-useless-rename": "warn",
-    "no-useless-return": "warn",
-    "prefer-destructuring": [
-      "warn",
-      {
-        "VariableDeclarator": {
-          "array": false,
-          "object": true
-        },
-        "AssignmentExpression": {
-          "array": true,
-          "object": true
-        }
-      }
-    ],
-    "prefer-object-spread": "warn",
-    "prefer-rest-params": "warn",
-    "prefer-spread": "warn",
-    "prefer-arrow-callback": [
-      "warn",
-      {
-        "allowNamedFunctions": true,
-        "allowUnboundThis": false
-      }
-    ],
-    "prefer-template": "warn",
-    "arrow-body-style": [
-      "warn",
-      "as-needed",
-      {
-        "requireReturnForObjectLiteral": true
-      }
-    ],
-    "arrow-parens": [
-      "warn",
-      "always"
-    ],
-    "arrow-spacing": [
-      "warn",
-      {
-        "before": true,
-        "after": true
-      }
-    ],
-    "generator-star-spacing": [
-      "warn",
-      {
-        "before": false,
-        "after": true
-      }
-    ],
-    "rest-spread-spacing": [
-      "warn",
-      "never"
-    ],
-    "template-curly-spacing": [
-      "warn",
-      "never"
-    ],
-    "yield-star-spacing": [
-      "warn",
-      {
-        "before": false,
-        "after": true
-      }
-    ],
-    "jest/no-deprecated-functions": "warn",
-    "jest/no-disabled-tests": "warn",
-    "jest/no-duplicate-hooks": "error",
-    "jest/no-expect-resolves": "warn",
-    "jest/no-export": "warn",
-    "jest/no-focused-tests": "error",
-    "jest/no-hooks": "warn",
-    "jest/no-identical-title": "error",
-    "jest/no-if": "warn",
-    "jest/no-import": "off",
-    "jest/no-jasmine-globals": "warn",
-    "jest/no-jest-import": "error",
-    "jest/no-large-snapshots": [
-      "warn",
-      {
-        "maxSize": 50,
-        "inlineMaxSize": 8
-      }
-    ],
-    "jest/no-mocks-import": "warn",
-    "jest/no-standalone-expect": "warn",
-    "jest/no-test-prefixes": "warn",
-    "jest/no-truthy-falsy": "warn",
-    "jest/prefer-comparison-matcher": "warn",
-    "jest/prefer-equality-matcher": "warn",
-    "jest/prefer-expect-assertions": "warn",
-    "jest/prefer-hooks-in-order": "warn",
-    "jest/prefer-hooks-on-top": "warn",
-    "jest/prefer-lowercase-title": [
-      "warn",
-      {
-        "ignore": ["describe", "test", "it"],
-        "ignoreTopLevelDescribe": true
-      }
-    ],
-    "jest/prefer-spy-on": "warn",
-    "jest/prefer-strict-equal": "warn",
-    "jest/prefer-to-be": "warn",
-    "jest/prefer-to-have-length": "warn",
-    "jest/prefer-todo": "warn",
-    "jest/require-hook": "warn",
-    "jest/require-top-level-describe": "warn",
-    "jest/valid-describe-callback": "error",
-    "jest/valid-expect": "error",
-    "jest/valid-title": "warn",
     "prettier/prettier": [
       "error",
       {
@@ -344,34 +72,41 @@
         "tabWidth": 2,
         "trailingComma": "es5",
         "printWidth": 80,
-        "endOfLine": "auto",
-        "bracketSpacing": true,
-        "arrowParens": "always"
+        "endOfLine": "auto"
       }
     ]
   },
+  "ignorePatterns": [
+    "node_modules",
+    "dist",
+    ".next",
+    "coverage",
+    "*.js",
+    "*.d.ts"
+  ],
   "overrides": [
     {
-      "files": ["*.test.ts", "*.spec.ts"],
+      "files": ["**/*.test.ts", "**/*.spec.ts"],
       "rules": {
-        "@typescript-eslint/no-explicit-any": "off",
-        "no-console": "off"
-      }
-    },
-    {
-      "files": ["**/migrations/**", "**/seeders/**"],
-      "rules": {
-        "@typescript-eslint/no-explicit-any": "off",
-        "@typescript-eslint/explicit-function-return-type": "off"
-      }
-    },
-    {
-      "files": ["*.d.ts"],
-      "rules": {
-        "@typescript-eslint/explicit-function-return-type": "off",
         "@typescript-eslint/no-explicit-any": "off"
       }
+    },
+    {
+      "files": ["apps/web/**/*"],
+      "extends": [
+        "next/core-web-vitals",
+        "plugin:prettier/recommended"
+      ],
+      "rules": {
+        "react/react-in-jsx-scope": "off",
+        "@typescript-eslint/explicit-function-return-type": [
+          "error",
+          {
+            "allowExpressions": true,
+            "allowConciseArrowFunctionExpressionsStartingWithVoid": true
+          }
+        ]
+      }
     }
-  ],
-  "reportUnusedDisableDirectives": true
+  ]
 }

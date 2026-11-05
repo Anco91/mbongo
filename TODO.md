@@ -1,219 +1,366 @@
-# TODO.md - Feuille de Route du Projet
+# TODO List - Mbongo Project
 
-> **⚠️ RÈGLE CRITIQUE:** Cette todo list DOIT être mise à jour en temps réel.
-> **AUCUN travail ne commence sans une tâche dans cette liste.**
-
----
-
-## 🎯 Priorités Actuelles
-
-| Priorité | Tâche | Statut | Spec | Estim. | Assigné | Dépendances |
-|----------|-------|--------|------|--------|---------|-------------|
-| 🔴 HIGH | Initialiser le projet avec toute la configuration | ⏳ | N/A | 2h | Agent IA | Aucune |
-| 🔴 HIGH | Créer la structure de base des dossiers | ✅ | N/A | 0.5h | Agent IA | Aucune |
-| 🔴 HIGH | Créer AGENTS.md | ✅ | N/A | 0.5h | Agent IA | Aucune |
-| 🔴 HIGH | Créer CONVENTIONS.md | ✅ | N/A | 1h | Agent IA | Aucune |
-| 🔴 HIGH | Créer les skills SDD et Clean Code | ✅ | N/A | 2h | Agent IA | Aucune |
-| 🔴 HIGH | Créer package.json et configuration | ✅ | N/A | 1h | Agent IA | Aucune |
-| 🟡 MEDIUM | Créer README.md du projet | ⏳ | N/A | 1h | Agent IA | Structure de base |
-| 🟡 MEDIUM | Initialiser git et premier commit | ⏳ | N/A | 0.5h | Agent IA | Configuration complète |
-| 🟡 MEDIUM | Créer les fichiers .gitignore et .env.example | ⏳ | N/A | 0.5h | Agent IA | Structure de base |
-| 🟢 LOW | Configurer les scripts de développement | ⏳ | N/A | 1h | Agent IA | package.json |
+**Project**: AI Agent Configuration with Spec-Driven Development
+**Architecture**: Next.js BFF Fullstack + NestJS-like Style + KISS
+**Status**: ✅ Core Setup Complete
 
 ---
 
-## 📋 Backlog
+## 🚀 Immediate Next Steps
 
-### 🔴 High Priority
-
-- [ ] **SPEC-001**: Créer la spec pour le système de gestion des utilisateurs
-  - Estim.: 2h | Spec ID: USER-MGT-001 | Dépendances: Aucune
-- [ ] **SPEC-002**: Créer la spec pour le système d'authentification
-  - Estim.: 1.5h | Spec ID: AUTH-001 | Dépendances: USER-MGT-001
-- [ ] **DEV-001**: Implémenter le UserRepository selon SPEC-001
-  - Estim.: 3h | Dépendances: SPEC-001 validée
-- [ ] **DEV-002**: Implémenter le UserService selon SPEC-001
-  - Estim.: 2h | Dépendances: DEV-001
-
-### 🟡 Medium Priority
-
-- [ ] **SPEC-003**: Créer la spec pour le système de gestion des commandes
-  - Estim.: 2h | Spec ID: ORDER-MGT-001 | Dépendances: AUTH-001
-- [ ] **INFRA-001**: Configurer la base de données PostgreSQL
-  - Estim.: 1h | Dépendances: Aucune
-- [ ] **INFRA-002**: Configurer Redis pour le caching
-  - Estim.: 1h | Dépendances: Aucune
-- [ ] **TEST-001**: Mettre en place la couverture de code à 80%
-  - Estim.: 2h | Dépendances: DEV-001, DEV-002
-
-### 🟢 Low Priority
-
-- [ ] **DOCS-001**: Documenter l'API avec Swagger/OpenAPI
-  - Estim.: 2h | Dépendances: DEV-001, DEV-002
-- [ ] **DOCS-002**: Créer un guide de contribution
-  - Estim.: 1h | Dépendances: CONVENTIONS.md
-- [ ] **CI-001**: Configurer GitHub Actions pour CI/CD
-  - Estim.: 2h | Dépendances: Configuration projet complète
+- [ ] **Setup Database**: Run `npm run prisma:push` to initialize database
+- [ ] **Test Development Server**: Run `npm run dev` and verify at http://localhost:3000/charges
+- [ ] **Verify Prisma Client**: Check that `npm run prisma:generate` works correctly
+- [ ] **Test API Endpoints**: Verify all charge API routes work with Postman/curl
+- [ ] **Add Authentication**: Implement user authentication (NextAuth, Clerk, etc.)
 
 ---
 
-## 🗓️ Roadmap Hebdomadaire
+## 🏗️ Project Setup (In Progress)
 
-### Semaine 1 (2024-11-05 - 2024-11-11)
+### ✅ Completed
+- [x] **Monorepo Structure**: Configured with Turbo
+- [x] **Next.js App**: Created with App Router
+- [x] **Prisma Setup**: Schema, client, and migrations configured
+- [x] **Zod Schemas**: Complete schemas for Charge, ScheduledPayment, Filter
+- [x] **Backend Architecture**: NestJS-like (Service, Controller, DB)
+- [x] **Frontend Architecture**: RSC + React Query + Client Components
+- [x] **API Routes**: All charge endpoints (CRUD + payments)
+- [x] **React Query Hooks**: useCharges, useCreateCharge, etc.
+- [x] **UI Components**: ChargesGuard, ChargesView
+- [x] **Shared Package**: Schemas, domain logic, types
+- [x] **TypeScript Config**: Strict mode, path aliases
+- [x] **ESLint/Prettier**: Configured for Clean Code
+- [x] **AI Agent Config**: AGENTS.md, CONVENTIONS.md, Skills
+- [x] **Documentation**: README.md, SPEC_TEMPLATE.md
 
-**Objectif:** Finaliser la configuration du projet et commencer les specs
-
-- ✅ Lundi 05/11: Structure de base + AGENTS.md + CONVENTIONS.md
-- ✅ Lundi 05/11: Skills SDD et Clean Code
-- ✅ Lundi 05/11: package.json et configuration TypeScript
-- ⏳ Mardi 06/11: README.md et documentation initiale
-- ⏳ Mardi 06/11: Initialisation git et premier commit
-- ⏳ Mercredi 07/11: SPEC-001 (User Management) - Rédaction
-- ⏳ Jeudi 08/11: SPEC-001 - Validation et approval
-- ⏳ Vendredi 09/11: SPEC-002 (Authentification) - Rédaction
-- ⏳ Samedi 10/11: DEV-001 - Début implémentation UserRepository
-
-### Semaine 2 (2024-11-12 - 2024-11-18)
-
-**Objectif:** Finaliser les specs et commencer le développement
-
-- ⏳ Lundi 12/11: SPEC-002 - Validation et approval
-- ⏳ Mardi 13/11: DEV-001 - Suite implémentation
-- ⏳ Mercredi 14/11: DEV-002 - Implémentation UserService
-- ⏳ Jeudi 15/11: SPEC-003 (Order Management) - Rédaction
-- ⏳ Vendredi 16/11: Tests unitaires pour DEV-001 et DEV-002
-- ⏳ Samedi 17/11: INFRA-001 - Configuration PostgreSQL
-
----
-
-## 👥 Assignment par Membre
-
-### Agent IA Expert Architect (Moi)
-
-**En Cours:**
-- [ ] Configuration initiale du projet ✅
-- [ ] Création des fichiers de configuration ⏳
-- [ ] Rédaction des specs initiales ⏳
-
-**À Faire:**
-- [ ] Implémentation des User Use Cases
-- [ ] Implémentation du système d'authentification
-- [ ] Configuration de la base de données
-
-### Contributeur Humain (Si applicable)
-
-**À Faire:**
-- [ ] Review des specs
-- [ ] Validation des specs
-- [ ] Tests manuels
+### 📋 Pending
+- [ ] **Authentication**: Add user auth to protect routes
+- [ ] **Authorization**: Add permission checks
+- [ ] **More Modules**: Add Account, Transaction, etc.
+- [ ] **Error Tracking**: Setup Sentry or similar
+- [ ] **Monitoring**: Add logging and metrics
+- [ ] **CI/CD Pipeline**: GitHub Actions or similar
+- [ ] **Docker Support**: Add Dockerfile and docker-compose
 
 ---
 
-## 🎯 Objectifs par Sprint
+## 📦 Module: Charges (Example Implementation)
 
-### Sprint 1 (Semaines 1-2): Foundation
+### ✅ Completed
+- [x] **Schema**: charge.ts with all types and Zod validation
+- [x] **Filter Schema**: filter.ts with generic filter types
+- [x] **Domain Logic**: schedule.ts with payment generation
+- [x] **Prisma Model**: Charge and ScheduledPayment models
+- [x] **PrismaService**: db.ts singleton
+- [x] **Common Utilities**: filter-to-where.ts, http.ts
+- [x] **Service Layer**: charge.service.ts with CRUD + business logic
+- [x] **Controller Layer**: charges.controller.ts with validation
+- [x] **API Routes**: GET, POST, PATCH, DELETE for charges
+- [x] **Payment Routes**: Get payments, next payment, mark as paid
+- [x] **React Query Hooks**: useCharges, useCreateCharge, etc.
+- [x] **Server Component**: ChargesGuard with prefetch
+- [x] **Client Component**: ChargesView with UI
+- [x] **Page**: /charges dashboard page
 
-- [ ] Configuration complète du projet ✅
-- [ ] 3 specs validées (User, Auth, Order)
-- [ ] Implémentation de base du User Management
-- [ ] Configuration de l'infrastructure
-
-### Sprint 2 (Semaines 3-4): Core Features
-
-- [ ] Implémentation complète User Management
-- [ ] Implémentation complète Authentification
-- [ ] Implémentation de base Order Management
-- [ ] Tests complets pour toutes les features
-
-### Sprint 3 (Semaines 5-6): Polish & Delivery
-
-- [ ] Finalisation Order Management
-- [ ] Optimisation des performances
-- [ ] Documentation complète
-- [ ] Déploiement en production
-
----
-
-## ⚠️ Blocages & Problèmes
-
-| ID | Description | Statut | Impact | Solution Proposée |
-|----|-------------|--------|--------|-------------------|
-| B-001 | Attente validation des specs | ⚠️ | Moyen | Relancer le demandeur |
-| B-002 | Problème de configuration DB | ❌ | Haut | Vérifier les credentials |
+### 📝 Notes
+- Example implementation follows all conventions
+- Ready to be customized for actual requirements
+- All components are type-safe with Zod schemas
 
 ---
 
-## ✅ Tâches Complétées
+## 🔧 Technical Tasks
 
-| Date | Tâche | Spec | Temps | Notes |
-|------|-------|------|-------|-------|
-| 2024-11-05 | Structure de base des dossiers | N/A | 0.5h | Tous les dossiers créés |
-| 2024-11-05 | AGENTS.md créé | N/A | 0.5h | Configuration agent complète |
-| 2024-11-05 | CONVENTIONS.md créé | N/A | 1h | Toutes les conventions documentées |
-| 2024-11-05 | Skills SDD et Clean Code | N/A | 2h | Skills opérationnelles |
-| 2024-11-05 | package.json et tsconfig | N/A | 1h | Configuration TypeScript complète |
+### TypeScript
+- [ ] **Verify Types**: Check all types compile correctly
+- [ ] **Add More Types**: Extend shared types as needed
 
----
+### Testing
+- [ ] **Unit Tests**: Add tests for domain logic
+- [ ] **Integration Tests**: Add tests for services
+- [ ] **E2E Tests**: Add end-to-end tests
+- [ ] **Coverage**: Ensure 80%+ coverage
 
-## 📊 Métriques
+### Quality
+- [ ] **Lint Check**: Run `npm run lint` and fix issues
+- [ ] **Format Check**: Run `npm run format:check` and fix issues
+- [ ] **Type Check**: Run `npm run typecheck` and fix issues
+- [ ] **Quality Script**: Run `npm run quality` to verify all checks
 
-### Temps
-
-- **Temps total estimé:** 25 heures
-- **Temps total dépensé:** 5.5 heures
-- **Temps restant:** 19.5 heures
-- **Vitesse:** 5.5h / 0.5 jour = 11h/jour (but: 8h/jour)
-
-### Qualité
-
-- **Taux de complétion:** 22% (5.5/25 heures)
-- **Specs validées:** 0/3
-- **Coverture de code:** 0% (objectif: 80%+)
-- **Linting:** ✅ Pass (0 erreurs, 0 warnings)
-
-### Prochaines Étapes
-
-1. **Priorité Immédiate:** Finaliser la configuration du projet (README, git, .gitignore)
-2. **Prochaine Spec:** USER-MGT-001 (Gestion des Utilisateurs)
-3. **Prochain Développement:** UserRepository
+### Documentation
+- [ ] **API Docs**: Document all API endpoints
+- [ ] **Component Docs**: Add JSDoc to all components
+- [ ] **Architecture Docs**: Add detailed architecture documentation
 
 ---
 
-## 🔄 Mise à Jour Automatique
+## 🎨 UI/UX Tasks
 
-Cette todo list est **automatiquement synchronisée** avec:
-- Les specs dans `docs/specs/`
-- Les branches git
-- Les issues GitHub (si configuré)
-- Le système de todo de Vibe CLI
+### Layout & Design
+- [ ] **Design System**: Define colors, typography, spacing
+- [ ] **Tailwind Config**: Customize tailwind.config.js
+- [ ] **Global Styles**: Update globals.css with brand styles
+- [ ] **Component Library**: Create reusable UI components
 
-**Dernière synchronisation:** 2024-11-05 21:45:00 UTC
+### Pages
+- [ ] **Home Page**: Create landing page
+- [ ] **Dashboard**: Extend with more features
+- [ ] **Authentication Pages**: Login, register, forgot password
+- [ ] **Error Pages**: 404, 500, maintenance
 
----
-
-## 📝 Comment Utiliser
-
-1. **Ajouter une tâche:**
-   ```markdown
-   - [ ] NOUVELLE-TÂCHE: Description de la tâche
-     - Estim.: Xh | Spec: ID | Dépendances: autres tâches
-   ```
-
-2. **Mettre à jour le statut:**
-   - ⏳ **À faire** → ⏳ **En cours** → ✅ **Terminé**
-
-3. **Prioriser:**
-   - 🔴 HIGH: Priorité absolue
-   - 🟡 MEDIUM: Priorité moyenne
-   - 🟢 LOW: Priorité basse
-
-4. **Synchroniser:**
-   ```bash
-   npm run vibe:todo:sync
-   ```
+### Components
+- [ ] **Form Components**: Input, Select, DatePicker, etc.
+- [ ] **Table Components**: DataTable, Pagination, Sorting
+- [ ] **Modal Components**: Dialog, Confirmation, etc.
+- [ ] **Notification System**: Toasts, Alerts
+- [ ] **Loading States**: Spinners, Skeletons
 
 ---
 
-**Dernière mise à jour:** 2024-11-05 21:45:00 UTC  
-**Prochaine review:** 2024-11-06 09:00:00 UTC  
-**Responsable:** Agent IA Expert Architect
+## 📊 Data & Database
+
+### Prisma
+- [ ] **Verify Schema**: Check schema matches requirements
+- [ ] **Add Migrations**: Create and apply migrations
+- [ ] **Seed Data**: Add seed data for development
+
+### Database
+- [ ] **Production Setup**: Configure production database
+- [ ] **Backups**: Setup database backup strategy
+- [ ] **Optimization**: Add indexes, optimize queries
+
+---
+
+## 🔐 Security
+
+### Authentication
+- [ ] **Choose Provider**: NextAuth, Clerk, Auth0, etc.
+- [ ] **Implement Auth**: Add authentication to app
+- [ ] **Session Management**: Configure session handling
+
+### Authorization
+- [ ] **Permission System**: Define user roles and permissions
+- [ ] **Route Protection**: Protect routes based on permissions
+- [ ] **Data Access**: Filter data based on user permissions
+
+### Security Best Practices
+- [ ] **Input Validation**: Already implemented with Zod
+- [ ] **Output Sanitization**: Sanitize data before rendering
+- [ ] **Rate Limiting**: Add rate limiting to API
+- [ ] **CORS**: Configure CORS properly
+- [ ] **CSRF Protection**: Add CSRF protection
+- [ ] **XSS Protection**: Add XSS protection
+
+---
+
+## ⚡ Performance
+
+### Next.js Optimizations
+- [ ] **Image Optimization**: Use next/image for images
+- [ ] **Font Optimization**: Use next/font for fonts
+- [ ] **Script Optimization**: Use next/script for scripts
+- [ ] **Static Generation**: Add static pages where appropriate
+- [ ] **Server-Side Rendering**: Optimize SSR for SEO
+
+### Caching
+- [ ] **React Query Cache**: Configure cache strategies
+- [ ] **API Cache**: Add caching to API routes
+- [ ] **CDN**: Setup CDN for static assets
+
+### Monitoring
+- [ ] **Performance Metrics**: Track Core Web Vitals
+- [ ] **Error Tracking**: Setup Sentry or similar
+- [ ] **Logging**: Add structured logging
+
+---
+
+## 🚀 Deployment
+
+### Preparation
+- [ ] **Environment Config**: Setup environment variables for production
+- [ ] **CI/CD Pipeline**: Configure GitHub Actions or similar
+- [ ] **Docker Setup**: Create Dockerfile and docker-compose
+- [ ] **Database Migration**: Setup production database migration
+
+### Hosting Options
+- [ ] **Vercel**: Deploy to Vercel (recommended)
+- [ ] **Netlify**: Deploy to Netlify
+- [ ] **AWS**: Deploy to AWS (EC2, ECS, Lambda)
+- [ ] **Azure**: Deploy to Azure
+- [ ] **GCP**: Deploy to Google Cloud Platform
+
+---
+
+## 📝 Documentation Tasks
+
+### Internal Documentation
+- [ ] **Architecture Decision Records (ADR)**: Document key decisions
+- [ ] **API Documentation**: Document all API endpoints
+- [ ] **Component Documentation**: Document all React components
+- [ ] **Module Documentation**: Document all backend modules
+
+### External Documentation
+- [ ] **User Guide**: Create user documentation
+- [ ] **Getting Started**: Improve getting started guide
+- [ ] **Examples**: Add more usage examples
+- [ ] **FAQ**: Add frequently asked questions
+
+---
+
+## 🤖 AI Agent Tasks
+
+### Skill Improvements
+- [ ] **Spec-Driven Development**: Enhance spec templates
+- [ ] **Clean Code**: Add more examples and patterns
+- [ ] **Testing**: Add testing guidelines
+- [ ] **Review**: Add code review guidelines
+
+### Agent Configuration
+- [ ] **Custom Skills**: Add project-specific skills
+- [ ] **Templates**: Add more templates for common tasks
+- [ ] **Automation**: Automate common agent tasks
+
+---
+
+## 📈 Project Metrics
+
+### Code Quality
+- [ ] **Test Coverage**: Maintain 80%+ coverage
+- [ ] **Lint Score**: 0 errors, 0 warnings
+- [ ] **Type Safety**: 0 TypeScript errors
+- [ ] **Code Complexity**: Keep functions < 30 lines, max 4 params
+
+### Performance
+- [ ] **Bundle Size**: Keep bundle size reasonable
+- [ ] **Load Time**: Optimize page load times
+- [ ] **Time to Interactive**: Optimize TTI
+
+### Security
+- [ ] **Vulnerability Scan**: Regular security scans
+- [ ] **Dependency Audit**: Regular dependency updates
+- [ ] **Secret Management**: Secure handling of secrets
+
+---
+
+## 🎯 Release Checklist
+
+### Before Release
+- [ ] **All Tests Pass**: Run `npm run test`
+- [ ] **Lint Passes**: Run `npm run lint`
+- [ ] **Format Passes**: Run `npm run format:check`
+- [ ] **Type Check Passes**: Run `npm run typecheck`
+- [ ] **Build Succeeds**: Run `npm run build`
+- [ ] **Database Migrations**: All migrations applied
+- [ ] **Documentation Updated**: All docs up to date
+- [ ] **Changelog Updated**: Update CHANGELOG.md
+
+### Release
+- [ ] **Version Bump**: Update version in package.json
+- [ ] **Tag Release**: Create Git tag
+- [ ] **Push Tags**: Push tags to repository
+- [ ] **Create Release**: Create GitHub release
+- [ ] **Deploy**: Deploy to production
+- [ ] **Verify**: Verify deployment works
+
+### After Release
+- [ ] **Monitor**: Monitor for issues
+- [ ] **Hotfix**: Prepare for hotfixes if needed
+- [ ] **Feedback**: Collect user feedback
+
+---
+
+## 📅 Roadmap
+
+### Phase 1: Core Setup ✅ (Current)
+- [x] Project structure and configuration
+- [x] Next.js app with App Router
+- [x] Prisma ORM setup
+- [x] Zod validation schemas
+- [x] Backend architecture (NestJS-like)
+- [x] Frontend architecture (RSC + React Query)
+- [x] AI Agent configuration
+- [x] Example implementation (Charges module)
+
+### Phase 2: Authentication & Security
+- [ ] User authentication
+- [ ] Session management
+- [ ] Authorization system
+- [ ] Security best practices
+
+### Phase 3: Additional Features
+- [ ] Account module
+- [ ] Transaction module
+- [ ] Report generation
+- [ ] Export/Import functionality
+
+### Phase 4: Production Readiness
+- [ ] Testing (unit, integration, e2e)
+- [ ] Performance optimization
+- [ ] Error tracking and monitoring
+- [ ] CI/CD pipeline
+- [ ] Documentation
+
+### Phase 5: Launch
+- [ ] Beta testing
+- [ ] User feedback
+- [ ] Bug fixes
+- [ ] Production deployment
+- [ ] Marketing and promotion
+
+---
+
+## 💡 Ideas & Backlog
+
+### Features
+- [ ] **Recurring Payment Calendar**: Visual calendar for payments
+- [ ] **Payment Reminders**: Email/SMS reminders for upcoming payments
+- [ ] **Budget Tracking**: Track spending against budget
+- [ ] **Financial Reports**: Generate monthly/yearly reports
+- [ ] **Multi-Currency Support**: Support for multiple currencies
+- [ ] **Bank Integration**: Connect to bank APIs
+- [ ] **Mobile App**: React Native mobile app
+
+### Technical
+- [ ] **GraphQL API**: Add GraphQL support alongside REST
+- [ ] **WebSockets**: Real-time updates with WebSockets
+- [ ] **Offline Support**: Add offline capabilities with service workers
+- [ ] **PWA**: Progressive Web App support
+- [ ] **Internationalization**: Multi-language support
+- [ ] **Accessibility**: Improve accessibility (a11y)
+
+### Infrastructure
+- [ ] **Microservices**: Split into microservices if needed
+- [ ] **Kubernetes**: Deploy to Kubernetes cluster
+- [ ] **Service Mesh**: Add service mesh for microservices
+- [ ] **Feature Flags**: Add feature flag system
+- [ ] **A/B Testing**: Add A/B testing capabilities
+
+---
+
+## 📝 Notes
+
+### Conventions
+- Follow **CONVENTIONS.md** for all coding
+- Use **AGENTS.md** for AI Agent behavior
+- Always write **specs first** (Spec-Driven Development)
+- Maintain **Clean Code** principles
+- Apply **KISS** (Keep It Simple, Stupid)
+
+### Architecture
+- **Next.js BFF**: Backend for Frontend pattern
+- **NestJS-like**: Service + Controller + Entity architecture
+- **No DDD/Hexagonal**: Keep it simple and direct
+- **Zod First**: Zod schemas are the single source of truth for types
+
+### Quality
+- **80%+ Test Coverage**: Minimum requirement
+- **0 Lint Errors**: Must pass linting
+- **0 Type Errors**: Must pass type checking
+- **Clean Code**: Must follow clean code principles
+
+---
+
+**Last Updated**: 2024-11-05
+**Next Review**: 2024-11-12
+**Project Status**: ✅ Core Setup Complete

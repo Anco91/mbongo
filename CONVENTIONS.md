@@ -1,66 +1,111 @@
-# CONVENTIONS.md - Conventions de Développement
+# CONVENTIONS.md - Conventions de Développement Next.js BFF
 
 ## 📜 Philosophies Fondamentales
 
-### 1. Clean Code Principles
+### 1. KISS - Keep It Simple, Stupid
 
-> "Clean code is code that looks like it was written by someone who cares." - Robert C. Martin
+> "Simplicity is the ultimate sophistication." - Leonardo da Vinci
 
 **Règles d'or:**
-- Le code doit être **lisible** comme de la prose
-- Chaque fonction doit faire **une seule chose**
-- Les noms doivent être **explicites et intentionnels**
-- La complexité doit être **minimale**
+- **La solution la plus simple est la meilleure**
+- **Éviter la complexité inutile**
+- **Ne pas sur-ingénier** (No over-engineering)
+- **Un code simple = un code maintenable**
 
 ### 2. Pragmatisme
 
 - **YAGNI**: You Aren't Gonna Need It - Ne pas implémenter des features "au cas où"
-- **KISS**: Keep It Simple, Stupid - La solution la plus simple est souvent la meilleure
 - **DTSTTCPW**: Do The Simplest Thing That Could Possibly Work
+- **Ne pas optimiser prématurément**
 
-### 3. Craftsmanship
+### 3. Clean Code Principles
 
-- **Qualité > Vitesse**: On ne sacrifie pas la qualité pour aller plus vite
-- **Pride in Work**: On est fier de son code et on le signe (métaphoriquement)
-- **Continuous Improvement**: On améliore constamment ses compétences
+> "Clean code is code that looks like it was written by someone who cares." - Robert C. Martin
+
+**Règles:**
+- Le code doit être **lisible** comme de la prose
+- Chaque fonction doit faire **une seule chose** et la faire bien
+- Les noms doivent être **explicites et intentionnels**
+- La complexité doit être **minimale**
+
+### 4. Architecture Standard
+
+- **Next.js BFF Fullstack**: Un seul déploiement pour backend + frontend
+- **Style NestJS**: Services, Controllers, Entities
+- **Validation Zod**: Toutes les entrées validées avec Zod
+- **Prisma**: ORM pour la base de données (optionnel)
+- **Pas de DDD, pas d'Hexagonal**: On garde ça simple et direct
 
 ---
 
-## 📁 Structure des Fichiers
+## 📁 Structure des Fichiers (Next.js BFF)
 
 ### Organisation des Dossiers
 
 ```
-src/
-├── core/            # Logique métier principale
-│   ├── domain/      # Entités, Value Objects
-│   ├── usecases/    # Cas d'utilisation
-│   └── repositories/# Accès aux données
-├── infrastructure/  # Couche technique
-│   ├── api/         # Appels API externes
-│   ├── db/          # Base de données
-│   └── config/      # Configuration
-├── interfaces/      # Couche présentation
-│   ├── cli/         # Interface CLI
-│   ├── web/         # Interface Web
-│   └── api/         # API REST/GraphQL
-└── shared/          # Code partagé
-    ├── utils/       # Fonctions utilitaires
-    ├── types/       # Types TypeScript
-    └── constants/   # Constantes
+apps/
+└── web/                           # Application Next.js
+    ├── prisma/
+    │   └── schema.prisma          # Schéma Prisma (génère les types)
+    ├── src/
+    │   ├── app/                   # Next.js App Router
+    │   │   ├── api/               # API Routes (Transport Layer)
+    │   │   │   ├── charges/
+    │   │   │   │   ├── route.ts   # GET, POST
+    │   │   │   │   └── [id]/
+    │   │   │   │       └── route.ts # GET, PATCH, DELETE
+    │   │   │   └── ...
+    │   │   ├── (dashboard)/       # Pages Server Components
+    │   │   │   └── charges/
+    │   │   │       └── page.tsx
+    │   │   └── layout.tsx
+    │   │
+    │   ├── server/                # Backend (NestJS-like)
+    │   │   ├── db.ts              # PrismaService (Singleton)
+    │   │   ├── common/            # Utilities backend
+    │   │   │   ├── filter-to-where.ts  # Traducteur filtres → Prisma
+    │   │   │   ├── http.ts         # Validation Zod + Error handling
+    │   │   │   └── ...
+    │   │   └── <module>/         # Modules par domaine
+    │   │       ├── <module>.service.ts    # Service (CRUD + logique)
+    │   │       ├── <module>.controller.ts # Controller (Validation + Délégation)
+    │   │       └── ...
+    │   │
+    │   └── components/           # Composants React
+    │       └── <feature>/
+    │           ├── <feature>-guard.tsx   # Container RSC
+    │           ├── <feature>-view.tsx    # Composant UI
+    │           └── hooks/
+    │               └── use-<feature>.ts   # Hooks client
+    │
+packages/
+└── shared/                      # Code partagé (Domain pur)
+    ├── schemas/                 # Schémas Zod (Source de vérité)
+    │   ├── charge.ts            # Schémas pour Charge
+    │   ├── filter.ts            # Schémas de filtres
+    │   └── ...
+    ├── domain/                  # Logique métier pure
+    │   ├── schedule.ts          # Calculs de planning
+    │   ├── calculation.ts       # Calculs financiers
+    │   └── ...
+    └── lib/                     # Utilities partagées
+        └── types.ts
 ```
 
 ### Nommage des Fichiers
 
 | Type | Convention | Exemple |
 |------|------------|---------|
-| Composant | PascalCase | `UserRepository.ts` |
-| Utilitaire | camelCase | `dateUtils.ts` |
-| Type/Interface | PascalCase | `User.ts`, `IUserService.ts` |
-| Enum | PascalCase | `UserRole.ts` |
-| Constante | UPPER_SNAKE_CASE | `API_ENDPOINTS.ts` |
-| Test | `<file>.test.ts` | `userService.test.ts` |
-| Spec | `<file>.spec.ts` | `userService.spec.ts` |
+| Module Backend | kebab-case (dossier) | `charges/` |
+| Service | `<module>.service.ts` | `charge.service.ts` |
+| Controller | `<module>.controller.ts` | `charges.controller.ts` |
+| Schéma Zod | `<module>.ts` | `charge.ts` |
+| Page Next.js | kebab-case | `page.tsx`, `charges/page.tsx` |
+| Composant | PascalCase | `ChargesView.tsx` |
+| Hook | `use-<nom>.ts` | `use-charges.ts` |
+| Utility | kebab-case | `filter-to-where.ts` |
+| Type/Interface | PascalCase | `Charge`, `ChargeQuery` |
+| Constante | UPPER_SNAKE_CASE | `MAX_LIMIT`, `DEFAULT_CURRENCY` |
 
 ---
 
@@ -74,371 +119,418 @@ src/
 // ✅ BON
 const age: number = 25;
 const isActive: boolean = true;
-const users: User[] = [];
+const charges: Charge[] = [];
 
 // ❌ MAUVAIS
 const age = 25; // any implicite
 const isActive: any = true; // any explicite
-const users = []; // any[]
+const charges = []; // any[]
 ```
 
-#### Interfaces vs Types
-
-- **Interface**: Pour les objets et contrats
-- **Type**: Pour les unions, tuples, mapped types
+#### Schémas Zod (Très Important!)
 
 ```typescript
-// ✅ BON
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
+// ✅ BON - Schéma Zod complet pour un modèle
+import { z } from "zod";
 
-type UserRole = 'admin' | 'user' | 'guest';
+const isoDate = z.string().refine((v) => !Number.isNaN(Date.parse(v)), "Invalid date");
 
-type ApiResponse<T> = {
-  data: T;
-  error?: string;
-};
+export const chargeTypeSchema = z.enum([
+  "FIXED_RECURRING",
+  "INSTALLMENT",
+  "TEMPORARY",
+  "ONE_OFF",
+  "UPCOMING",
+]);
 
-// ❌ MAUVAIS
-interface UserRole = 'admin' | 'user'; // Type serait mieux
-interface ApiResponse { // Interface générique difficile
-  data: any;
-}
+export const chargeSchema = z.object({
+  id: z.string().uuid(),
+  label: z.string().min(1),
+  type: chargeTypeSchema,
+  amount: z.number().positive(),
+  currency: z.enum(["CHF", "EUR"]),
+  accountId: z.string().uuid(),
+  startDate: isoDate,
+  endDate: isoDate().nullable(),
+});
+
+// Schémas dérivés (TOUJOURS utiliser zod.partial(), PAS TS Partial<>)
+export const createChargeSchema = chargeSchema.omit({ id: true });
+export const updateChargeSchema = createChargeSchema.partial();
+
+export type Charge = z.infer<typeof chargeSchema>;
+export type CreateChargeInput = z.infer<typeof createChargeSchema>;
+export type UpdateChargeInput = z.infer<typeof updateChargeSchema>;
+
+// ❌ MAUVAIS - Utiliser Partial<> de TypeScript
+const updateChargeInput: Partial<Charge> = {}; // ❌ À éviter!
+```
+
+#### Schémas de Filtres
+
+```typescript
+// ✅ BON - Schéma de filtre générique
+import { z } from "zod";
+
+const filterValue = z.union([z.string(), z.number()]);
+
+export const filterSchema = z.object({
+  eq: filterValue.optional(),
+  not: filterValue.optional(),
+  in: z.array(filterValue).optional(),
+  gte: filterValue.optional(),
+  lte: filterValue.optional(),
+  contains: filterValue.optional(),
+});
+
+export type Filter = z.infer<typeof filterSchema>;
+
+// Schéma de query pour GET /charges
+export const chargeQuerySchema = z.object({
+  type: filterSchema.optional(),
+  category: filterSchema.optional(),
+  accountId: filterSchema.optional(),
+  limit: z.number().int().positive().max(500).optional(),
+  cursor: z.string().optional(),
+});
+
+export type ChargeQuery = z.infer<typeof chargeQuerySchema>;
 ```
 
 #### Nommage
 
 | Élément | Convention | Exemple |
 |---------|------------|---------|
-| Variable | camelCase | `userName`, `isValid` |
-| Constante | UPPER_SNAKE_CASE | `MAX_RETRIES`, `API_URL` |
-| Fonction | camelCase | `getUser()`, `validateInput()` |
-| Classe | PascalCase | `UserService`, `DatabaseConnection` |
-| Interface | PascalCase | `IUserRepository`, `User` |
-| Méthode | camelCase | `save()`, `findById()` |
-| Propriété | camelCase | `this.userName` |
+| Variable | camelCase | `userName`, `isValid`, `chargeList` |
+| Constante | UPPER_SNAKE_CASE | `MAX_RETRIES`, `API_URL`, `DEFAULT_LIMIT` |
+| Fonction | camelCase | `getUser()`, `validateInput()`, `findMany()` |
+| Classe | PascalCase | `ChargeService`, `UserController`, `PrismaService` |
+| Interface | PascalCase | `Charge`, `ChargeQuery`, `IChargeService` (optionnel) |
+| Méthode | camelCase | `findOne()`, `create()`, `update()`, `remove()` |
+| Propriété | camelCase | `this.userName`, `this.chargeId` |
 | Paramètre | camelCase | `function greet(userName: string)` |
-| Enum | PascalCase | `UserRole.ADMIN` |
-| Générique | T, U, V, K, V | `T`, `K extends keyof T` |
+| Enum | PascalCase | `ChargeType.ADMIN` |
+| Générique | T, U, V | `T`, `K extends keyof T` |
 
 #### Fonctions
 
 ```typescript
-// ✅ BON
-// Noms de fonctions commencent par un verbe
-function getUser(id: string): User | null {}
-function createUser(data: CreateUserDto): User {}
-function validateEmail(email: string): boolean {}
+// ✅ BON - Noms de fonctions commençant par un verbe
+function getCharge(id: string): Promise<Charge | null> {}
+function createCharge(data: CreateChargeInput): Promise<Charge> {}
+function validateChargeInput(input: unknown): Charge {}
+function generateScheduledPayments(charge: Charge): ScheduledPayment[] {}
 
 // Noms descriptifs
-function calculateTotalPrice(items: CartItem[]): number {}
+function calculateMonthlyProvision(charges: Charge[]): number {}
 function formatDateForDisplay(date: Date): string {}
 
 // ❌ MAUVAIS
-function user(id: string) {} // Pas de verbe
+function charge(id: string) {} // Pas de verbe
 function handle() {} // Pas descriptif
 function processData(data: any) {} // Trop vague
 ```
 
-#### Classes
+#### Classes (Style NestJS)
 
 ```typescript
-// ✅ BON
-class UserService {
-  // Une responsabilité claire
-  async findById(id: string): Promise<User | null> {}
-  async create(data: CreateUserDto): Promise<User> {}
-  async update(id: string, data: UpdateUserDto): Promise<User> {}
-  async delete(id: string): Promise<void> {}
-}
+// ✅ BON - Service avec méthodes CRUD standards
+import { prisma } from "@/server/db";
+import { ChargeQuery, CreateChargeInput, UpdateChargeInput } from "@mbongo/shared";
+import { queryToWhere } from "@/server/common/filter-to-where";
 
-// ❌ MAUVAIS
-class UserManager { // "Manager" est trop vague
-  // Trop de responsabilités
-  async findById(id: string) {}
-  async create(data: any) {}
-  async sendEmail(user: User) {} // Pas lié à la gestion utilisateur
-  async logActivity(user: User) {} // Pas lié
-}
-```
-
-### SOLID Principles
-
-#### S - Single Responsibility Principle
-
-```typescript
-// ✅ BON - Une classe, une responsabilité
-class UserRepository {
-  async findById(id: string): Promise<User | null> {}
-  async findByEmail(email: string): Promise<User | null> {}
-  async save(user: User): Promise<User> {}
-}
-
-class EmailService {
-  async sendWelcomeEmail(user: User): Promise<void> {}
-  async sendPasswordResetEmail(user: User): Promise<void> {}
-}
-
-// ❌ MAUVAIS - Plusieurs responsabilités
-class UserManager {
-  async findById(id: string) {}
-  async save(user: User) {}
-  async sendEmail(user: User) {}
-  async validate(user: User) {}
-}
-```
-
-#### O - Open/Closed Principle
-
-```typescript
-// ✅ BON - Ouvert à l'extension, fermé à la modification
-interface DiscountStrategy {
-  calculate(amount: number): number;
-}
-
-class PercentageDiscount implements DiscountStrategy {
-  constructor(private readonly percentage: number) {}
-  calculate(amount: number): number {
-    return amount * (1 - this.percentage / 100);
+export class ChargeService {
+  // CRUD Standards
+  async findMany(query: ChargeQuery): Promise<Charge[]> {
+    return prisma.charge.findMany({
+      where: queryToWhere(query),
+      orderBy: { startDate: "desc" },
+      take: query.limit,
+    });
   }
-}
 
-class FixedAmountDiscount implements DiscountStrategy {
-  constructor(private readonly amount: number) {}
-  calculate(total: number): number {
-    return Math.max(0, total - this.amount);
+  async findOne(id: string): Promise<Charge | null> {
+    return prisma.charge.findUnique({ where: { id } });
   }
-}
 
-// ❌ MAUVAIS - Modification nécessaire pour ajouter un type
-class Discount {
-  type: 'percentage' | 'fixed';
-  value: number;
+  async create(input: CreateChargeInput): Promise<Charge> {
+    return prisma.charge.create({ data: input });
+  }
+
+  async update(id: string, input: UpdateChargeInput): Promise<Charge> {
+    return prisma.charge.update({ where: { id }, data: input });
+  }
+
+  async remove(id: string): Promise<void> {
+    await prisma.charge.delete({ where: { id } });
+  }
   
-  calculate(amount: number): number {
-    if (this.type === 'percentage') {
-      return amount * (1 - this.value / 100);
-    } else {
-      return Math.max(0, amount - this.value);
+  // Méthodes métier spécifiques
+  async generatePayments(chargeId: string): Promise<ScheduledPayment[]> {
+    const charge = await this.findOne(chargeId);
+    if (!charge) throw new Error("Charge not found");
+    
+    return generateScheduledPayments(charge, new Date());
+  }
+}
+
+// Singleton
+const globalForChargeService = globalThis as unknown as { chargeService?: ChargeService };
+export const chargeService = globalForChargeService.chargeService ?? new ChargeService();
+if (process.env.NODE_ENV !== "production") globalForChargeService.chargeService = chargeService;
+
+// ❌ MAUVAIS - Classe trop grosse avec trop de responsabilités
+class ChargeManager {
+  async findById(id: string) {}
+  async save(charge: Charge) {}
+  async sendEmail(charge: Charge) {} // Pas la responsabilité de ChargeManager
+  async validate(charge: Charge) {} // Doit être dans un validator séparé
+}
+```
+
+#### Controllers (Transport Layer)
+
+```typescript
+// ✅ BON - Controller avec validation + délégation
+import { NextResponse } from "next/server";
+import { chargeQuerySchema, createChargeSchema } from "@mbongo/shared";
+import { parseBody, parseQuery, toErrorResponse } from "@/server/common/http";
+import { ChargeService, chargeService } from "./charge.service";
+
+export class ChargesController {
+  constructor(private readonly charges: ChargeService) {}
+
+  async find(request: Request): Promise<NextResponse> {
+    try {
+      const query = parseQuery(request, chargeQuerySchema);
+      return NextResponse.json(await this.charges.findMany(query));
+    } catch (error) {
+      return toErrorResponse(error);
+    }
+  }
+
+  async create(request: Request): Promise<NextResponse> {
+    try {
+      const input = await parseBody(request, createChargeSchema);
+      return NextResponse.json(await this.charges.create(input), { status: 201 });
+    } catch (error) {
+      return toErrorResponse(error);
+    }
+  }
+
+  async findOne(id: string): Promise<NextResponse> {
+    try {
+      return NextResponse.json(await this.charges.findOne(id));
+    } catch (error) {
+      return toErrorResponse(error);
+    }
+  }
+
+  async update(request: Request, id: string): Promise<NextResponse> {
+    try {
+      const input = await parseBody(request, updateChargeSchema);
+      return NextResponse.json(await this.charges.update(id, input));
+    } catch (error) {
+      return toErrorResponse(error);
+    }
+  }
+
+  async remove(id: string): Promise<NextResponse> {
+    try {
+      await this.charges.remove(id);
+      return new NextResponse(null, { status: 204 });
+    } catch (error) {
+      return toErrorResponse(error);
     }
   }
 }
-```
 
-#### L - Liskov Substitution Principle
+// Singleton
+export const chargesController = new ChargesController(chargeService);
 
-```typescript
-// ✅ BON - Les sous-classes respectent le contrat
-class Rectangle {
-  constructor(protected width: number, protected height: number) {}
-  
-  setWidth(width: number): void {
-    this.width = width;
-  }
-  
-  setHeight(height: number): void {
-    this.height = height;
-  }
-  
-  area(): number {
-    return this.width * this.height;
-  }
-}
-
-// ❌ MAUVAIS - Violation de LSP
-class Square extends Rectangle {
-  setWidth(width: number): void {
-    this.width = width;
-    this.height = width; // Modifie aussi la hauteur!
-  }
-  
-  setHeight(height: number): void {
-    this.height = height;
-    this.width = height; // Modifie aussi la largeur!
-  }
-}
-```
-
-#### I - Interface Segregation Principle
-
-```typescript
-// ✅ BON - Interfaces petites et spécifiques
-interface IUserRepository {
-  findById(id: string): Promise<User | null>;
-  findByEmail(email: string): Promise<User | null>;
-  save(user: User): Promise<User>;
-}
-
-interface IEmailService {
-  sendWelcomeEmail(user: User): Promise<void>;
-  sendPasswordResetEmail(user: User): Promise<void>;
-}
-
-// ❌ MAUVAIS - Interface trop grosse
-interface IUserService {
-  findById(id: string): Promise<User | null>;
-  findByEmail(email: string): Promise<User | null>;
-  save(user: User): Promise<User>;
-  sendWelcomeEmail(user: User): Promise<void>;
-  sendPasswordResetEmail(user: User): Promise<void>;
-  validateEmail(email: string): boolean;
-  hashPassword(password: string): string;
-}
-```
-
-#### D - Dependency Inversion Principle
-
-```typescript
-// ✅ BON - Dépendre d'abstractions, pas de concretions
-interface IUserRepository {
-  findById(id: string): Promise<User | null>;
-  save(user: User): Promise<User>;
-}
-
-class UserService {
-  constructor(private readonly userRepository: IUserRepository) {}
-  
-  async register(userData: CreateUserDto): Promise<User> {
-    const existingUser = await this.userRepository.findById(userData.id);
-    if (existingUser) {
-      throw new Error('User already exists');
+// ❌ MAUVAIS - Logique métier dans le controller
+class ChargesController {
+  async create(request: Request) {
+    const body = await request.json();
+    // ❌ Logique métier ici!
+    if (body.amount > 10000) {
+      // Validation complexe
     }
-    const user = new User(userData);
-    return this.userRepository.save(user);
-  }
-}
-
-// ❌ MAUVAIS - Dépendance concrète
-class UserService {
-  constructor(private readonly db: MongoDB) {} // Dépend de MongoDB!
-  
-  async register(userData: CreateUserDto) {
-    const existingUser = await this.db.collection('users').findOne({ id: userData.id });
-    // ...
+    // ❌ Accès direct à Prisma
+    const charge = await prisma.charge.create({ data: body });
+    return NextResponse.json(charge);
   }
 }
 ```
 
----
-
-## 🔍 Qualités de Code
-
-### DRY (Don't Repeat Yourself)
+#### API Routes (Next.js)
 
 ```typescript
-// ✅ BON
-function formatCurrency(amount: number, currency: string = 'EUR'): string {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency,
-  }).format(amount);
+// ✅ BON - Route handler minimal (wiring seulement)
+// app/api/charges/route.ts
+import { chargesController } from "@/server/charges/charges.controller";
+
+export const GET = (request: Request) => chargesController.find(request);
+export const POST = (request: Request) => chargesController.create(request);
+
+// app/api/charges/[id]/route.ts
+import { chargesController } from "@/server/charges/charges.controller";
+
+type Context = { params: Promise<{ id: string }> };
+
+export const GET = async (_request: Request, { params }: Context) =>
+  chargesController.findOne((await params).id);
+
+export const PATCH = async (request: Request, { params }: Context) =>
+  chargesController.update(request, (await params).id);
+
+export const DELETE = async (_request: Request, { params }: Context) =>
+  chargesController.remove((await params).id);
+
+// ❌ MAUVAIS - Logique dans les routes
+// app/api/charges/route.ts
+import { prisma } from "@/server/db";
+
+export const GET = async (request: Request) => {
+  // ❌ Logique directement dans la route!
+  const { searchParams } = new URL(request.url);
+  const charges = await prisma.charge.findMany({
+    where: { /* complex filter */ },
+  });
+  return NextResponse.json(charges);
+};
+```
+
+#### Prisma Service
+
+```typescript
+// ✅ BON - PrismaService singleton
+import "server-only";
+import { PrismaClient } from "@prisma/client";
+
+class Database extends PrismaClient {
+  constructor() {
+    super({
+      log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+    });
+  }
 }
 
-// ❌ MAUVAIS - Duplication
-function formatEuro(amount: number): string {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'EUR',
-  }).format(amount);
+const globalForDb = globalThis as unknown as { db?: Database };
+export const prisma = globalForDb.db ?? new Database();
+if (process.env.NODE_ENV !== "production") globalForDb.db = prisma;
+
+// ❌ MAUVAIS - Créer plusieurs instances
+import { PrismaClient } from "@prisma/client";
+
+// ❌ dans chaque fichier!
+const prisma = new PrismaClient();
+```
+
+#### Validation HTTP
+
+```typescript
+// ✅ BON - Validation centralisée avec Zod
+import { ZodError, ZodSchema } from "zod";
+import { NextResponse } from "next/server";
+
+export class HttpError extends Error {
+  constructor(readonly status: number, readonly details?: unknown) {
+    super(`HTTP ${status}`);
+  }
 }
 
-function formatDollar(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(amount);
+export async function parseBody<T>(request: Request, schema: ZodSchema<T>): Promise<T> {
+  return parse(await request.json(), schema);
+}
+
+export function parseQuery<T>(request: Request, schema: ZodSchema<T>): T {
+  return parse(Object.fromEntries(new URL(request.url).searchParams), schema);
+}
+
+function parse<T>(value: unknown, schema: ZodSchema<T>): T {
+  const result = schema.safeParse(value);
+  if (!result.success) throw new HttpError(400, result.error.flatten());
+  return result.data;
+}
+
+export function toErrorResponse(error: unknown): NextResponse {
+  if (error instanceof HttpError) return NextResponse.json({ error: error.details }, { status: error.status });
+  if (error instanceof ZodError) return NextResponse.json({ error: error.flatten() }, { status: 400 });
+  console.error(error);
+  return NextResponse.json({ error: "Internal error" }, { status: 500 });
 }
 ```
 
-### Fonctions Pures
-
-Privilégier les fonctions pures (même entrée = même sortie, pas d'effets de bord):
+#### Traduction Filtres → Prisma
 
 ```typescript
-// ✅ BON - Fonction pure
-function calculateDiscount(price: number, discountPercentage: number): number {
-  return price * (1 - discountPercentage / 100);
+// ✅ BON - Traducteur générique
+import { Filter } from "@mbongo/shared";
+import { Prisma } from "@prisma/client";
+
+function filterToCondition(filter: Filter): Record<string, unknown> {
+  const condition: Record<string, unknown> = {};
+  if (filter.eq !== undefined) condition.equals = filter.eq;
+  if (filter.not !== undefined) condition.not = filter.not;
+  if (filter.in !== undefined) condition.in = filter.in;
+  if (filter.gte !== undefined) condition.gte = filter.gte;
+  if (filter.lte !== undefined) condition.lte = filter.lte;
+  if (filter.contains !== undefined) condition.contains = filter.contains;
+  return condition;
 }
 
-// ❌ MAUVAIS - Effets de bord
-let totalDiscount = 0;
-
-function applyDiscount(price: number, discountPercentage: number): number {
-  totalDiscount += price * (discountPercentage / 100);
-  return price * (1 - discountPercentage / 100);
+export function queryToWhere(query: ChargeQuery): Prisma.ChargeWhereInput {
+  const where: Record<string, unknown> = {};
+  for (const [field, filter] of Object.entries(query)) {
+    if (["limit", "cursor"].includes(field)) continue;
+    if (filter) where[field] = filterToCondition(filter);
+  }
+  return where as Prisma.ChargeWhereInput;
 }
 ```
 
-### Immutabilité
+#### Logique Métier Pure (packages/shared)
 
 ```typescript
-// ✅ BON - Immutabilité
-const updatedUser = {
-  ...user,
-  name: newName,
+// ✅ BON - Logique métier dans packages/shared (zéro dépendance)
+import { addMonths, addWeeks, addYears, isAfter } from "date-fns";
+import { Charge, ScheduledPayment } from "../schemas";
+
+type Frequency = NonNullable<Charge["frequency"]>;
+const steps: Record<Frequency, (d: Date, n: number) => Date> = {
+  monthly: addMonths,
+  weekly: addWeeks,
+  yearly: addYears,
 };
 
-const filteredUsers = users.filter(u => u.isActive);
-
-// ❌ MAUVAIS - Mutation
-user.name = newName;
-users.splice(0, 1);
-```
-
----
-
-## 📝 Documentation
-
-### Commentaires
-
-**Règle:** Les commentaires expliquent le **POURQUOI**, pas le **COMMENT**.
-
-```typescript
-// ✅ BON - Pourquoi ce code existe
-// NOTE: On vérifie manuellement l'email car la lib de validation
-// ne gère pas les domaines internationaux correctement
-if (!this.isValidInternationalEmail(email)) {
-  throw new Error('Invalid email format');
+// Fonction pure, testable sans serveur
+export function generateScheduledPayments(charge: Charge, from: Date): ScheduledPayment[] {
+  switch (charge.type) {
+    case "FIXED_RECURRING": {
+      if (!charge.frequency) throw new Error("FIXED_RECURRING requires a frequency");
+      const payments: ScheduledPayment[] = [];
+      let due = new Date(charge.startDate);
+      const horizon = charge.endDate ?? addYears(from, 5);
+      while (!isAfter(due, horizon)) {
+        payments.push(makePayment(charge, due));
+        due = steps[charge.frequency](due, 1);
+      }
+      return payments;
+    }
+    // ... autres cas
+  }
 }
 
-// ❌ MAUVAIS - Comment fait le code (évident)
-// Cette fonction prend un email et retourne vrai si c'est valide
-function isValidEmail(email: string): boolean {
-  // ...
-}
-
-// ❌ MAUVAIS - Commentaires inutiles
-// Initialisation de la variable
-const count = 0;
-
-// Incrémentation
-count++;
-```
-
-### JSDoc / TSDoc
-
-```typescript
-// ✅ BON
-/**
- * Calcule le prix total d'un panier avec les taxes
- * 
- * @param items - Liste des articles dans le panier
- * @param taxRate - Taux de taxe en pourcentage (ex: 20 pour 20%)
- * @returns Le prix total TTC arrondi à 2 décimales
- * 
- * @example
- * ```typescript
- * const total = calculateTotal([{ price: 100 }, { price: 50 }], 20);
- * // total = 180 (100 + 50 + 30 de taxes)
- * ```
- */
-function calculateTotal(items: CartItem[], taxRate: number): number {
-  const subtotal = items.reduce((sum, item) => sum + item.price, 0);
-  const taxes = subtotal * (taxRate / 100);
-  return Math.round((subtotal + taxes) * 100) / 100;
+function makePayment(charge: Charge, dueDate: Date, amount = charge.amount): ScheduledPayment {
+  return {
+    id: crypto.randomUUID(),
+    chargeId: charge.id,
+    amount,
+    currency: charge.currency,
+    dueDate: dueDate.toISOString(),
+    status: "PENDING",
+  };
 }
 ```
 
@@ -448,52 +540,75 @@ function calculateTotal(items: CartItem[], taxRate: number): number {
 
 ### Stratégie de Test
 
-- **Unit Tests**: Tester chaque fonction en isolation
-- **Integration Tests**: Tester l'interaction entre composants
-- **E2E Tests**: Tester les flux utilisateurs complets
+- **Unit Tests:** Tester chaque fonction en isolation (surtout la logique dans `packages/shared`)
+- **Integration Tests:** Tester l'interaction entre composants
+- **E2E Tests:** Tester les flux utilisateurs complets via l'API
 
-### AA (Arrange-Act-Assert)
+### Exemple de Test Unitaire (Logique Métier)
 
 ```typescript
-// ✅ BON
-describe('UserService', () => {
-  describe('createUser', () => {
-    it('should create a user with valid data', async () => {
-      // Arrange
-      const mockRepository = {
-        findByEmail: jest.fn().mockResolvedValue(null),
-        save: jest.fn().mockImplementation(u => Promise.resolve(u)),
-      };
-      const service = new UserService(mockRepository);
-      const userData = { email: 'test@example.com', name: 'Test' };
-      
-      // Act
-      const result = await service.createUser(userData);
-      
-      // Assert
-      expect(mockRepository.findByEmail).toHaveBeenCalledWith('test@example.com');
-      expect(mockRepository.save).toHaveBeenCalled();
-      expect(result.email).toBe('test@example.com');
-    });
+// ✅ BON - Test de logique métier pure
+import { generateScheduledPayments } from "@mbongo/shared/domain";
+import { Charge } from "@mbongo/shared/schemas";
+
+describe("generateScheduledPayments", () => {
+  it("should generate monthly payments for FIXED_RECURRING", () => {
+    const charge: Charge = {
+      id: "123",
+      label: "Test",
+      type: "FIXED_RECURRING",
+      amount: 100,
+      currency: "CHF",
+      accountId: "456",
+      startDate: "2024-01-01",
+      endDate: "2024-06-01",
+      frequency: "monthly",
+      installments: null,
+      provisioned: false,
+    };
+
+    const payments = generateScheduledPayments(charge, new Date("2024-01-01"));
+
+    expect(payments).toHaveLength(6);
+    expect(payments[0].dueDate).toBe("2024-01-01");
+    expect(payments[5].dueDate).toBe("2024-06-01");
   });
 });
 ```
 
-### Nommage des Tests
+### Exemple de Test d'Intégration
 
 ```typescript
-// ✅ BON
-describe('UserRepository', () => {
-  describe('findById', () => {
-    it('should return user when found');
-    it('should return null when not found');
-    it('should throw error when database fails');
+// ✅ BON - Test d'intégration avec Prisma
+import { prisma } from "@/server/db";
+import { ChargeService } from "@/server/charges/charge.service";
+
+describe("ChargeService", () => {
+  let service: ChargeService;
+
+  beforeAll(() => {
+    service = new ChargeService();
+  });
+
+  afterEach(async () => {
+    await prisma.charge.deleteMany({});
+  });
+
+  it("should create and find a charge", async () => {
+    const charge = await service.create({
+      label: "Test",
+      type: "ONE_OFF",
+      amount: 100,
+      currency: "CHF",
+      accountId: "123",
+      startDate: "2024-01-01",
+    });
+
+    const found = await service.findOne(charge.id);
+    expect(found).toBeDefined();
+    expect(found?.label).toBe("Test");
   });
 });
-
-// ❌ MAUVAIS
-it('test user find');
-it('should work');
 ```
 
 ---
@@ -505,42 +620,23 @@ it('should work');
 Utiliser [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```
-feat: add user authentication
-fix: correct email validation regex
-docs: update README with setup instructions
-refactor: extract user validation logic
-chore: update dependencies
+feat: add charge management
+fix: correct payment calculation
+chore: update prisma schema
+docs: update README
+refactor: extract payment logic
 ```
-
-Format:
-```
-type(scope): subject
-
-body (optionnel)
-
-footer (optionnel)
-```
-
-Types:
-- `feat`: Nouvelle feature
-- `fix`: Correction de bug
-- `docs`: Documentation
-- `style`: Changements de style (formatage, etc.)
-- `refactor`: Refactoring de code
-- `perf`: Amélioration de performance
-- `test`: Ajout de tests
-- `chore`: Changements de configuration, dépendances, etc.
 
 ### Branches
 
 ```
-main/master    # Production
-release/*      # Release en préparation
-develop        # Développement principal
-feature/*      # Nouvelle feature
-fix/*          # Correction de bug
-refactor/*     # Refactoring
-chore/*        # Tâches techniques
+main          # Production
+release/*     # Release en préparation
+develop       # Développement principal
+feature/*     # Nouvelle feature
+fix/*         # Correction de bug
+refactor/*    # Refactoring
+chore/*       # Tâches techniques
 ```
 
 ---
@@ -558,11 +654,11 @@ chore/*        # Tâches techniques
 - [ ] La documentation est complète
 - [ ] Les commits suivent Conventional Commits
 
-### Feedback Constructif
+### Bonnes Pratiques de Review
 
 **✅ BON:**
-- "Je suggérerais d'extraire cette logique dans une fonction séparée pour améliorer la lisibilité"
-- "As-tu considéré l'impact sur les performances avec de grandes listes?"
+- "Peux-tu extraire cette logique dans packages/shared pour la réutiliser côté client?"
+- "As-tu considéré l'impact sur les performances avec beaucoup de données?"
 - "Le nom de cette variable n'est pas très explicite, que penses-tu de `maxRetryCount`?"
 
 **❌ MAUVAIS:**
@@ -580,38 +676,12 @@ chore/*        # Tâches techniques
 - **Prettier**: Formatage automatique
 - **TypeScript**: Vérification des types
 - **Jest/Vitest**: Testing
-- **Husky**: Git hooks (lint-staged)
-- **SonarQube**: Analyse de code (optionnel)
+- **Prisma**: ORM et migrations
+- **Zod**: Validation des schémas
 
 ### Configuration Recommandée
 
-```json
-// .eslintrc.json
-{
-  "extends": [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:prettier/recommended"
-  ],
-  "rules": {
-    "@typescript-eslint/explicit-function-return-type": "error",
-    "@typescript-eslint/no-explicit-any": "error",
-    "@typescript-eslint/no-unused-vars": "error",
-    "prettier/prettier": "error"
-  }
-}
-```
-
-```json
-// .prettierrc
-{
-  "semi": true,
-  "singleQuote": true,
-  "tabWidth": 2,
-  "trailingComma": "es5",
-  "printWidth": 80
-}
-```
+Voir `.eslintrc.json` et `.prettierrc` pour les configurations complètes.
 
 ---
 
@@ -621,37 +691,23 @@ chore/*        # Tâches techniques
 
 ```typescript
 // ✅ BON
-function processUser(user: User | null): void {
-  if (!user) return;
-  if (!user.isActive) return;
-  
+function processCharge(charge: Charge | null): void {
+  if (!charge) return;
+  if (!charge.isActive) return;
   // Logique principale
 }
 
 // ❌ MAUVAIS
-function processUser(user: User | null): void {
-  if (user) {
-    if (user.isActive) {
+function processCharge(charge: Charge | null): void {
+  if (charge) {
+    if (charge.isActive) {
       // Logique principale
     }
   }
 }
 ```
 
-### 2. Guard Clauses
-
-```typescript
-// ✅ BON
-function calculateOrderTotal(order: Order): number {
-  if (!order || !order.items || order.items.length === 0) {
-    throw new Error('Invalid order');
-  }
-  
-  // ...
-}
-```
-
-### 3. Optional Chaining & Nullish Coalescing
+### 2. Optional Chaining & Nullish Coalescing
 
 ```typescript
 // ✅ BON
@@ -662,7 +718,7 @@ const email = user?.email ?? defaultEmail;
 const userName = user && user.profile && user.profile.name ? user.profile.name : 'Anonymous';
 ```
 
-### 4. Destructuring
+### 3. Destructuring
 
 ```typescript
 // ✅ BON
@@ -675,13 +731,60 @@ const email = user.email;
 const avatar = user.profile.avatar;
 ```
 
+### 4. Immutabilité
+
+```typescript
+// ✅ BON
+const updatedCharge = {
+  ...charge,
+  status: 'PAID',
+};
+
+const filteredCharges = charges.filter(c => c.isActive);
+
+// ❌ MAUVAIS
+charge.status = 'PAID';
+charges.splice(0, 1);
+```
+
+---
+
+## 💡 Conseils Spécifiques à l'Architecture
+
+### 1. **Validation à la Frontière**
+- **TOUJOURS** valider avec Zod dans les controllers
+- **JAMAIS** faire confiance aux données entrées
+- Utiliser `parseQuery` et `parseBody` systématiquement
+
+### 2. **Séparation des Concerns**
+- **Controllers**: Validation + Délégation uniquement
+- **Services**: Logique métier + CRUD
+- **Domain (shared)**: Logique pure, zéro dépendance
+- **Routes**: Wiring uniquement
+
+### 3. **Zod Partout**
+- Une seule source de vérité pour les types
+- Schémas complets pour chaque modèle
+- `zod.partial()` pour les updates, PAS `Partial<T>`
+
+### 4. **Prisma comme ORM**
+- Utiliser Prisma pour les opérations DB
+- PAS écrire de SQL brut (sauf si nécessaire)
+- Utiliser les types générés par Prisma
+
+### 5. **Next.js RSC vs Client**
+- **RSC**: Composants serveur, accès direct aux services
+- **Client**: Composants UI, hooks, appels API via `/api`
+- **Pas de mélange**: Ne pas mettre de logique métier dans les composants client
+
 ---
 
 **Règle Ultime:**
-> "Leave the code better than you found it."
+> "Keep It Simple, Stupid."
 
 ---
 
 *Dernière mise à jour: 2024-11-05*  
-*Version: 1.0.0*  
+*Version: 2.0.0*  
+*Architecture: Next.js BFF + NestJS-like Style + KISS*  
 *Statut: ✅ Applicable immédiatement*

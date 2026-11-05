@@ -1,0 +1,120 @@
+{
+  "name": "@mbongo/shared",
+  "version": "2.0.0",
+  "description": "Shared types, schemas, and domain logic for mbongo project",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint . --ext .ts,.js",
+    "lint:fix": "eslint . --ext .ts,.js --fix",
+    "format": "prettier --write \"src/**/*.{ts,js,json,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,js,json,md}\"",
+    "typecheck": "tsc --noEmit",
+    "typecheck:watch": "tsc --noEmit --watch",
+    "clean": "rimraf dist",
+    "quality": "npm run lint && npm run format:check && npm run typecheck",
+    "quality:fix": "npm run lint:fix && npm run format && npm run typecheck"
+  },
+  "dependencies": {
+    "date-fns": "^3.0.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.1.1",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true,
+      "jest": true
+    },
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended",
+      "plugin:@typescript-eslint/recommended-requiring-type-checking",
+      "plugin:prettier/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "ecmaVersion": 2022,
+      "sourceType": "module",
+      "project": "./tsconfig.json",
+      "ecmaFeatures": {
+        "impliedStrict": true
+      }
+    },
+    "plugins": [
+      "@typescript-eslint",
+      "prettier"
+    ],
+    "rules": {
+      "@typescript-eslint/explicit-function-return-type": ["error", {
+        "allowExpressions": true,
+        "allowConciseArrowFunctionExpressionsStartingWithVoid": true
+      }],
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/no-unused-vars": ["error", {
+        "argsIgnorePattern": "^_"
+      }],
+      "@typescript-eslint/no-non-null-assertion": "warn",
+      "@typescript-eslint/prefer-nullish-coalescing": "error",
+      "@typescript-eslint/prefer-optional-chain": "error",
+      "@typescript-eslint/prefer-readonly": "error",
+      "@typescript-eslint/explicit-module-boundary-types": "off",
+      "@typescript-eslint/no-inferrable-types": "error",
+      "no-console": ["error", {
+        "allow": ["warn", "error"]
+      }],
+      "prefer-const": "error",
+      "no-var": "error",
+      "no-implicit-coercion": "error",
+      "no-param-reassign": "error",
+      "no-plusplus": ["error", {
+        "allowForLoopAfterthoughts": true
+      }],
+      "no-throw-literal": "error",
+      "require-await": "error",
+      "prettier/prettier": [
+        "error",
+        {
+          "semi": true,
+          "singleQuote": true,
+          "tabWidth": 2,
+          "trailingComma": "es5",
+          "printWidth": 80,
+          "endOfLine": "auto"
+        }
+      ]
+    }
+  },
+  "prettier": {
+    "semi": true,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5",
+    "printWidth": 80,
+    "endOfLine": "auto",
+    "bracketSpacing": true,
+    "arrowParens": "always"
+  }
+}

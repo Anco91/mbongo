@@ -1,7 +1,8 @@
-# SPEC_TEMPLATE.md - Template de Spécification Technique
+# SPEC_TEMPLATE.md - Template de Spécification Technique (Next.js BFF)
 
 > **⚠️ IMPORTANT:** Ce template DOIT être utilisé pour TOUTE nouvelle fonctionnalité.
 > **AUCUN CODE ne peut être écrit sans une spec complétée et validée.**
+> **Architecture cible: Next.js BFF Fullstack avec style NestJS**
 
 ---
 
@@ -9,9 +10,9 @@
 
 ```yaml
 # À remplir en premier - Ces champs sont obligatoires
-spec_id: "<ID-UNIQUE>"              # Ex: USER-MGT-001
+spec_id: "<ID-UNIQUE>"              # Ex: CHARGE-MGT-001, USER-001
 version: "1.0.0"                    # Version de la spec (MAJ à chaque changement)
-title: "<Titre Court et Descriptif>" # Ex: Gestion des Utilisateurs
+title: "<Titre Court et Descriptif>" # Ex: Charge Management System
 status: "DRAFT" | "IN_REVIEW" | "VALIDATED" | "REJECTED" | "DEPRECATED"
   # DRAFT: En cours de rédaction
   # IN_REVIEW: En review avec le demandeur
@@ -29,7 +30,7 @@ validated_at: "<YYYY-MM-DD>"        # Date de validation
 # Liens et références
 related_specs: []                    # IDs des specs liées
 jira_ticket: "<JIRA-123>"            # Référence Jira/Ticket (optionnel)
-project: "<Nom du Projet>"          # Projet associé
+project: "mbongo"                   # Projet associé
 priority: "HIGH" | "MEDIUM" | "LOW" # Priorité de la feature
 ```
 
@@ -41,8 +42,11 @@ estimation:
   confidence: "HIGH" | "MEDIUM" | "LOW"  # Confiance dans l'estimation
   
   breakdown:                         # Détail par type de travail
-    analysis: <heures>               # Analyse technique
-    development: <heures>            # Développement
+    spec_writing: <heures>            # Rédaction de la spec
+    schema_definition: <heures>       # Définition des schémas Zod
+    service_implementation: <heures>  # Implémentation des services
+    controller_implementation: <heures> # Implémentation des controllers
+    route_implementation: <heures>   # Implémentation des routes API
     testing: <heures>                 # Tests
     documentation: <heures>          # Documentation
     review: <heures>                 # Reviews
@@ -54,6 +58,7 @@ estimation:
 
 ### Description en Une Ligne
 > `<Une phrase qui résume la feature>`
+> Ex: "Système de gestion des charges avec génération automatique des paiements"
 
 ### Contexte & Justification
 > **Pourquoi cette feature est nécessaire?**
@@ -62,14 +67,14 @@ estimation:
 > - Alignement avec la stratégie produit
 
 ### Objectifs
-- [ ] Objectif 1
-- [ ] Objectif 2
+- [ ] Objectif 1 (ex: "Permettre aux utilisateurs de créer des charges")
+- [ ] Objectif 2 (ex: "Générer automatiquement les paiements planifiés")
 - [ ] Objectif 3
 
 ### Bénéfices Attendus
 | Bénéfice | Impact | Métrique |
 |----------|--------|----------|
-| Ex: Amélioration des performances | Haut | -50% temps de réponse |
+| Ex: Automatisation des paiements | Haut | -50% temps de traitement |
 | Ex: Meilleure UX | Moyen | +20% satisfaction |
 
 ---
@@ -82,14 +87,11 @@ estimation:
 |--------|-------------|-------------------------|
 | Utilisateur Final | Personne qui utilise l'application | Bénéficiaire principal |
 | Admin | Administrateur du système | Gestion des configurations |
-| API Client | Application tierce | Consommateur de l'API |
 
 ### Parties Prenantes
 
 - **Demandeur:** `<Nom>` - Personne qui a demandé la feature
-- **Product Owner:** `<Nom>` - Responsable produit
 - **Tech Lead:** `<Nom>` - Responsable technique
-- **QA:** `<Nom>` - Responsable qualité
 
 ---
 
@@ -97,202 +99,148 @@ estimation:
 
 ### ✅ In Scope (Ce qui est inclus)
 
-- [ ] Fonctionnalité 1
-- [ ] Fonctionnalité 2
-- [ ] Composant technique 1
-- [ ] Intégration avec le système X
+- [ ] **Schémas Zod** dans `packages/shared/schemas/`
+- [ ] **Service** dans `server/<module>/<module>.service.ts`
+- [ ] **Controller** dans `server/<module>/<module>s.controller.ts`
+- [ ] **Routes API** dans `app/api/<module>/`
+- [ ] **Pages RSC** si nécessaire dans `app/(dashboard)/<module>/`
+- [ ] **Tests unitaires** pour la logique métier
+- [ ] **Tests d'intégration** pour les services
 
 ### ❌ Out of Scope (Ce qui est explicitement exclu)
 
-- [ ] Fonctionnalité qui ne sera PAS implémentée
-- [ ] Intégration avec le système Y (prévue pour la phase 2)
-- [ ] Migration des données existantes (traité séparément)
+- [ ] Utilisation de DDD ou Hexagonal Architecture
+- [ ] Abstractions inutiles
+- [ ] Code "au cas où" (YAGNI)
+- [ ] Migration des données existantes (à traiter séparément)
 
 ### ⚠️ Assumptions (Hypothèses)
 
-1. **Assumption 1:** Description de l'hypothèse et son impact si fausse
-2. **Assumption 2:** Description de l'hypothèse
-3. **Assumption 3:** Description de l'hypothèse
+1. **Architecture:** Next.js BFF Fullstack avec style NestJS
+2. **ORM:** Prisma utilisé pour la base de données
+3. **Validation:** Zod utilisé pour toutes les validations
+4. **Langue du code:** Anglais pour tous les noms (variables, fonctions, classes)
 
 ### 🔄 Dependencies (Dépendances)
 
 | Dépendance | Type | Statut | Impact si non disponible |
 |------------|------|--------|--------------------------|
-| Spec API-AUTH-001 | Spec | ✅ Validée | Blocage total |
-| Library X v2.0 | Externe | ⚠️ En review | Retard possible |
-| Migration DB | Technique | 🔄 En cours | À coordonner |
+| Prisma | Package npm | ✅ Installé | Blocage total |
+| Zod | Package npm | ✅ Installé | Blocage total |
+| Next.js | Framework | ✅ Installé | Blocage total |
 
 ---
 
-## 🏗️ Architecture & Design
+## 🏗️ Architecture & Design (Next.js BFF)
 
 ### Diagramme d'Architecture
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#ffdfd3', 'edgeLabelBackground':'#fff'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#0070f3', 'edgeLabelBackground':'#fff'}}}%%
 graph TD
-    A[Utilisateur] -->|Requête HTTP| B[API Gateway]
-    B --> C[User Service]
-    C --> D[(Base de Données)]
-    C --> E[Cache Redis]
-    E --> D
+    A[Client] -->|HTTP Request| B[API Routes]
+    B --> C[Controller]
+    C --> D[Service]
+    D --> E[(Prisma/DB)]
+    D --> F[Domain Logic]
+    F -->|Pure Functions| G[packages/shared]
+    G --> H[Schemas]
+    G --> I[Domain]
     
-    style A fill:#f9f,stroke:#333
-    style B fill:#bbf,stroke:#333
-    style C fill:#9f9,stroke:#333
-    style D fill:#ff9,stroke:#333
+    style A fill:#f0f,stroke:#333
+    style B fill:#0af,stroke:#333
+    style C fill:#0f0,stroke:#333
+    style D fill:#ff0,stroke:#333
     style E fill:#f99,stroke:#333
+    style F fill:#ff9,stroke:#333
+    style G fill:#9f9,stroke:#333
 ```
 
-*Le diagramme ci-dessus est un exemple. **À adapter pour chaque spec.***
-
-### Composants Impactés
+### Structure des Fichiers (Next.js BFF)
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    COMPOSANTS IMPACTÉS                    │
-├─────────────────────────────────────────────────────────┤
-│                                                           │
-│  📦 NOUVEAUX COMPOSANTS                                    │
-│  ├─ src/core/domain/User.ts              # Entité User   │
-│  ├─ src/core/repositories/UserRepository.ts              │
-│  └─ src/core/usecases/ManageUser.ts       # Cas d'usage   │
-│                                                           │
-│  🔄 COMPOSANTS MODIFIÉS                                  │
-│  ├─ src/infrastructure/db/connection.ts    # Ajout table    │
-│  └─ src/interfaces/api/routes.ts         # Nouvelle route │
-│                                                           │
-│  ✅ COMPOSANTS NON IMPACTÉS                               │
-│  ├─ src/auth/...                         # Pas de changement│
-│  └─ src/payment/...                      # Pas de changement│
-│                                                           │
-└─────────────────────────────────────────────────────────┘
+packages/
+└── shared/
+    └── schemas/
+        └── <module>.ts           # Schémas Zod
+
+apps/
+└── web/
+    ├── prisma/
+    │   └── schema.prisma        # Schéma Prisma
+    └── src/
+        ├── app/
+        │   ├── api/
+        │   │   └── <module>/
+        │   │       ├── route.ts  # GET, POST
+        │   │       └── [id]/
+        │   │           └── route.ts # GET, PATCH, DELETE
+        │   └── (dashboard)/
+        │       └── <module>/
+        │           └── page.tsx   # Page RSC
+        └── server/
+            ├── db.ts             # PrismaService Singleton
+            ├── common/
+            │   ├── filter-to-where.ts
+            │   └── http.ts        # Validation Zod
+            └── <module>/
+                ├── <module>.service.ts
+                └── <module>s.controller.ts
 ```
 
-### Interfaces & Contrats
-
-#### API Endpoints (si applicable)
-
-```
-## 🔌 Endpoints REST
-
-### POST /api/users
-**Description:** Créer un nouvel utilisateur
-
-**Request Body:**
-```typescript
-interface CreateUserRequest {
-  email: string;           // Format: email valide
-  password: string;        // Min: 8 caractères, Max: 64
-  name: string;            // Min: 2 caractères, Max: 100
-  role?: UserRole;         // Default: 'user'
-}
-```
-
-**Response:**
-- **201 Created:** Utilisateur créé avec succès
-  ```typescript
-  interface CreateUserResponse {
-    id: string;
-    email: string;
-    name: string;
-    role: UserRole;
-    createdAt: string; // ISO 8601
-    updatedAt: string; // ISO 8601
-  }
-  ```
-- **400 Bad Request:** Données invalides
-- **409 Conflict:** Email déjà utilisé
-
-**Validation:**
-- Email: regex `^[\\w.-]+@[\\w.-]+\\.\\w+$`
-- Password: min 8 chars, 1 majuscule, 1 chiffre, 1 caractère spécial
-- Name: alphanumérique + espaces et tirets
-
-**Rate Limiting:** 10 requêtes/minute par IP
-```
-
-#### Events (si architecture event-driven)
+### Schémas Zod (Source de vérité unique)
 
 ```typescript
-// Événement émis quand un utilisateur est créé
-interface UserCreatedEvent {
-  type: 'USER_CREATED';
-  payload: {
-    userId: string;
-    email: string;
-    timestamp: string; // ISO 8601
-  };
-  metadata: {
-    correlationId: string;
-    version: string;
-  };
-}
+// packages/shared/schemas/<module>.ts
+import { z } from "zod";
+
+// Type enum
+const isoDate = z.string().refine((v) => !Number.isNaN(Date.parse(v)), "Invalid date");
+
+export const <Module>TypeSchema = z.enum([
+  "VALUE1",
+  "VALUE2",
+]);
+
+// Main schema
+export const <module>Schema = z.object({
+  id: z.string().uuid(),
+  // ... autres champs
+  createdAt: isoDate,
+  updatedAt: isoDate,
+});
+
+// Derived schemas
+export const create<Module>Schema = <module>Schema.omit({ id: true, createdAt: true, updatedAt: true });
+export const update<Module>Schema = create<Module>Schema.partial();
+
+// Query schema
+export const <module>QuerySchema = z.object({
+  // Filtres
+  limit: z.number().int().positive().max(500).optional(),
+  cursor: z.string().optional(),
+});
+
+// Types
+export type <Module> = z.infer<typeof <module>Schema>;
+export type Create<Module>Input = z.infer<typeof create<Module>Schema>;
+export type Update<Module>Input = z.infer<typeof update<Module>Schema>;
+export type <Module>Query = z.infer<typeof <module>QuerySchema>;
 ```
 
-### Types & Interfaces
+### Base de Données (Prisma Schema)
 
-```typescript
-// Dans src/shared/types/user.ts
-
-type UserRole = 'admin' | 'user' | 'guest';
-
-interface User {
-  id: string;           // UUID v4
-  email: string;        // Unique, indexé
-  name: string;
-  role: UserRole;
-  isActive: boolean;    // Default: true
-  createdAt: Date;
-  updatedAt: Date;
+```prisma
+// prisma/schema.prisma
+model <Module> {
+  id        String   @id @default(uuid())
+  // ... champs correspondant aux schémas Zod
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations si nécessaire
+  // user     User    @relation(fields: [userId], references: [id])
 }
-
-interface CreateUserDto {
-  email: string;
-  password: string;
-  name: string;
-  role?: UserRole;
-}
-
-interface UpdateUserDto {
-  name?: string;
-  role?: UserRole;
-  isActive?: boolean;
-}
-```
-
-### Base de Données (si applicable)
-
-```sql
--- Table users
-CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    name VARCHAR(100) NOT NULL,
-    role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'user', 'guest')),
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-);
-
--- Index
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_role ON users(role);
-
--- Trigger pour mettre à jour updated_at
-CREATE OR REPLACE FUNCTION update_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_update_users_updated_at
-    BEFORE UPDATE ON users
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at();
 ```
 
 ---
@@ -304,75 +252,212 @@ CREATE TRIGGER trigger_update_users_updated_at
 #### Description
 > Description détaillée de la fonctionnalité.
 
-#### Règles Métier (Business Rules)
+#### Endpoints API
 
-1. **BR-001:** `<Description de la règle>`
-   - **Condition:** `<Quand cette règle s'applique>`
-   - **Action:** `<Ce qui se passe>`
-   - **Exemple:** `<Exemple concret>`
+```
+## 🔌 REST API Endpoints
 
-2. **BR-002:** `<Description de la règle>`
-   - **Condition:**
-   - **Action:**
-   - **Exemple:**
+### GET /api/<module>
+**Description:** Récupérer la liste des <module>
 
-#### Flux Principal (Happy Path)
-
-```mermaid
-sequenceDiagram
-    participant U as Utilisateur
-    participant A as API
-    participant S as Service
-    participant D as Database
-    
-    U->>A: POST /users (CreateUserRequest)
-    A->>S: validateRequest(CreateUserRequest)
-    S->>S: validateEmailFormat(email)
-    S->>S: validatePasswordStrength(password)
-    S->>D: findUserByEmail(email)
-    D-->>S: null (user n'existe pas)
-    S->>S: hashPassword(password)
-    S->>D: createUser(userData)
-    D-->>S: user (avec id généré)
-    S->>A: CreateUserResponse
-    A->>U: 201 Created (CreateUserResponse)
+**Query Parameters:**
+```typescript
+// Utilise <module>QuerySchema
+export const <module>QuerySchema = z.object({
+  // ... filtres
+  limit: z.number().int().positive().max(500).optional(),
+  cursor: z.string().optional(),
+});
 ```
 
-#### Cas d'Erreur & Exceptions
+**Response:**
+- **200 OK:** Liste des <module>
+  ```typescript
+  // Array de <Module> (z.infer<typeof <module>Schema>)
+  ```
 
-| ID | Scénario | HTTP Status | Message d'Erreur | Code Erreur |
-|----|----------|-------------|------------------|-------------|
-| ERR-001 | Email déjà utilisé | 409 Conflict | "Email already exists" | DUPLICATE_EMAIL |
-| ERR-002 | Email invalide | 400 Bad Request | "Invalid email format" | INVALID_EMAIL |
-| ERR-003 | Mot de passe trop faible | 400 Bad Request | "Password too weak" | WEAK_PASSWORD |
-| ERR-004 | Erreur base de données | 500 Internal Server Error | "Database error" | DB_ERROR |
+**Validation:**
+- Tous les paramètres validés avec Zod dans le controller
 
-#### Algorithmes (si applicable)
+### POST /api/<module>
+**Description:** Créer un nouveau <module>
 
-**Algorithme 1:** `<Nom de l'algorithme>`
+**Request Body:**
+```typescript
+// Utilise create<Module>Schema
+```
+
+**Response:**
+- **201 Created:** <Module> créé
+- **400 Bad Request:** Données invalides
+
+### GET /api/<module>/:id
+**Description:** Récupérer un <module> par ID
+
+**Response:**
+- **200 OK:** <Module>
+- **404 Not Found:** <Module> non trouvé
+
+### PATCH /api/<module>/:id
+**Description:** Mettre à jour un <module>
+
+**Request Body:**
+```typescript
+// Utilise update<Module>Schema (partial)
+```
+
+**Response:**
+- **200 OK:** <Module> mis à jour
+- **404 Not Found:** <Module> non trouvé
+
+### DELETE /api/<module>/:id
+**Description:** Supprimer un <module>
+
+**Response:**
+- **204 No Content:** Suppression réussie
+- **404 Not Found:** <Module> non trouvé
+```
+
+#### Implémentation (Service)
 
 ```typescript
-// Pseudo-code ou code réel
-function calculateUserScore(user: User): number {
-  let score = 0;
+// server/<module>/<module>.service.ts
+import { prisma } from "@/server/db";
+import { 
+  <Module>Query, 
+  Create<Module>Input, 
+  Update<Module>Input,
+  <Module> 
+} from "@mbongo/shared/schemas/<module>";
+
+export class <Module>Service {
+  async findMany(query: <Module>Query): Promise<<Module>[]> {
+    return prisma.<module>.findMany({
+      where: queryToWhere(query), // Utiliser le traducteur
+      orderBy: { createdAt: "desc" },
+      take: query.limit,
+    });
+  }
+
+  async findOne(id: string): Promise<<Module> | null> {
+    return prisma.<module>.findUnique({ where: { id } });
+  }
+
+  async create(input: Create<Module>Input): Promise<<Module>> {
+    return prisma.<module>.create({ data: input });
+  }
+
+  async update(id: string, input: Update<Module>Input): Promise<<Module>> {
+    return prisma.<module>.update({ where: { id }, data: input });
+  }
+
+  async remove(id: string): Promise<void> {
+    await prisma.<module>.delete({ where: { id } });
+  }
   
-  // Bonus pour l'activité
-  if (user.isActive) score += 10;
-  
-  // Bonus pour le rôle
-  const roleScores: Record<UserRole, number> = {
-    admin: 30,
-    user: 20,
-    guest: 5,
-  };
-  score += roleScores[user.role];
-  
-  // Bonus pour l'ancienneté (1 point par mois)
-  const monthsActive = differenceInMonths(new Date(), user.createdAt);
-  score += Math.min(monthsActive, 12); // Max 12 points
-  
-  return Math.min(score, 100); // Score max: 100
+  // Méthodes métiers spécifiques
+  // async doSomethingSpecial(id: string): Promise<Result> {}
 }
+
+export const <module>Service = new <Module>Service();
+```
+
+#### Implémentation (Controller)
+
+```typescript
+// server/<module>/<module>s.controller.ts
+import { NextResponse } from "next/server";
+import {
+  <module>QuerySchema,
+  create<Module>Schema,
+  update<Module>Schema
+} from "@mbongo/shared/schemas/<module>";
+import { parseBody, parseQuery, toErrorResponse } from "@/server/common/http";
+import { <Module>Service, <module>Service } from "./<module>.service";
+
+export class <Module>sController {
+  constructor(private readonly service: <Module>Service) {}
+
+  async find(request: Request): Promise<NextResponse> {
+    try {
+      const query = parseQuery(request, <module>QuerySchema);
+      return NextResponse.json(await this.service.findMany(query));
+    } catch (error) {
+      return toErrorResponse(error);
+    }
+  }
+
+  async create(request: Request): Promise<NextResponse> {
+    try {
+      const input = await parseBody(request, create<Module>Schema);
+      return NextResponse.json(await this.service.create(input), { status: 201 });
+    } catch (error) {
+      return toErrorResponse(error);
+    }
+  }
+
+  async findOne(id: string): Promise<NextResponse> {
+    try {
+      const result = await this.service.findOne(id);
+      if (!result) {
+        return NextResponse.json({ error: "Not found" }, { status: 404 });
+      }
+      return NextResponse.json(result);
+    } catch (error) {
+      return toErrorResponse(error);
+    }
+  }
+
+  async update(request: Request, id: string): Promise<NextResponse> {
+    try {
+      const input = await parseBody(request, update<Module>Schema);
+      const result = await this.service.update(id, input);
+      if (!result) {
+        return NextResponse.json({ error: "Not found" }, { status: 404 });
+      }
+      return NextResponse.json(result);
+    } catch (error) {
+      return toErrorResponse(error);
+    }
+  }
+
+  async remove(id: string): Promise<NextResponse> {
+    try {
+      await this.service.remove(id);
+      return new NextResponse(null, { status: 204 });
+    } catch (error) {
+      return toErrorResponse(error);
+    }
+  }
+}
+
+export const <module>sController = new <Module>sController(<module>Service);
+```
+
+#### Implémentation (Routes API)
+
+```typescript
+// app/api/<module>/route.ts
+import { <module>sController } from "@/server/<module>/<module>s.controller";
+
+export const GET = (request: Request) => <module>sController.find(request);
+export const POST = (request: Request) => <module>sController.create(request);
+```
+
+```typescript
+// app/api/<module>/[id]/route.ts
+import { <module>sController } from "@/server/<module>/<module>s.controller";
+
+type Context = { params: Promise<{ id: string }> };
+
+export const GET = async (_request: Request, { params }: Context) =>
+  <module>sController.findOne((await params).id);
+
+export const PATCH = async (request: Request, { params }: Context) =>
+  <module>sController.update(request, (await params).id);
+
+export const DELETE = async (_request: Request, { params }: Context) =>
+  <module>sController.remove((await params).id);
 ```
 
 ---
@@ -381,69 +466,51 @@ function calculateUserScore(user: User): number {
 
 ### Stratégie de Test
 
-- **Unit Tests:** Tester chaque fonction en isolation
-- **Integration Tests:** Tester l'interaction entre composants
-- **E2E Tests:** Tester le flux utilisateur complet
-- **Performance Tests:** Vérifier les performances
-- **Security Tests:** Vérifier la sécurité
+- **Unit Tests:** Tester la logique métier pure (packages/shared/domain)
+- **Integration Tests:** Tester les services avec Prisma
+- **API Tests:** Tester les endpoints API
 
 ### Cas de Test
 
-#### Unit Tests
+#### Unit Tests (Logique Métier)
 
 ```markdown
 | ID | Description | Input | Expected Output | Priority |
 |----|-------------|-------|-----------------|----------|
-| UT-001 | Créer un utilisateur valide | CreateUserDto valide | User avec id généré | HIGH |
-| UT-002 | Valider un email valide | "test@example.com" | true | HIGH |
-| UT-003 | Valider un email invalide | "invalid-email" | false | HIGH |
-| UT-004 | Hash du mot de passe | "password123" | Hash bcrypt valide | HIGH |
-| UT-005 | Calculer le score utilisateur | User admin actif | Score entre 40-52 | MEDIUM |
+| UT-001 | Calculer le montant mensuel | Charge avec amount=1200 | 100/month | HIGH |
+| UT-002 | Générer les paiements | Charge FIXED_RECURRING | Array de paiements | HIGH |
+| UT-003 | Valider un schéma Zod | Input valide | Success | HIGH |
 ```
 
-#### Integration Tests
+#### Integration Tests (Services)
 
 ```markdown
 | ID | Description | Setup | Action | Expected Result | Priority |
 |----|-------------|-------|--------|-----------------|----------|
-| IT-001 | Créer un utilisateur via API | DB vide | POST /users | 201 + User en DB | HIGH |
-| IT-002 | Créer un utilisateur avec email existant | 1 user en DB | POST /users (même email) | 409 Conflict | HIGH |
-| IT-003 | Récupérer un utilisateur | 1 user en DB | GET /users/:id | 200 + User | HIGH |
+| IT-001 | Créer un <module> | DB vide | POST /api/<module> | 201 + <Module> en DB | HIGH |
+| IT-002 | Récupérer un <module> | 1 <module> en DB | GET /api/<module>/:id | 200 + <Module> | HIGH |
+| IT-003 | Filtrer les <module>s | 3 <module>s en DB | GET /api/<module>?filter=... | 200 + Array filtré | MEDIUM |
 ```
 
-#### E2E Tests
+#### API Tests (End-to-End)
 
 ```markdown
-| ID | Description | Steps | Expected Result | Priority |
-|----|-------------|-------|-----------------|----------|
-| E2E-001 | Flux d'inscription complet | 1. Aller sur /register 2. Remplir le formulaire 3. Soumettre | Redirection vers /dashboard + email de bienvenue | HIGH |
-| E2E-002 | Connexion avec identifiants valides | 1. Aller sur /login 2. Entrer email/password 3. Soumettre | Redirection vers /dashboard | HIGH |
-```
-
-#### Performance Tests
-
-```markdown
-| ID | Description | Scenario | Target | Priority |
-|----|-------------|----------|--------|----------|
-| PT-001 | Temps de réponse création utilisateur | 100 requêtes simultanées | < 200ms (p95) | MEDIUM |
-| PT-002 | Requêtes par seconde | Charge normale | > 1000 req/s | LOW |
-```
-
-#### Security Tests
-
-```markdown
-| ID | Description | Test | Expected | Priority |
-|----|-------------|------|----------|----------|
-| ST-001 | Injection SQL | Essayer ' OR 1=1 -- | Rejeté | HIGH |
-| ST-002 | XSS | Essayer <script>alert(1)</script> | Escapé | HIGH |
-| ST-003 | Authentification | Accès sans token | 401 Unauthorized | HIGH |
+| ID | Description | Method | URL | Expected Status | Priority |
+|----|-------------|--------|-----|-----------------|----------|
+| AT-001 | GET liste | GET | /api/<module> | 200 | HIGH |
+| AT-002 | POST créer | POST | /api/<module> | 201 | HIGH |
+| AT-003 | GET par ID | GET | /api/<module>/123 | 200 | HIGH |
+| AT-004 | PATCH update | PATCH | /api/<module>/123 | 200 | HIGH |
+| AT-005 | DELETE supprimer | DELETE | /api/<module>/123 | 204 | HIGH |
+| AT-006 | POST invalide | POST | /api/<module> | 400 | HIGH |
+| AT-007 | GET non trouvé | GET | /api/<module>/999 | 404 | HIGH |
 ```
 
 ### Coverage Attendu
 
-- **Unit Tests:** > 90%
-- **Integration Tests:** > 80%
-- **E2E Tests:** > 70% (pour les flux critiques)
+- **Unit Tests:** > 90% (pour packages/shared)
+- **Integration Tests:** > 80% (pour les services)
+- **API Tests:** > 70% (pour les endpoints critiques)
 
 ---
 
@@ -455,74 +522,64 @@ function calculateUserScore(user: User): number {
 |----------|-------|--------|----------|
 | Temps de réponse API | < 200ms | p95 | HIGH |
 | Throughput | > 1000 req/s | Moyenne | MEDIUM |
-| Temps de démarrage | < 2s | Cold start | MEDIUM |
 
 ### Sécurité
 
-- [ ] Toutes les entrées utilisateur sont validées et sanitizées
-- [ ] Les mots de passe sont hashés avec bcrypt (cost factor: 12)
-- [ ] Les tokens JWT ont une expiration de 15 minutes
-- [ ] Les endpoints sensibles nécessitent une authentification
+- [ ] Toutes les entrées utilisateur sont validées avec Zod
 - [ ] Les erreurs ne révèlent pas d'informations sensibles
 - [ ] HTTPS obligatoire en production
-
-### Scalabilité
-
-- [ ] Architecture stateless (sauf sessions si nécessaire)
-- [ ] Base de données optimisée pour les lectures/écritures
-- [ ] Cache Redis pour les données fréquemment accédées
-- [ ] Horizontal scaling possible
-
-### Fiabilité
-
-- [ ] Disponibilité: 99.9% (en production)
-- [ ] MTTR (Mean Time To Recovery): < 30 minutes
-- [ ] MTBF (Mean Time Between Failures): > 1 mois
+- [ ] Rate limiting sur les endpoints publics
 
 ### Maintenabilité
 
 - [ ] Code suivant les conventions (CONVENTIONS.md)
 - [ ] Documentation complète
 - [ ] Tests automatiques
-- [ ] Logging centralisé
-- [ ] Monitoring en place
-
-### Accessibilité
-
-- [ ] WCAG 2.1 AA compliant (si interface utilisateur)
-- [ ] Compatible avec les lecteurs d'écran
-- [ ] Navigation clavier complète
+- [ ] Architecture simple et directe
 
 ---
 
 ## 🎨 UX/UI (si applicable)
 
-### Maquettes / Wireframes
+### Pages RSC
 
-*À ajouter si la feature a une interface utilisateur*
+```typescript
+// app/(dashboard)/<module>/page.tsx
+import { <Module>Service, <module>Service } from "@/server/<module>/<module>.service";
 
+export default async function <Module>Page() {
+  const <module>s = await <module>Service.findMany({});
+  
+  return (
+    <div>
+      <h1><Module>s</h1>
+      <pre>{JSON.stringify(<module>s, null, 2)}</pre>
+    </div>
+  );
+}
 ```
-[Lien vers Figma/Adobe XD] ou descriptions textuelles
+
+### Composants Client
+
+```tsx
+// components/<module>/<module>-view.tsx
+"use client";
+import { use<Module>s } from "@/hooks/use-<module>s";
+
+export function <Module>View() {
+  const { data: <module>s, isLoading } = use<Module>s();
+  
+  if (isLoading) return <div>Loading...</div>;
+  
+  return (
+    <ul>
+      {<module>s?.map((<module>) => (
+        <li key={<module>.id}>{<module>.label}</li>
+      ))}
+    </ul>
+  );
+}
 ```
-
-### Flux Utilisateur
-
-```mermaid
-flowchart TD
-    A[Page d'accueil] -->|Click "S'inscrire"| B[Formulaire d'inscription]
-    B -->|Soumettre| C{Validation}
-    C -->|Valide| D[Tableau de bord]
-    C -->|Invalide| B
-    D -->|Logout| A
-```
-
-### Copywriting (Textes)
-
-| Élément | Texte | Notes |
-|---------|-------|-------|
-| Bouton Inscription | "Créer un compte" | CTA principal |
-| Message de succès | "Bienvenue ! Votre compte a été créé." | Après inscription |
-| Erreur email | "Cet email est déjà utilisé." | Message clair |
 
 ---
 
@@ -530,10 +587,13 @@ flowchart TD
 
 ### Étapes de Migration
 
-1. **Étape 1:** Créer les nouvelles tables en DB
-2. **Étape 2:** Déployer les nouveaux services
-3. **Étape 3:** Mettre à jour les interfaces
-4. **Étape 4:** Nettoyer les anciens composants (si remplacement)
+1. **Étape 1:** Créer les schémas Zod
+2. **Étape 2:** Mettre à jour le schéma Prisma
+3. **Étape 3:** Générer le client Prisma (`npx prisma generate`)
+4. **Étape 4:** Implémenter les services
+5. **Étape 5:** Implémenter les controllers
+6. **Étape 6:** Créer les routes API
+7. **Étape 7:** Créer les pages RSC (si nécessaire)
 
 ### Rollback Plan
 
@@ -542,29 +602,20 @@ flowchart TD
 3. **Temps:** < 5 minutes
 4. **Impact:** Aucune perte de données
 
-### Feature Flags
-
-| Flag | Description | Default | Rollout Strategy |
-|------|-------------|---------|------------------|
-| new_user_management | Active la nouvelle gestion des utilisateurs | false | Gradual rollout (10% → 100%) |
-
 ---
 
 ## 📝 Documentation
 
 ### Documentation Technique
 
-- [ ] Architecture Decision Records (ADR) pour les décisions majeures
-- [ ] Diagrammes à jour (architecture, séquence, classes)
-- [ ] Documentation des APIs (Swagger/OpenAPI)
-- [ ] README des nouveaux modules
+- [ ] Schémas Zod documentés
+- [ ] Diagrammes d'architecture
+- [ ] Documentation des endpoints API (Swagger/OpenAPI si nécessaire)
 
 ### Documentation Utilisateur
 
-- [ ] Guide utilisateur
-- [ ] FAQ
-- [ ] Exemples d'utilisation
-- [ ] Tutorials vidéo (si nécessaire)
+- [ ] Guide d'utilisation (si UI)
+- [ ] Exemples d'utilisation de l'API
 
 ---
 
@@ -575,20 +626,25 @@ flowchart TD
 | Milestone | Date Cible | Description | Statut |
 |-----------|------------|-------------|--------|
 | Spec Validée | YYYY-MM-DD | Spec approuvée par le demandeur | ⏳ |
-| Dev Commencé | YYYY-MM-DD | Premier commit de code | ⏳ |
-| Alpha | YYYY-MM-DD | Version interne testable | ⏳ |
-| Beta | YYYY-MM-DD | Version beta pour feedback | ⏳ |
+| Schémas Zod | YYYY-MM-DD | Schémas créés et validés | ⏳ |
+| Prisma Schema | YYYY-MM-DD | Schéma DB mis à jour | ⏳ |
+| Services | YYYY-MM-DD | Services implémentés | ⏳ |
+| Controllers | YYYY-MM-DD | Controllers implémentés | ⏳ |
+| Routes API | YYYY-MM-DD | Routes API créées | ⏳ |
+| Tests | YYYY-MM-DD | Tous les tests passent | ⏳ |
 | Release | YYYY-MM-DD | Version finale déployée | ⏳ |
 
 ### Livrables
 
 - [ ] Spécification validée (ce document avec status: VALIDATED)
+- [ ] Schémas Zod dans packages/shared/schemas/
+- [ ] Schéma Prisma mis à jour
+- [ ] Services implémentés
+- [ ] Controllers implémentés
+- [ ] Routes API créées
 - [ ] Code source commenté et linté
-- [ ] Tests unitaires, d'intégration, E2E
+- [ ] Tests unitaires, d'intégration, API
 - [ ] Documentation technique
-- [ ] Documentation utilisateur (si applicable)
-- [ ] Scripts de migration (si applicable)
-- [ ] Configuration de deployment
 
 ---
 
@@ -597,9 +653,8 @@ flowchart TD
 | ID | Risque | Probabilité | Impact | Mitigation | Statut |
 |----|--------|-------------|--------|------------|--------|
 | R-001 | Retard dans la validation de la spec | Moyen | Haut | Review early, feedback continu | 🟢 |
-| R-002 | Problème de performance en prod | Faible | Haut | Tests de charge avant déploiement | 🟢 |
+| R-002 | Problème avec Prisma | Faible | Haut | Tests de migration avant déploiement | 🟢 |
 | R-003 | Changement des requirements | Moyen | Moyen | Itérations courtes, feedback régulier | 🟢 |
-| R-004 | Dépendance externe bloquante | Faible | Haut | Solution de fallback, monitoring | 🟡 |
 
 ---
 
@@ -609,12 +664,11 @@ flowchart TD
 
 - [ ] Tous les champs de métadonnées sont remplis
 - [ ] La description est claire et complète
+- [ ] Les schémas Zod sont définis
+- [ ] Les endpoints API sont spécifiés
 - [ ] Les diagrammes sont précis et à jour
-- [ ] Les interfaces/contrats sont définis
-- [ ] Les règles métier sont explicites
-- [ ] Les cas d'erreur sont couverts
-- [ ] Les tests sont spécifiés
-- [ ] Les NFR sont définis
+- [ ] Les cas de test sont définis
+- [ ] Les NFR sont spécifiés
 - [ ] Les dépendances sont identifiées
 - [ ] Les risques sont analysés
 - [ ] L'estimation est réaliste
@@ -670,14 +724,16 @@ flowchart TD
 
 | Terme | Définition |
 |-------|------------|
-| UserRole | Rôle d'un utilisateur dans le système |
-| UUID | Universally Unique Identifier |
+| BFF | Backend For Frontend - Architecture Next.js Fullstack |
+| RSC | React Server Components |
+| Zod | Bibliothèque de validation de schémas |
+| Prisma | ORM pour les bases de données |
 
 ### Références
 
-- [Lien vers la documentation existante]
-- [Lien vers les specs liées]
-- [Lien vers les tickets Jira]
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Prisma Documentation](https://www.prisma.io/docs)
+- [Zod Documentation](https://zod.dev)
 
 ---
 
@@ -709,8 +765,9 @@ flowchart TD
 
 ---
 
-**Template Version:** 1.0.0  
+**Template Version:** 2.0.0  
 **Dernière mise à jour:** 2024-11-05  
-**Auteur:** Agent IA Expert Architect  
+**Architecture:** Next.js BFF Fullstack + NestJS-like Style + KISS  
+**Auteur:** Agent IA Expert Architect
 
 *Pour toute question sur ce template, contacter l'Agent IA.*
