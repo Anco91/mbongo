@@ -14,7 +14,7 @@
   - [x] Implémenter le socle npm/Turbo défini dans [SPEC-TOOLING-001](docs/specs/tooling-foundation/SPEC.md).
   - [ ] Établir lint, format et types verts pour le squelette existant avant les features.
 - [ ] **M1 POC** : spec validée ; implémenter par petites PR sur branches dédiées.
-- [ ] **M2 Cœur métier** : charges typées, échéancier et carte différée ; spec [M2-CHARGE-PAYMENTS-001](docs/specs/m2-charge-payments/SPEC.md) en review avant implémentation.
+- [ ] **M2 Cœur métier** : charges typées, échéancier (`Payment`) et carte différée ; spec [M2-CHARGE-PAYMENTS-001](docs/specs/m2-charge-payments/SPEC.md) validée.
 - [ ] **M3 V1 utilisable** : dashboard/Sankey, vue foyer, import CSV, provisions, alertes et capital restant ; specs validées avant implémentation.
 - [ ] **Clôture V1** : vérifier le critère d’usage réel du CDC §10 et documenter la livraison.
 
@@ -57,27 +57,27 @@ Chaque livraison fonctionnelle doit rester petite, être poussée sur sa propre 
 
 ---
 
-## 📦 Module: Charges (Example Implementation)
+## 📦 Module: Charges (Legacy Example — M2 Refactor)
 
 ### ✅ Completed
-- [x] **Schema**: charge.ts with all types and Zod validation
+- [x] **Schema**: Existing charge.ts; M2 separates charge.ts and payment.ts
 - [x] **Filter Schema**: filter.ts with generic filter types
 - [x] **Domain Logic**: schedule.ts with payment generation
-- [x] **Prisma Model**: Charge and ScheduledPayment models
+- [x] **Prisma Model**: Existing Charge and ScheduledPayment models; M2 names the domain model Payment
 - [x] **PrismaService**: db.ts singleton
 - [x] **Common Utilities**: filter-to-where.ts, http.ts
-- [x] **Service Layer**: charge.service.ts with CRUD + business logic
-- [x] **Controller Layer**: charges.controller.ts with validation
+- [x] **Service Layer**: Legacy charge.service.ts with CRUD + payment logic; M2 separates PaymentService
+- [x] **Controller Layer**: Legacy charges.controller.ts with payment endpoints; M2 separates PaymentsController
 - [x] **API Routes**: GET, POST, PATCH, DELETE for charges
-- [x] **Payment Routes**: Get payments, next payment, mark as paid
+- [x] **Payment Routes**: Legacy charge-scoped routes; M2 replaces them with `/api/payments` CRUD
 - [x] **React Query Hooks**: useCharges, useCreateCharge, etc.
 - [x] **Server Component**: ChargesGuard with prefetch
 - [x] **Client Component**: ChargesView with UI
 - [x] **Page**: /charges dashboard page
 
 ### 📝 Notes
-- Example implementation follows all conventions
-- Ready to be customized for actual requirements
+- This scaffold is legacy example code and does not yet follow the validated M2 boundaries.
+- Replace it incrementally according to `docs/specs/m2-charge-payments/SPEC.md`.
 - All components are type-safe with Zod schemas
 
 ---

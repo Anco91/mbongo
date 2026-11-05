@@ -9,8 +9,8 @@
 
 ```
 Total Specs: 3
-├── Validées: 2
-├── En Review: 1
+├── Validées: 3
+├── En Review: 0
 ├── En Brouillon: 0
 └── Obsolètes: 0
 
@@ -26,6 +26,7 @@ Specs en retard: 0
 |----|---------|-------------------------|----------|------|
 | M1-POC-001 | Socle : comptes, transactions, transferts, snapshots | ⏳ À commencer | HIGH | [SPEC-M1-POC](m1-poc/SPEC.md) |
 | TOOLING-001 | Runner npm et Turbo du monorepo | ⏳ À commencer | HIGH | [SPEC-TOOLING-001](tooling-foundation/SPEC.md) |
+| M2-CHARGE-PAYMENTS-001 | Charges et échéances (`Payment`) | ⏳ À commencer | HIGH | [SPEC-M2-CHARGE-PAYMENTS](m2-charge-payments/SPEC.md) |
 
 ### Légende Statut Dev
 - ✅ **Complété**: Développement terminé et déployé
@@ -39,7 +40,7 @@ Specs en retard: 0
 
 | ID | Feature | Priorité | Spec |
 |----|---------|----------|------|
-| M2-CHARGE-PAYMENTS-001 | Séparation Charges / Échéances | HIGH | [SPEC-M2-CHARGE-PAYMENTS](m2-charge-payments/SPEC.md) |
+*Aucune spec en review pour le moment.*
 
 ---
 
