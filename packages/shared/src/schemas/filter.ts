@@ -1,13 +1,13 @@
 /**
  * Filter Schemas
- * 
+ *
  * Schémas génériques pour les filtres et requêtes.
  * Ces schémas sont utilisés pour la validation des query parameters.
- * 
+ *
  * @packageDocumentation
  */
 
-import { z } from "zod";
+import { z } from 'zod';
 
 // ============================================================================
 // Types de base
@@ -23,18 +23,18 @@ export const filterValue = z.union([
 
 /** Opérateurs de filtre */
 export const filterOperatorSchema = z.enum([
-  "eq",        // Égal à
-  "not",       // Différent de
-  "in",        // Dans la liste
-  "notIn",     // Pas dans la liste
-  "gte",       // Supérieur ou égal à
-  "gt",        // Supérieur à
-  "lte",       // Inférieur ou égal à
-  "lt",        // Inférieur à
-  "contains",   // Contient
-  "startsWith", // Commence par
-  "endsWith",   // Finit par
-  "search",     // Recherche full-text
+  'eq', // Égal à
+  'not', // Différent de
+  'in', // Dans la liste
+  'notIn', // Pas dans la liste
+  'gte', // Supérieur ou égal à
+  'gt', // Supérieur à
+  'lte', // Inférieur ou égal à
+  'lt', // Inférieur à
+  'contains', // Contient
+  'startsWith', // Commence par
+  'endsWith', // Finit par
+  'search', // Recherche full-text
 ]);
 
 // ============================================================================
@@ -43,15 +43,15 @@ export const filterOperatorSchema = z.enum([
 
 /**
  * Schéma pour un filtre sur un champ unique.
- * 
+ *
  * @example
  * ```typescript
  * // Filtrer les charges avec amount > 100
  * const filter: Filter = { gte: 100 };
- * 
+ *
  * // Filtrer les charges avec category = "rent"
  * const filter: Filter = { eq: "rent" };
- * 
+ *
  * // Filtrer les charges avec startDate entre deux dates
  * const filter: Filter = { gte: "2024-01-01", lte: "2024-12-31" };
  * ```
@@ -76,12 +76,12 @@ export const filterSchema = z.object({
 // ============================================================================
 
 /** Direction de tri */
-export const sortDirectionSchema = z.enum(["asc", "desc"]);
+export const sortDirectionSchema = z.enum(['asc', 'desc']);
 
 /** Schéma pour le tri */
 export const sortSchema = z.object({
   field: z.string(),
-  direction: sortDirectionSchema.default("desc"),
+  direction: sortDirectionSchema.default('desc'),
 });
 
 /** Array de tri */
@@ -105,12 +105,12 @@ export const paginationSchema = z.object({
 /**
  * Schéma de base pour toutes les requêtes GET.
  * Combine filtres, pagination et tri.
- * 
+ *
  * @example
  * ```typescript
  * // GET /api/charges?limit=50&cursor=abc123
  * const query: GenericQuery = { limit: 50, cursor: "abc123" };
- * 
+ *
  * // GET /api/charges?type=eq:FIXED_RECURRING&amount=gte:100
  * const query: GenericQuery = {
  *   filters: {
@@ -123,15 +123,15 @@ export const paginationSchema = z.object({
 export const genericQuerySchema = z.object({
   // Filtres par champ
   filters: z.record(z.string(), filterSchema).optional(),
-  
+
   // Pagination
   limit: z.number().int().positive().max(500).default(100).optional(),
   cursor: z.string().optional(),
   skip: z.number().int().nonnegative().default(0).optional(),
-  
+
   // Tri
   sort: sortArraySchema.optional(),
-  
+
   // Sélection des champs
   select: z.array(z.string()).optional(),
 });
@@ -154,7 +154,7 @@ export type GenericQuery = z.infer<typeof genericQuerySchema>;
 
 /**
  * Convertir un filtre en objet Prisma where
- * 
+ *
  * @example
  * ```typescript
  * const filter: Filter = { gte: 100, lte: 200 };
@@ -164,7 +164,7 @@ export type GenericQuery = z.infer<typeof genericQuerySchema>;
  */
 export function filterToPrisma(filter: Filter): Record<string, unknown> {
   const condition: Record<string, unknown> = {};
-  
+
   if (filter.eq !== undefined) condition.equals = filter.eq;
   if (filter.not !== undefined) condition.not = { equals: filter.not };
   if (filter.in !== undefined) condition.in = filter.in;
@@ -177,13 +177,13 @@ export function filterToPrisma(filter: Filter): Record<string, unknown> {
   if (filter.startsWith !== undefined) condition.startsWith = filter.startsWith;
   if (filter.endsWith !== undefined) condition.endsWith = filter.endsWith;
   if (filter.search !== undefined) condition.search = filter.search;
-  
+
   return condition;
 }
 
 /**
  * Convertir une query générique en objet Prisma where
- * 
+ *
  * @example
  * ```typescript
  * const query: GenericQuery = {
@@ -201,14 +201,14 @@ export function genericQueryToPrisma<T extends Record<string, unknown>>(
   fieldMap?: Record<string, string>
 ): T {
   const where: Record<string, unknown> = {};
-  
+
   if (query.filters) {
     for (const [field, filter] of Object.entries(query.filters)) {
       const mappedField = fieldMap?.[field] || field;
       where[mappedField] = filterToPrisma(filter);
     }
   }
-  
+
   return where as T;
 }
 
