@@ -1,9 +1,9 @@
 /**
  * Charge Service
- * 
+ *
  * NestJS-shaped service: one class per domain, instantiated once.
  * Contains CRUD operations and business logic for charges.
- * 
+ *
  * @module Server/Charges/Service
  */
 
@@ -23,20 +23,20 @@ import { Prisma } from '@prisma/client';
 
 /**
  * Charge Service
- * 
+ *
  * Provides CRUD operations and business logic for charges.
  * This is the NestJS-like service layer that handles:
  * - CRUD operations (findMany, findOne, create, update, remove)
  * - Business logic (charge creation with scheduled payments)
  * - Data transformation (Prisma model → Shared domain shape)
- * 
+ *
  * @example
  * ```typescript
  * const service = new ChargeService();
- * 
+ *
  * // Find all charges
  * const charges = await service.findMany({});
- * 
+ *
  * // Create a charge with scheduled payments
  * const charge = await service.create({ label: 'Loyer', amount: 1000, ... });
  * ```
@@ -44,12 +44,12 @@ import { Prisma } from '@prisma/client';
 export class ChargeService {
   /**
    * Find many charges with optional filtering and pagination
-   * 
+   *
    * ~90% of the backend: parameterized reads. No bespoke finders.
-   * 
+   *
    * @param query - Query parameters with filters, pagination, and sorting
    * @returns Array of charges with their scheduled payments
-   * 
+   *
    * @example
    * ```typescript
    * const charges = await service.findMany({
@@ -76,7 +76,7 @@ export class ChargeService {
 
   /**
    * Find a single charge by ID
-   * 
+   *
    * @param id - Charge ID (UUID)
    * @returns Charge with its scheduled payments
    * @throws NotFoundError if charge is not found
@@ -100,13 +100,13 @@ export class ChargeService {
 
   /**
    * Create a new charge with scheduled payments
-   * 
+   *
    * The ~10%: transactional business operation.
    * Charge + scheduled payments, atomically.
-   * 
+   *
    * @param input - Charge creation input
    * @returns Created charge with its scheduled payments
-   * 
+   *
    * @example
    * ```typescript
    * const charge = await service.create({
@@ -165,7 +165,7 @@ export class ChargeService {
 
   /**
    * Update an existing charge
-   * 
+   *
    * @param id - Charge ID to update
    * @param input - Update data (partial)
    * @returns Updated charge
@@ -190,7 +190,7 @@ export class ChargeService {
 
   /**
    * Remove a charge and its scheduled payments
-   * 
+   *
    * @param id - Charge ID to delete
    * @throws NotFoundError if charge is not found
    */
@@ -206,10 +206,10 @@ export class ChargeService {
 
   /**
    * Regenerate scheduled payments for a charge
-   * 
+   *
    * Useful when charge properties change (e.g., frequency, amount, dates)
    * This will delete existing payments and create new ones.
-   * 
+   *
    * @param chargeId - Charge ID to regenerate payments for
    * @returns Updated charge with new scheduled payments
    * @throws NotFoundError if charge is not found
@@ -232,7 +232,10 @@ export class ChargeService {
 
     // Generate new payments
     const domainCharge = this.toDomain(charge);
-    const scheduledPayments = generateScheduledPayments(domainCharge, new Date());
+    const scheduledPayments = generateScheduledPayments(
+      domainCharge,
+      new Date()
+    );
 
     // Create new payments
     if (scheduledPayments.length > 0) {
@@ -258,7 +261,7 @@ export class ChargeService {
 
   /**
    * Get scheduled payments for a charge
-   * 
+   *
    * @param chargeId - Charge ID
    * @returns Array of scheduled payments
    * @throws NotFoundError if charge is not found
@@ -278,11 +281,13 @@ export class ChargeService {
 
   /**
    * Get overdue payments for a charge
-   * 
+   *
    * @param chargeId - Charge ID
    * @returns Array of overdue payments
    */
-  async getOverduePayments(chargeId: string): Promise<SharedScheduledPayment[]> {
+  async getOverduePayments(
+    chargeId: string
+  ): Promise<SharedScheduledPayment[]> {
     const payments = await this.getPayments(chargeId);
     const now = new Date();
 
@@ -294,11 +299,13 @@ export class ChargeService {
 
   /**
    * Get next payment for a charge
-   * 
+   *
    * @param chargeId - Charge ID
    * @returns Next scheduled payment or null
    */
-  async getNextPayment(chargeId: string): Promise<SharedScheduledPayment | null> {
+  async getNextPayment(
+    chargeId: string
+  ): Promise<SharedScheduledPayment | null> {
     const payments = await this.getPayments(chargeId);
     const now = new Date();
 
@@ -321,7 +328,7 @@ export class ChargeService {
 
   /**
    * Mark a payment as paid
-   * 
+   *
    * @param paymentId - Payment ID to mark as paid
    * @returns Updated payment
    * @throws NotFoundError if payment is not found
@@ -353,7 +360,9 @@ export class ChargeService {
   /**
    * Validate charge input before creation
    */
-  private validateChargeInput(input: CreateChargeInput | UpdateChargeInput): void {
+  private validateChargeInput(
+    input: CreateChargeInput | UpdateChargeInput
+  ): void {
     // FIXED_RECURRING and TEMPORARY require frequency
     if (input.type === 'FIXED_RECURRING' && !input.frequency) {
       throw new HttpError(
@@ -398,7 +407,8 @@ export class ChargeService {
   ): Partial<Prisma.ChargeCreateInput> | Partial<Prisma.ChargeUpdateInput> {
     const result: Record<string, unknown> = {};
 
-    if ('label' in input && input.label !== undefined) result.label = input.label;
+    if ('label' in input && input.label !== undefined)
+      result.label = input.label;
     if ('type' in input && input.type !== undefined) result.type = input.type;
     if ('amount' in input && input.amount !== undefined)
       result.amount = input.amount;
@@ -425,9 +435,11 @@ export class ChargeService {
   /**
    * Convert Prisma Charge model to Shared Charge domain shape
    */
-  private toDomain(charge: Prisma.ChargeGetPayload<{
-    include: { payments: true };
-  }>): SharedCharge {
+  private toDomain(
+    charge: Prisma.ChargeGetPayload<{
+      include: { payments: true };
+    }>
+  ): SharedCharge {
     return {
       id: charge.id,
       label: charge.label,
@@ -476,15 +488,16 @@ const globalForChargeService = globalThis as unknown as {
 
 /**
  * Singleton instance of ChargeService
- * 
+ *
  * Usage:
  * ```typescript
  * import { chargeService } from '@/server/charges/charge.service';
- * 
+ *
  * const charges = await chargeService.findMany({});
  * ```
  */
-export const chargeService = globalForChargeService.chargeService ?? new ChargeService();
+export const chargeService =
+  globalForChargeService.chargeService ?? new ChargeService();
 
 // Cache the instance in development for HMR
 if (process.env.NODE_ENV !== 'production') {

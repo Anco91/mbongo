@@ -1,9 +1,9 @@
 /**
  * Charges API Route
- * 
+ *
  * Pure wiring (the main.ts role in Nest): no logic lives here.
  * All requests are delegated to the ChargesController.
- * 
+ *
  * @module API/Charges
  */
 

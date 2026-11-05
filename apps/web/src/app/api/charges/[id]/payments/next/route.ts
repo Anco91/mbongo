@@ -1,8 +1,8 @@
 /**
  * Charge Next Payment API Route
- * 
+ *
  * Get the next scheduled payment for a charge.
- * 
+ *
  * @module API/Charges/[id]/Payments/Next
  */
 

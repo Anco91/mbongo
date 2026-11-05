@@ -1,9 +1,9 @@
 /**
  * API Client
- * 
+ *
  * Typed fetch client for consuming the /api routes.
  * All responses are parsed by the same Zod schemas used on the server.
- * 
+ *
  * @module Lib/API
  */
 
@@ -89,7 +89,7 @@ interface RequestOptions {
 
 /**
  * Generic request function
- * 
+ *
  * @param method - HTTP method
  * @param path - API path (e.g., '/charges')
  * @param options - Request options
@@ -137,9 +137,7 @@ async function request<T>(
     try {
       const errorData = await response.json();
       const parsed = errorSchema.parse(errorData);
-      throw new Error(
-        `API Error ${response.status}: ${parsed.error.message}`
-      );
+      throw new Error(`API Error ${response.status}: ${parsed.error.message}`);
     } catch {
       throw new Error(`API Error ${response.status}: ${response.statusText}`);
     }
@@ -187,7 +185,9 @@ export const api = {
      */
     create: async (input: CreateChargeInput): Promise<Charge> => {
       const validated = createChargeSchema.parse(input);
-      const charge = await request<Charge>('POST', '/charges', { body: validated });
+      const charge = await request<Charge>('POST', '/charges', {
+        body: validated,
+      });
       return chargeSchema.parse(charge);
     },
 
@@ -216,7 +216,10 @@ export const api = {
      * GET /api/charges/:id/payments
      */
     getPayments: async (id: string): Promise<ScheduledPayment[]> => {
-      const payments = await request<ScheduledPayment[]>('GET', `/charges/${id}/payments`);
+      const payments = await request<ScheduledPayment[]>(
+        'GET',
+        `/charges/${id}/payments`
+      );
       return z.array(scheduledPaymentSchema).parse(payments);
     },
 
@@ -225,7 +228,10 @@ export const api = {
      * GET /api/charges/:id/payments/next
      */
     getNextPayment: async (id: string): Promise<ScheduledPayment | null> => {
-      const payment = await request<ScheduledPayment | null>('GET', `/charges/${id}/payments/next`);
+      const payment = await request<ScheduledPayment | null>(
+        'GET',
+        `/charges/${id}/payments/next`
+      );
       if (!payment) return null;
       return scheduledPaymentSchema.parse(payment);
     },
@@ -260,8 +266,10 @@ export const api = {
  * Alternative: Raw API client for custom requests
  */
 export const rawApi = {
-  get: async <T>(path: string, params?: Record<string, string | number | boolean>): Promise<T> =>
-    request<T>('GET', path, { params }),
+  get: async <T>(
+    path: string,
+    params?: Record<string, string | number | boolean>
+  ): Promise<T> => request<T>('GET', path, { params }),
 
   post: async <T>(path: string, body?: unknown): Promise<T> =>
     request<T>('POST', path, { body }),
@@ -272,8 +280,7 @@ export const rawApi = {
   patch: async <T>(path: string, body?: unknown): Promise<T> =>
     request<T>('PATCH', path, { body }),
 
-  delete: async <T>(path: string): Promise<T> =>
-    request<T>('DELETE', path),
+  delete: async <T>(path: string): Promise<T> => request<T>('DELETE', path),
 };
 
 export { ApiError };

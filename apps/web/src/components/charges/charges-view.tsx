@@ -1,23 +1,27 @@
 /**
  * Charges View Component
- * 
+ *
  * Client-side view component that displays charges and handles user interactions.
- * 
+ *
  * @module Components/Charges/ChargesView
  */
 
 'use client';
 
-import { useCharges, useCreateCharge, useDeleteCharge } from './hooks/use-charges';
+import {
+  useCharges,
+  useCreateCharge,
+  useDeleteCharge,
+} from './hooks/use-charges';
 import { Charge } from '@mbongo/shared';
 import Link from 'next/link';
 
 /**
  * ChargesView Component
- * 
+ *
  * Displays a list of charges with options to create, edit, and delete.
  * Uses React Query hooks for data fetching and mutations.
- * 
+ *
  * @example
  * ```tsx
  * // Used inside ChargesGuard:
@@ -26,12 +30,7 @@ import Link from 'next/link';
  */
 export function ChargesView() {
   // Fetch charges data
-  const {
-    data: charges = [],
-    isLoading,
-    error,
-    refetch,
-  } = useCharges();
+  const { data: charges = [], isLoading, error, refetch } = useCharges();
 
   // Create charge mutation
   const { mutate: createCharge, isPending: isCreating } = useCreateCharge();
@@ -53,7 +52,9 @@ export function ChargesView() {
   if (error) {
     return (
       <div className="p-4 border border-red-300 rounded-lg bg-red-50">
-        <h3 className="font-semibold text-red-700 mb-2">Error loading charges</h3>
+        <h3 className="font-semibold text-red-700 mb-2">
+          Error loading charges
+        </h3>
         <p className="text-red-600 mb-4">{error.message}</p>
         <button
           onClick={() => refetch()}

@@ -1,9 +1,9 @@
 /**
  * Query Provider
- * 
+ *
  * React Query provider wrapper for the application.
  * Sets up the QueryClient and QueryClientProvider.
- * 
+ *
  * @module Components/Providers/QueryProvider
  */
 
@@ -15,19 +15,19 @@ import { useState } from 'react';
 
 /**
  * QueryProvider Component
- * 
+ *
  * Wraps the application with React Query's QueryClientProvider.
  * Each user gets their own QueryClient instance.
  * In development, includes the React Query Devtools.
- * 
+ *
  * @param props - Provider props with children
  * @returns JSX Element
- * 
+ *
  * @example
  * ```tsx
  * // In app/layout.tsx:
  * import { QueryProvider } from '@/components/providers/query-provider';
- * 
+ *
  * export default function RootLayout({ children }) {
  *   return (
  *     <html>

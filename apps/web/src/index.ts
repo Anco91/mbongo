@@ -1,8 +1,8 @@
 /**
  * Mbongo Web App
- * 
+ *
  * Next.js BFF Fullstack Application
- * 
+ *
  * This is the main entry point for the web application.
  * All exports are re-exported from their respective modules.
  */
