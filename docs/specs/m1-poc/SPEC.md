@@ -27,7 +27,7 @@ estimation:
     service_implementation: 5
     controller_implementation: 2
     route_implementation: 1
-    ui_pages: 3               # dashboard, comptes, transactions, transferts
+    ui_pages: 3               # comptes, transactions, transferts
     testing: 2
     documentation: 1
 ```
@@ -49,7 +49,7 @@ Le M1 du cahier des charges (§10) est la première brique utilisable : sans com
 - [ ] F2 — Transactions manuelles avec solde par compte fiable à tout moment
 - [ ] F5 — Transfert inter-comptes 2 phases (estimé → réalisé, taux effectif + frais déduits, recalcul)
 - [ ] F7 (partie M1) — Snapshot manuel du solde à date t, écart calculé, transaction d'ajustement
-- [ ] Dashboard minimal : soldes par compte, totaux par devise, total consolidé EUR **au taux daté**
+- [ ] Afficher le solde de chaque compte à partir de son solde d'ouverture et des transactions chargées.
 - [ ] Personnes du foyer (lecture seule) — la gestion complète (F8) attend M3
 - [ ] Garder les services centrés sur le CRUD filtrable ; réserver les écritures métier aux opérations atomiques nécessaires aux invariants.
 - [ ] Définir les contrats HTTP partagés et un repository frontend mince pour les appels navigateur.
@@ -84,7 +84,7 @@ Le M1 du cahier des charges (§10) est la première brique utilisable : sans com
 - [ ] **Services** CRUD et filtres validés, avec opérations transactionnelles uniquement quand un invariant l’exige.
 - [ ] **Controllers + routes API** correspondants
 - [ ] **Repository frontend** mince par ressource pour les appels navigateur à `/api` ; aucune logique métier dans les repositories.
-- [ ] **UI** (patterns de la maquette) : dashboard, comptes, transactions et transferts en deux phases.
+- [ ] **UI** mobile-first (patterns de la maquette) : comptes, transactions et transferts en deux phases ; snapshots accessibles depuis le compte concerné.
 - [ ] **Seed** façonné sur la maquette (données fictives réalistes, cahier §2.1)
 - [ ] **Tests** : domaine pur (unit), services (intégration), endpoints (smoke)
 
@@ -92,7 +92,7 @@ Le M1 du cahier des charges (§10) est la première brique utilisable : sans com
 
 - [ ] Charges typées & échéancier (M2 — F3, F4)
 - [ ] Encours carte & échéance de prélèvement automatique (M2 — partie carte différée de F7)
-- [ ] Dashboard complet : **Sankey**, provisions, alertes (M3 — F6, F10, F11)
+- [ ] Dashboard et consolidation globale CHF/EUR, **Sankey**, provisions et alertes (M3 — F6, F10, F11)
 - [ ] Vue foyer complète F8, import CSV F9
 - [ ] Auth multi-rôles (mono-utilisateur, une seule session)
 - [ ] DDD / Hexagonal / couche commands / store client (interdits, cdc §8.2)
@@ -103,7 +103,7 @@ Le M1 du cahier des charges (§10) est la première brique utilisable : sans com
 1. Stack : Next.js App Router + Prisma + SQLite + zod + TanStack Query + date-fns, npm workspaces/turbo.
 2. R1–R10 du cdc §8.2 s'appliquent tel quel (ce module devient le gabarit).
 3. Le module `charges` existant est conservé en l'état (compilable) ; sa refonde complète est la spec M2.
-4. Devise de consolidation : **EUR** ; seules devises natives : CHF, EUR.
+4. Seules devises natives : CHF et EUR. La consolidation globale EUR est hors M1 (F6, M3).
 5. Montants de `Transaction` **signés** (négatif = débit) — le solde est une somme directe, KISS ; la UI traduit « sens » (débit/crédit) en signe.
 6. Les pages RSC appellent les services directement conformément au CDC R5 ; le repository frontend sert aux appels navigateur.
 7. Les services ne calculent pas les soldes de présentation ni les agrégats : les fonctions partagées calculent côté UI quand les données y sont déjà chargées.
@@ -125,11 +125,9 @@ Le M1 du cahier des charges (§10) est la première brique utilisable : sans com
 
 ```mermaid
 graph TD
-    Nav[App / navigation maquette] --> DX[Dashboard RSC guard]
     Nav --> AC[Comptes RSC guard]
     Nav --> TX[Transactions RSC guard]
     Nav --> TR[Transferts RSC guard]
-    DX -->|appel direct RSC| SV[services]
     AC --> SV
     TX --> SV
     TR --> SV
@@ -163,7 +161,6 @@ apps/web/
 └── src/
     ├── app/
     │   ├── (dashboard)/
-    │   │   ├── page.tsx                       # vue dashboard
     │   │   ├── comptes/page.tsx
     │   │   ├── transactions/page.tsx
     │   │   └── transferts/page.tsx
@@ -181,7 +178,7 @@ apps/web/
     │   ├── transactions/{transaction.service.ts, transactions.controller.ts}
     │   ├── transfers/{transfer.service.ts, transfers.controller.ts}
     │   └── snapshots/{snapshot.service.ts, snapshots.controller.ts}
-    ├── components/{accounts,transactions,transfers,dashboard}/ ...
+    ├── components/{accounts,transactions,transfers}/ ...
     ├── hooks/ (TanStack Query, aucun fetch direct)
     └── lib/repositories/ (client HTTP typé par ressource)
 ```
@@ -217,7 +214,6 @@ model Account {
   deferredCard  Boolean  @default(false)   // carte à débit différé (BNP) ou carte de crédit UBS
   billingDay    Int?                       // jour de facturation mensuelle (comptes carte)
   openingBalance Float   @default(0)       // solde initial à la création
-  savingsLimit  Float?                      // plafond épargne (Livret A : 22950) — optionnel, F12/M3
   status        String   @default("ACTIVE") // "ACTIVE" | "CLOSED" — jamais de suppression si flux (§3.6)
   closedAt      DateTime?
   transactions  Transaction[]
@@ -316,6 +312,8 @@ model BalanceSnapshot {
 
 **Contrats HTTP :** les schémas Zod partagés définissent les entrées/sorties ; les contrats par ressource exposent `findMany`, `findOne`, `create`, `update`, `remove` quand ces opérations s'appliquent. Les opérations spécifiques du transfert restent explicitement typées. Le repository frontend implémente ces contrats via HTTP et ne porte aucune logique métier.
 
+Pour les filtres, les champs simples acceptent une valeur directe en égalité (`?type=...`). Les expressions imbriquées passent dans un paramètre `where` JSON encodé par `URLSearchParams`, avec `AND`/`OR` et les opérateurs de champ `eq`, `not`, `in`, `gte`, `lte`, `contains`. Le schéma Zod de chaque ressource borne les champs autorisés ; le helper traduit l'expression validée en Prisma.
+
 **Règles de controller (R1) :** zod à l'entrée (`parseBody` / `parseQuery` de `server/common/http.ts`), délégation au service, mapping d'erreurs centralisé (400 validation, 404, 409 invariant, 500). Les `route.ts` sont du wiring pur.
 
 ---
@@ -347,12 +345,11 @@ Ces fonctions sont utilisées là où leurs données sont déjà disponibles, pr
 
 ## 🎨 UX/UI (patterns maquette)
 
-Mobile-first, bottom-nav 4 onglets, bottom-sheets de détail, tappable partout — la maquette est le gabarit.
+Mobile-first, navigation adaptée aux trois écrans M1, bottom-sheets de détail, tappable partout — la maquette sert de référence visuelle ; le dashboard complet reste en M3.
 
 | Écran | Contenu M1 | Éléments maquette repris |
 |---|---|---|
-| **Tableau de bord** | Total par devise + **consolidé EUR au taux daté** (« au taux du … ») ; liste des comptes avec soldes (découvert visible) ; dernière entrée par compte | Carte « patrimoine consolidé », chips de compte |
-| **Comptes** | Liste (création via bottom-sheet/page dédiée), formulaire complet (nom, banque, devise, type, propriétaire, découvert, carte différée + jour de facturation, solde initial, plafond si épargne), **clôture** en action destructive à double confirmation (pattern `DeleteButton`), suppression réelle seulement si compte vierge | `AccountFormPage`, `SegmentedToggle`, encours Livret A (progress) |
+| **Comptes** | Liste avec solde par compte calculé dans l'UI à partir du solde d'ouverture et de l'historique des transactions ; création, formulaire (nom, banque, devise, type, propriétaire, découvert, carte différée et jour de facturation, solde initial), **clôture**, suppression physique seulement si compte vierge | `AccountFormPage`, `SegmentedToggle` |
 | **Transactions** | Liste par compte (filtre compte), saisie date/montant/sens/catégorie/note ; détail via bottom-sheet avec modifier/supprimer | `DetailSheet`, `DetailRow` |
 | **Transferts** | Liste : cartes phase 1 « Estimé » (contre-valeur + *taux au …*) / phase 2 « Réalisé » (taux effectif, frais) ; création phase 1 ; bouton « Saisir le crédit » qui ouvre la phase 2 | `TransfertScreen`, cartes 2 phases, badges Estimé/Réalisé |
 
@@ -388,7 +385,7 @@ Mobile-first, bottom-nav 4 onglets, bottom-sheets de détail, tappable partout �
 
 | ID | Scénario | Attendu |
 |----|----------|---------|
-| AT-001 | POST account UBS Courant → POST tx salaire +4400 → soldes cohérents sur GET | 200 |
+| AT-001 | Créer UBS Courant, saisir le salaire +4400 et afficher son solde dans l'UI | solde d'ouverture + 4400 ; aucun agrégat calculé dans le service |
 | AT-002 | POST transfer (phase 1) → PATCH reçu (phase 2) | soldes UBS ↓, Bourso ↑ du vrai montant |
 | AT-003 | POST snapshot → UI affiche l'écart et propose un ajustement | 201 ; aucune transaction d'ajustement sans confirmation |
 | AT-004 | zod invalide | 400, sans écriture |
@@ -403,10 +400,10 @@ Mobile-first, bottom-nav 4 onglets, bottom-sheets de détail, tappable partout �
 | 2 | Schéma Prisma complet + migration + seed |
 | 3 | Services (CRUD + 4 méthodes transactionnelles) + tests intégration |
 | 4 | Controllers + routes API + tests smoke |
-| 5 | UI 4 onglets (patterns maquette) |
+| 5 | UI M1 : comptes, transactions et transferts (patterns maquette) |
 | 6 | `npm run quality` vert (lint 0, typecheck 0, tests 0 échecs), doc mise à jour (TODO, INDEX) |
 
-**Critère de sortie M1 (cdc §10) :** le flux « salaire → Telexoo → BoursoBank → joint » est saisissable de bout en bout depuis la PWA, et les soldes affichés sont justes et ancrables par snapshot.
+**Critère de sortie M1 (cdc §10) :** le flux « salaire → Telexoo → BoursoBank → joint » est saisissable de bout en bout depuis la PWA ; chaque solde de compte affiché est juste et ancrable par snapshot. Les totaux et la consolidation globale relèvent de F6 en M3.
 
 ---
 
@@ -433,3 +430,5 @@ Mobile-first, bottom-nav 4 onglets, bottom-sheets de détail, tappable partout �
 |---------|------|--------|------------|
 | 1.0.0 | 2026-11-05 | Agent IA Expert Architect | Version initiale |
 | 1.1.0 | 2026-11-05 | Agent IA Expert Architect | CRUD filtrable, contrats/repository frontend, calculs côté UI et migration Account non destructive |
+| 1.2.0 | 2026-11-05 | Agent IA Expert Architect | Retire la consolidation globale du périmètre M1, conformément aux jalons du CDC |
+| 1.3.0 | 2026-11-05 | Agent IA Expert Architect | Garde M1 à trois écrans et précise l’affichage du solde par compte |
