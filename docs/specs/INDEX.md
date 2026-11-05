@@ -8,9 +8,9 @@
 ## 📊 Statistiques
 
 ```
-Total Specs: 2
+Total Specs: 3
 ├── Validées: 2
-├── En Review: 0
+├── En Review: 1
 ├── En Brouillon: 0
 └── Obsolètes: 0
 
@@ -37,7 +37,9 @@ Specs en retard: 0
 
 ## 🔍 Specs En Review (🔍)
 
-*Aucune spec en review pour le moment.*
+| ID | Feature | Priorité | Spec |
+|----|---------|----------|------|
+| M2-CHARGE-PAYMENTS-001 | Séparation Charges / Échéances | HIGH | [SPEC-M2-CHARGE-PAYMENTS](m2-charge-payments/SPEC.md) |
 
 ---
 
