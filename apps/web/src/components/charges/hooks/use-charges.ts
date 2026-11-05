@@ -312,10 +312,11 @@ export async function prefetchCharge(
   queryClient: import('@tanstack/react-query').QueryClient,
   id: string
 ): Promise<void> {
+  if (!id) return;
+
   await queryClient.prefetchQuery({
     queryKey: chargeKey(id),
     queryFn: () => api.charges.get(id),
-    enabled: !!id,
   });
 }
 
@@ -326,10 +327,11 @@ export async function prefetchChargePayments(
   queryClient: import('@tanstack/react-query').QueryClient,
   id: string
 ): Promise<void> {
+  if (!id) return;
+
   await queryClient.prefetchQuery({
     queryKey: chargePaymentsKey(id),
     queryFn: () => api.charges.getPayments(id),
-    enabled: !!id,
   });
 }
 
