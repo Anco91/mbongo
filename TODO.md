@@ -10,7 +10,9 @@
 
 ## 🧭 Objectif V1 — livraisons reviewables
 
-- [ ] **Précondition qualité** : implémenter [SPEC-TOOLING-001](docs/specs/tooling-foundation/SPEC.md), puis établir lint, format et types verts pour le squelette existant avant les features.
+- [ ] **Précondition qualité** :
+  - [x] Implémenter le socle npm/Turbo défini dans [SPEC-TOOLING-001](docs/specs/tooling-foundation/SPEC.md).
+  - [ ] Établir lint, format et types verts pour le squelette existant avant les features.
 - [ ] **M1 POC** : spec validée ; implémenter par petites PR sur branches dédiées.
 - [ ] **M2 Cœur métier** : charges typées, échéancier et carte différée ; specs validées avant implémentation.
 - [ ] **M3 V1 utilisable** : dashboard/Sankey, vue foyer, import CSV, provisions, alertes et capital restant ; specs validées avant implémentation.
