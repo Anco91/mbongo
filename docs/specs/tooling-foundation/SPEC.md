@@ -4,13 +4,14 @@
 
 ```yaml
 spec_id: 'TOOLING-001'
-version: '1.0.0'
+version: '1.0.1'
 title: 'Rétablir les commandes npm/Turbo du monorepo'
-status: 'IN_REVIEW'
+status: 'VALIDATED'
 author: 'Agent IA Expert Architect'
 created_at: '2026-11-05'
 updated_at: '2026-11-05'
 reviewer: 'Anco'
+validated_at: '2026-11-06'
 project: 'mbongo'
 priority: 'HIGH'
 ```
@@ -79,6 +80,11 @@ Turbo doit charger son graphe et lancer les scripts workspace correspondants. Un
 ## Questions ouvertes
 
 - Aucune : le gestionnaire est fixé à npm selon la préférence du demandeur.
+
+## Historique
+
+- 1.0.0 — Spec initiale.
+- 1.0.1 — Validée par le demandeur le 2026-11-06.
 
 ## Références
 
