@@ -6,10 +6,11 @@
 spec_id: "M1-POC-001"
 version: "1.0.0"
 title: "Socle Mbongo — Comptes, Transactions, Transfert 2 phases, Snapshots de solde"
-status: "DRAFT"
+status: "IN_REVIEW"
 author: "Agent IA Expert Architect"
 created_at: "2026-11-05"
 updated_at: "2026-11-05"
+reviewer: "Anco"
 related_specs: ["cdc.md §3.1, §3.3, §3.4, §3.5, §10 (M1)"]
 project: "mbongo"
 priority: "HIGH"
@@ -50,6 +51,8 @@ Le M1 du cahier des charges (§10) est la première brique utilisable : sans com
 - [ ] F7 (partie M1) — Snapshot manuel du solde à date t, écart calculé, transaction d'ajustement
 - [ ] Dashboard minimal : soldes par compte, totaux par devise, total consolidé EUR **au taux daté**
 - [ ] Personnes du foyer (lecture seule) — la gestion complète (F8) attend M3
+- [ ] Garder les services centrés sur le CRUD filtrable ; réserver les écritures métier aux opérations atomiques nécessaires aux invariants.
+- [ ] Définir les contrats HTTP partagés et un repository frontend mince pour les appels navigateur.
 
 ### Bénéfices Attendus
 | Bénéfice | Impact | Métrique |
@@ -74,11 +77,13 @@ Le M1 du cahier des charges (§10) est la première brique utilisable : sans com
 ### ✅ In Scope
 
 - [ ] **Schémas Zod** `packages/shared/src/schemas/` : `member.ts`, `account.ts`, `transaction.ts`, `transfer.ts`, `snapshot.ts`
-- [ ] **Domaine pur** `packages/shared/src/domain/` : `balance.ts` (calcul de solde, écart snapshot), `conversion.ts` (taux effectif, frais, contre-valeur datée)
+- [ ] **Contrats HTTP typés** partagés : opérations CRUD par ressource et types dérivés des schémas Zod.
+- [ ] **Domaine pur** `packages/shared/src/domain/` : calculs réutilisables nécessaires à l’interface, sans orchestration de données ni règles dupliquées dans le backend.
 - [ ] **Modèle Prisma** : `Member`, `Account`, `Transaction`, `Transfer`, `BalanceSnapshot` (+ conservation de `Charge`/`ScheduledPayment` en l'état, refonte M2)
-- [ ] **Services** : `member.service`, `account.service`, `transaction.service`, `transfer.service`, `snapshot.service`
+- [ ] **Services** CRUD et filtres validés, avec opérations transactionnelles uniquement quand un invariant l’exige.
 - [ ] **Controllers + routes API** correspondants
-- [ ] **UI** (patterns de la maquette) : dashboard, comptes (liste + form création/modif/clôture), transactions (liste par compte + saisie), transferts (liste + 2 phases)
+- [ ] **Repository frontend** mince par ressource pour les appels navigateur à `/api` ; aucune logique métier dans les repositories.
+- [ ] **UI** (patterns de la maquette) : dashboard, comptes, transactions et transferts en deux phases.
 - [ ] **Seed** façonné sur la maquette (données fictives réalistes, cahier §2.1)
 - [ ] **Tests** : domaine pur (unit), services (intégration), endpoints (smoke)
 
@@ -94,11 +99,13 @@ Le M1 du cahier des charges (§10) est la première brique utilisable : sans com
 
 ### ⚠️ Assumptions
 
-1. Stack : Next.js 15 App Router + Prisma + SQLite + zod + TanStack Query, npm workspaces/turbo.
+1. Stack : Next.js App Router + Prisma + SQLite + zod + TanStack Query + date-fns, npm workspaces/turbo.
 2. R1–R10 du cdc §8.2 s'appliquent tel quel (ce module devient le gabarit).
 3. Le module `charges` existant est conservé en l'état (compilable) ; sa refonde complète est la spec M2.
 4. Devise de consolidation : **EUR** ; seules devises natives : CHF, EUR.
 5. Montants de `Transaction` **signés** (négatif = débit) — le solde est une somme directe, KISS ; la UI traduit « sens » (débit/crédit) en signe.
+6. Les pages RSC appellent les services directement conformément au CDC R5 ; le repository frontend sert aux appels navigateur.
+7. Les services ne calculent pas les soldes de présentation ni les agrégats : les fonctions partagées calculent côté UI quand les données y sont déjà chargées.
 
 ### 🔄 Modèles existants conservés
 
@@ -107,7 +114,7 @@ Le M1 du cahier des charges (§10) est la première brique utilisable : sans com
 | Prisma + SQLite | ✅ | `DATABASE_URL` via env |
 | zod | ✅ | Source unique des types (R7) |
 | TanStack Query | ✅ | Cache de lecture hydraté (R8) |
-| date-fns | ➕ à ajouter | Manipulation de dates uniquement |
+| date-fns | ✅ | Manipulation de dates uniquement |
 
 ---
 
@@ -121,14 +128,16 @@ graph TD
     Nav --> AC[Comptes RSC guard]
     Nav --> TX[Transactions RSC guard]
     Nav --> TR[Transferts RSC guard]
-    DX -->|appel direct| SV[services]
+    DX -->|appel direct RSC| SV[services]
     AC --> SV
     TX --> SV
     TR --> SV
-    BR[/api/**/] --> CT[controllers]
+    CL[hooks client] --> RP[repositories frontend]
+    RP -->|HTTP| BR[/api/**/]
+    BR --> CT[controllers]
     CT --> SV
     SV --> PR[(Prisma / SQLite)]
-    SV --> DM[domain pur - packages/shared]
+    UI[UI + libs partagées] --> DM[calculs purs - packages/shared]
     AC --- CH[charges module conservé]
 ```
 
@@ -143,9 +152,10 @@ packages/shared/src/
 │   ├── transfer.ts        # transfert 2 phases
 │   ├── snapshot.ts        # snapshot de solde
 │   └── filter.ts          # conservé
-└── domain/
+├── domain/
     ├── balance.ts         # computeBalance, computeSnapshotGap
     └── conversion.ts      # counterValue, effectiveRate, transferFees
+└── contracts/             # contrats HTTP CRUD typés par ressource
 
 apps/web/
 ├── prisma/schema.prisma   # Member, Account, Transaction, Transfer, BalanceSnapshot (+ Charge/ScheduledPayment conservés)
@@ -171,8 +181,11 @@ apps/web/
     │   ├── transfers/{transfer.service.ts, transfers.controller.ts}
     │   └── snapshots/{snapshot.service.ts, snapshots.controller.ts}
     ├── components/{accounts,transactions,transfers,dashboard}/ ...
-    └── hooks/ (hooks de domaine TanStack Query)
+    ├── hooks/ (TanStack Query, aucun fetch direct)
+    └── lib/repositories/ (client HTTP typé par ressource)
 ```
+
+Les pages RSC lisent directement via les services (CDC R5). Les hooks client passent par les repositories frontend, seuls responsables des appels HTTP navigateur. Un repository adapte le transport au contrat partagé ; il ne contient ni calcul ni logique métier.
 
 ---
 
@@ -283,23 +296,25 @@ model BalanceSnapshot {
 
 | Méthode | Route | Corps (zod) | Réponse | Effet |
 |---|---|---|---|---|
-| GET | `/api/accounts` | `accountQuerySchema` | `Account[]` + `balance` calculé | status, currency, accountType filtrables ; exclus `ACTIF = false` par défaut ? Non — filtre explicite `status` |
+| GET | `/api/accounts` | `accountQuerySchema` | `Account[]` | filtres composables `AND`/`OR` et opérateurs `eq`, `not`, `in`, `gte`, `lte`, `contains` ; tri/pagination explicites ; aucun solde calculé dans le service |
 | POST | `/api/accounts` | `createAccountSchema` | 201 `Account` | |
 | GET | `/api/accounts/:id` | — | 200 / 404 | |
 | PATCH | `/api/accounts/:id` | `updateAccountSchema` | 200 | Inclut la **clôture** (`status: "CLOSED"` + `closedAt`) |
 | DELETE | `/api/accounts/:id` | — | 204 / 409 si flux existant | Suppression réelle **seulement si compte vierge** (§3.6) |
-| GET | `/api/transactions` | `transactionQuerySchema` | `Transaction[]` | filtres `accountId`, `dateFrom`, `dateTo`, ordre date desc |
+| GET | `/api/transactions` | `transactionQuerySchema` | `Transaction[]` | filtres composables, tri/pagination explicites |
 | POST | `/api/transactions` | `createTransactionSchema` | 201 | `direction` (DÉBIT/CRÉDIT) + `amount` positif → signé |
 | PATCH | `/api/transactions/:id` | `updateTransactionSchema` | 200 | |
 | DELETE | `/api/transactions/:id` | — | 204 | Bloqué si liée à un transfert |
-| GET | `/api/transfers` | `transferQuerySchema` | `Transfer[]` + `balance` calculés | statut, période |
+| GET | `/api/transfers` | `transferQuerySchema` | `Transfer[]` | filtres composables, tri/pagination explicites |
 | POST | `/api/transfers` | `createTransferSchema` (phase 1) | 201 | **$transaction** : transfert + débit source |
 | PATCH | `/api/transfers/:id` | `completeTransferSchema` (phase 2 : `amountReceived`) | 200 | **$transaction** : taux effectif, frais, crédit cible |
-| GET | `/api/snapshots` | `snapshotQuerySchema` (`accountId`) | snapshots + écart courant | |
-| POST | `/api/snapshots` | `createSnapshotSchema` | 201 snapshot + `gap` calculé | L'app **propose** l'ajustement (§3.5) ; la validation crée une transaction manuelle |
+| GET | `/api/snapshots` | `snapshotQuerySchema` (`accountId`) | `BalanceSnapshot[]` | CRUD de lecture ; l'écart courant est calculé côté UI |
+| POST | `/api/snapshots` | `createSnapshotSchema` | 201 `BalanceSnapshot` | L'UI calcule l'écart à partir des données chargées et propose une transaction d'ajustement ; rien n'est créé sans validation explicite (§3.5) |
 | GET | `/api/members` | — | `Member[]` | lecture seule en M1 |
 
-**Règles de controller (R1) :** zod à l'entrée (`parseBody` / `parseQuery` de `server/common/http.ts`), délégation service pure, mapping d'erreurs centralisé (400 validation, 404, 409 invariant, 500). Les `route.ts` sont du wiring de trois lignes.
+**Contrats HTTP :** les schémas Zod partagés définissent les entrées/sorties ; les contrats par ressource exposent `findMany`, `findOne`, `create`, `update`, `remove` quand ces opérations s'appliquent. Les opérations spécifiques du transfert restent explicitement typées. Le repository frontend implémente ces contrats via HTTP et ne porte aucune logique métier.
+
+**Règles de controller (R1) :** zod à l'entrée (`parseBody` / `parseQuery` de `server/common/http.ts`), délégation au service, mapping d'erreurs centralisé (400 validation, 404, 409 invariant, 500). Les `route.ts` sont du wiring pur.
 
 ---
 
@@ -317,12 +332,12 @@ effectiveRate(amountReceived: number, amountSent: number): number
 transferFees(amountEstimated: number, amountReceived: number): number // écart estimé − reçu, en devise cible
 ```
 
-Toujours : chaque chiffre converti est rendu avec sa devise d'origine **et** sa contre-valeur au taux daté (cdc §6). La consolidation EUR du dashboard s'appuie sur `rateDate` du dernier taux connu.
+Ces fonctions sont utilisées là où leurs données sont déjà disponibles, principalement dans l'UI. Les services n'exposent pas de `getBalance`, `getNextPayment` ni d'agrégats dédiés lorsqu'un CRUD filtré suffit. Chaque montant converti est affiché avec sa devise d'origine et son taux daté (CDC §6).
 
-**Services transactionnels (~10 % du CRUD, cdc R4) :**
+**Services : CRUD d'abord ; opérations atomiques uniquement pour préserver un invariant (CDC R4) :**
 - `TransferService.create` : transfert + transaction de débit source en un `$transaction`.
-- `TransferService.complete` : phase 2 — calcule `rateEffective`/`fees`, statut COMPLETED, crée la transaction de crédit cible, le tout en un `$transaction`.
-- `SnapshotService.create` : snapshot + calcul de l'écart (`computeSnapshotGap`) retourné au client ; l'ajustement est une saisie manuelle validée par l'utilisateur (pas auto-créée — cdc : « que vous validez ou investiguez »).
+- `TransferService.complete` : phase 2 — appelle les fonctions pures partagées pour les valeurs persistées (`rateEffective`/`fees`), met à jour le transfert et crée la transaction de crédit cible dans un `$transaction`. Aucun calcul métier n'est réimplémenté dans le service.
+- `SnapshotService.create` : crée le snapshot ; l'écart et la proposition d'ajustement sont calculés côté UI, puis une transaction CRUD séparée est créée après validation explicite.
 - `AccountService.close` : `status=CLOSED`, `closedAt=aujourd'hui` (les récurrences liées s'arrêteront à cette date, mécanisme M2).
 - `AccountService.remove` : refuse si transactions/échéances existent (409 « compte non vierge — clôturer plutôt »).
 
@@ -339,7 +354,7 @@ Mobile-first, bottom-nav 4 onglets, bottom-sheets de détail, tappable partout �
 | **Transactions** | Liste par compte (filtre compte), saisie date/montant/sens/catégorie/note ; détail via bottom-sheet avec modifier/supprimer | `DetailSheet`, `DetailRow` |
 | **Transferts** | Liste : cartes phase 1 « Estimé » (contre-valeur + *taux au …*) / phase 2 « Réalisé » (taux effectif, frais) ; création phase 1 ; bouton « Saisir le crédit » qui ouvre la phase 2 | `TransfertScreen`, cartes 2 phases, badges Estimé/Réalisé |
 
-**Flux de données (R8) :** guards RSC par onglet (`<Suspense>` + `error.tsx`), hooks de domaine TanStack Query (`useAccounts`, `useTransactions(accountId)`, `useTransfers`), mutations `useMutation` → `/api` + invalidation. Le Sankey/donut de la maquette sont **hors périmètre M1** (placeholders « arrive en M3 »), pas décoratifs.
+**Flux de données (R8) :** guards RSC par onglet (`<Suspense>` + `error.tsx`), lectures RSC via les services, hooks TanStack Query (`useAccounts`, `useTransactions(accountId)`, `useTransfers`) via les repositories frontend ; mutations `useMutation` → repository → `/api` + invalidation. Les calculs UI utilisent les fonctions partagées. Le Sankey/donut de la maquette sont **hors périmètre M1** (placeholders « arrive en M3 »).
 
 ---
 
@@ -363,7 +378,7 @@ Mobile-first, bottom-nav 4 onglets, bottom-sheets de détail, tappable partout �
 |----|-------------|---------|
 | IT-001 | Transfert phase 1 complet | 2 lignes : transfert ESTIMATED + tx débit source ; soldes justes |
 | IT-002 | Phase 2 | statut COMPLETED, `rateEffective`/`fees` calculés, tx crédit cible créée, contre-valeur cible mise à jour |
-| IT-003 | Snapshot avec écart | `gap` = réel − calculé ; aucune transaction créée sans validation |
+| IT-003 | Snapshot avec écart | l'UI calcule `réel − calculé` ; aucune transaction créée sans validation |
 | IT-004 | Clôture + suppression | compte vide se supprime (204) ; compte avec flux renvoie 409 |
 | IT-005 | Sensitive à l'ordre des dates | `computeBalance` jusqu'à une date t ≡ somme filtrée |
 
@@ -373,7 +388,7 @@ Mobile-first, bottom-nav 4 onglets, bottom-sheets de détail, tappable partout �
 |----|----------|---------|
 | AT-001 | POST account UBS Courant → POST tx salaire +4400 → soldes cohérents sur GET | 200 |
 | AT-002 | POST transfer (phase 1) → PATCH reçu (phase 2) | soldes UBS ↓, Bourso ↑ du vrai montant |
-| AT-003 | POST snapshot avec écart → GET retourne l'écart | 201 + gap |
+| AT-003 | POST snapshot → UI affiche l'écart et propose un ajustement | 201 ; aucune transaction d'ajustement sans confirmation |
 | AT-004 | zod invalide | 400, sans écriture |
 
 ---
