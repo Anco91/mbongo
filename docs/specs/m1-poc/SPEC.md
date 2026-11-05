@@ -225,7 +225,9 @@ model Account {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  @@index([memberId]) @@index([status]) @@map("accounts")
+  @@index([memberId])
+  @@index([status])
+  @@map("accounts")
 }
 
 // ─── Transactions (cdc §3.1 F2) ───
@@ -243,7 +245,8 @@ model Transaction {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
-  @@index([accountId, date]) @@map("transactions")
+  @@index([accountId, date])
+  @@map("transactions")
 }
 
 // ─── Transfert 2 phases (cdc §3.3) ───
@@ -284,7 +287,8 @@ model BalanceSnapshot {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  @@index([accountId, date]) @@map("balance_snapshots")
+  @@index([accountId, date])
+  @@map("balance_snapshots")
 }
 ```
 
