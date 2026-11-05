@@ -4,12 +4,12 @@
 
 ```yaml
 spec_id: "M1-POC-001"
-version: "1.4.0"
+version: "1.4.1"
 title: "Socle Mbongo — Comptes, Transactions, Transfert 2 phases, Snapshots de solde"
 status: "IN_REVIEW"
 author: "Agent IA Expert Architect"
 created_at: "2026-11-05"
-updated_at: "2026-11-05"
+updated_at: "2026-11-06"
 reviewer: "Anco"
 related_specs: ["cdc.md §3.1, §3.3, §3.4, §3.5, §10 (M1)"]
 project: "mbongo"
@@ -315,7 +315,7 @@ model BalanceSnapshot {
 | DELETE | `/api/transactions/:id` | — | 204 | Bloqué si liée à un transfert |
 | GET | `/api/transfers` | `transferQuerySchema` | `Transfer[]` | filtres composables, tri/pagination explicites |
 | POST | `/api/transfers` | `createTransferSchema` (phase 1) | 201 | **$transaction** : transfert + débit source |
-| PATCH | `/api/transfers/:id` | `completeTransferSchema` (phase 2 : `amountReceived`) | 200 | **$transaction** : taux effectif, frais, crédit cible |
+| PATCH | `/api/transfers/:id` | `updateTransferSchema` (phase 2 : `amountReceived`) | 200 | **$transaction** : taux effectif, frais, crédit cible |
 | GET | `/api/snapshots` | `snapshotQuerySchema` (`accountId`) | `BalanceSnapshot[]` | CRUD de lecture ; l'écart courant est calculé côté UI |
 | POST | `/api/snapshots` | `createSnapshotSchema` | 201 `BalanceSnapshot` | L'UI calcule l'écart à partir des données chargées et propose une transaction d'ajustement ; rien n'est créé sans validation explicite (§3.5) |
 | GET | `/api/members` | — | `Member[]` | lecture seule en M1 |
@@ -346,7 +346,7 @@ Ces fonctions sont utilisées là où leurs données sont déjà disponibles, pr
 
 **Services : CRUD d'abord ; opérations atomiques uniquement pour préserver un invariant (CDC R4) :**
 - `TransferService.create` : vérifie deux comptes actifs distincts (source CHF, cible EUR), puis crée le transfert et la transaction de débit source en un `$transaction`.
-- `TransferService.complete` : refuse un transfert déjà complété ; appelle les fonctions pures partagées pour les valeurs persistées (`rateEffective`/`fees`), met à jour le transfert et crée la transaction de crédit cible dans un `$transaction`. Aucun calcul métier n'est réimplémenté dans le service.
+- `TransferService.update` : la mise à jour de phase 2 refuse un transfert déjà complété ; appelle les fonctions pures partagées pour les valeurs persistées (`rateEffective`/`fees`), met à jour le transfert et crée la transaction de crédit cible dans un `$transaction`. Le contrat reste le CRUD `update`; aucun calcul métier n'est réimplémenté dans le service.
 - `SnapshotService.create` : crée le snapshot ; l'écart et la proposition d'ajustement sont calculés côté UI, puis une transaction CRUD séparée est créée après validation explicite.
 - `AccountService.close` : `status=CLOSED`, `closedAt=aujourd'hui` (les récurrences liées s'arrêteront à cette date, mécanisme M2).
 - `AccountService.remove` : refuse si le compte a une transaction, un transfert, un snapshot ou une charge liée (409 « compte non vierge — clôturer plutôt »).
@@ -443,3 +443,4 @@ Mobile-first, navigation adaptée aux trois écrans M1, bottom-sheets de détail
 | 1.2.0 | 2026-11-05 | Agent IA Expert Architect | Retire la consolidation globale du périmètre M1, conformément aux jalons du CDC |
 | 1.3.0 | 2026-11-05 | Agent IA Expert Architect | Garde M1 à trois écrans et précise l’affichage du solde par compte |
 | 1.4.0 | 2026-11-05 | Agent IA Expert Architect | Corrige les relations Prisma des transferts et précise le sens CHF vers EUR |
+| 1.4.1 | 2026-11-06 | Agent IA Expert Architect | Utilise `update` pour la phase 2 du transfert ; garde les effets atomiques internes au service |
