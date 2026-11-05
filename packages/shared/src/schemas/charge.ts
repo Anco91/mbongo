@@ -8,6 +8,7 @@
  */
 
 import { z } from 'zod';
+import { filterSchema } from './filter';
 
 // ============================================================================
 // Types de base
@@ -44,6 +45,9 @@ export const currencySchema = z.enum(['CHF', 'EUR', 'USD']);
 
 /** Fréquence de répétition */
 export const frequencySchema = z.enum(['monthly', 'weekly', 'yearly', 'daily']);
+
+export type ChargeType = z.infer<typeof chargeTypeSchema>;
+export type Currency = z.infer<typeof currencySchema>;
 
 // ============================================================================
 // Schéma Principal
@@ -88,25 +92,6 @@ export const createChargeSchema = chargeSchema.omit({
  * Tous les champs sont optionnels (zod.partial, PAS TS Partial<>)
  */
 export const updateChargeSchema = createChargeSchema.partial();
-
-// ============================================================================
-// Schéma de Filtre
-// ============================================================================
-
-/** Valeur de filtre (string ou number) */
-const filterValue = z.union([z.string(), z.number()]);
-
-/** Schéma générique pour les filtres */
-export const filterSchema = z.object({
-  eq: filterValue.optional(), // Égal à
-  not: filterValue.optional(), // Différent de
-  in: z.array(filterValue).optional(), // Dans la liste
-  gte: filterValue.optional(), // Supérieur ou égal à
-  lte: filterValue.optional(), // Inférieur ou égal à
-  contains: filterValue.optional(), // Contient
-  startsWith: filterValue.optional(), // Commence par
-  endsWith: filterValue.optional(), // Finit par
-});
 
 /** Schéma pour les requêtes GET /api/charges */
 export const chargeQuerySchema = z.object({
@@ -171,9 +156,6 @@ export type CreateChargeInput = z.infer<typeof createChargeSchema>;
 /** Type TypeScript pour mettre à jour une Charge */
 export type UpdateChargeInput = z.infer<typeof updateChargeSchema>;
 
-/** Type TypeScript pour les filtres */
-export type Filter = z.infer<typeof filterSchema>;
-
 /** Type TypeScript pour les requêtes Charge */
 export type ChargeQuery = z.infer<typeof chargeQuerySchema>;
 
@@ -202,4 +184,4 @@ export type ProvisionQuery = z.infer<typeof provisionQuerySchema>;
 // Exports
 // ============================================================================
 
-export { isoDate, filterValue };
+export { isoDate };
