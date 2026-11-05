@@ -4,13 +4,14 @@
 
 ```yaml
 spec_id: "M1-POC-001"
-version: "1.4.1"
+version: "1.4.2"
 title: "Socle Mbongo — Comptes, Transactions, Transfert 2 phases, Snapshots de solde"
-status: "IN_REVIEW"
+status: "VALIDATED"
 author: "Agent IA Expert Architect"
 created_at: "2026-11-05"
 updated_at: "2026-11-06"
 reviewer: "Anco"
+validated_at: "2026-11-06"
 related_specs: ["cdc.md §3.1, §3.3, §3.4, §3.5, §10 (M1)"]
 project: "mbongo"
 priority: "HIGH"
@@ -434,7 +435,7 @@ Mobile-first, navigation adaptée aux trois écrans M1, bottom-sheets de détail
 - [x] Modèle de données complet conformes au cdc §3.1 (Member, Account, Transaction, Transfer, BalanceSnapshot)
 - [x] Décisions §9 respectées (EUR consolidé, soft delete, vocabulaire « charge » laissé à M2, taux datés partout)
 - [x] Cas métier §3.3 (2 phases) et §3.5 (snapshot/ajustement) couverts par des tests
-- [ ] **Validation par le demandeur → status: VALIDATED avant tout code**
+- [x] **Validation par le demandeur → status: VALIDATED avant tout code**
 
 | Version | Date | Auteur | Changement |
 |---------|------|--------|------------|
@@ -443,4 +444,6 @@ Mobile-first, navigation adaptée aux trois écrans M1, bottom-sheets de détail
 | 1.2.0 | 2026-11-05 | Agent IA Expert Architect | Retire la consolidation globale du périmètre M1, conformément aux jalons du CDC |
 | 1.3.0 | 2026-11-05 | Agent IA Expert Architect | Garde M1 à trois écrans et précise l’affichage du solde par compte |
 | 1.4.0 | 2026-11-05 | Agent IA Expert Architect | Corrige les relations Prisma des transferts et précise le sens CHF vers EUR |
+| 1.4.1 | 2026-11-06 | Agent IA Expert Architect | Utilise `update` pour la phase 2 du transfert ; garde les effets atomiques internes au service |
+| 1.4.2 | 2026-11-06 | Anco | Spec validée après review |
 | 1.4.1 | 2026-11-06 | Agent IA Expert Architect | Utilise `update` pour la phase 2 du transfert ; garde les effets atomiques internes au service |

@@ -8,9 +8,9 @@
 ## 📊 Statistiques
 
 ```
-Total Specs: 1
-├── Validées: 0
-├── En Review: 1
+Total Specs: 2
+├── Validées: 2
+├── En Review: 0
 ├── En Brouillon: 0
 └── Obsolètes: 0
 
@@ -22,7 +22,10 @@ Specs en retard: 0
 
 ## 🎯 Specs Validées (✅)
 
-*Aucune spec validée pour le moment.*
+| ID | Feature | Statut de développement | Priorité | Spec |
+|----|---------|-------------------------|----------|------|
+| M1-POC-001 | Socle : comptes, transactions, transferts, snapshots | ⏳ À commencer | HIGH | [SPEC-M1-POC](m1-poc/SPEC.md) |
+| TOOLING-001 | Runner npm et Turbo du monorepo | ⏳ À commencer | HIGH | [SPEC-TOOLING-001](tooling-foundation/SPEC.md) |
 
 ### Légende Statut Dev
 - ✅ **Complété**: Développement terminé et déployé
@@ -34,15 +37,13 @@ Specs en retard: 0
 
 ## 🔍 Specs En Review (🔍)
 
-| ID | Feature | Statut | Priorité | Spec |
-|----|---------|--------|----------|------|
-| M1-POC-001 | Socle : comptes, transactions, transferts, snapshots | 🔍 En review | HIGH | [SPEC-M1-POC](m1-poc/SPEC.md) |
+*Aucune spec en review pour le moment.*
 
 ---
 
 ## ✏️ Specs en Brouillon (📝)
 
-*Aucune autre spec en brouillon pour le moment.*
+*Aucune spec en brouillon pour le moment.*
 
 ---
 

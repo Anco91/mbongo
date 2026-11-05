@@ -10,8 +10,8 @@
 
 ## 🧭 Objectif V1 — livraisons reviewables
 
-- [ ] **Précondition qualité** : réparer les commandes racine (configuration Turbo v2/lockfile), puis établir lint, format et types verts pour le squelette existant avant les features.
-- [ ] **M1 POC** : valider `docs/specs/m1-poc/SPEC.md`, puis implémenter par petites PR sur branche dédiée.
+- [ ] **Précondition qualité** : implémenter [SPEC-TOOLING-001](docs/specs/tooling-foundation/SPEC.md), puis établir lint, format et types verts pour le squelette existant avant les features.
+- [ ] **M1 POC** : spec validée ; implémenter par petites PR sur branches dédiées.
 - [ ] **M2 Cœur métier** : charges typées, échéancier et carte différée ; specs validées avant implémentation.
 - [ ] **M3 V1 utilisable** : dashboard/Sankey, vue foyer, import CSV, provisions, alertes et capital restant ; specs validées avant implémentation.
 - [ ] **Clôture V1** : vérifier le critère d’usage réel du CDC §10 et documenter la livraison.
