@@ -8,6 +8,16 @@
 
 ## 🚀 Immediate Next Steps
 
+## 🧭 Objectif V1 — livraisons reviewables
+
+- [ ] **Précondition qualité** : réparer les commandes racine (configuration Turbo v2/lockfile), puis établir lint, format et types verts pour le squelette existant avant les features.
+- [ ] **M1 POC** : valider `docs/specs/m1-poc/SPEC.md`, puis implémenter par petites PR sur branche dédiée.
+- [ ] **M2 Cœur métier** : charges typées, échéancier et carte différée ; specs validées avant implémentation.
+- [ ] **M3 V1 utilisable** : dashboard/Sankey, vue foyer, import CSV, provisions, alertes et capital restant ; specs validées avant implémentation.
+- [ ] **Clôture V1** : vérifier le critère d’usage réel du CDC §10 et documenter la livraison.
+
+Chaque livraison fonctionnelle doit rester petite, être poussée sur sa propre branche et faire l’objet d’une PR avant de passer à la suivante.
+
 - [ ] **Setup Database**: Run `npm run prisma:push` to initialize database
 - [ ] **Test Development Server**: Run `npm run dev` and verify at http://localhost:3000/charges
 - [ ] **Verify Prisma Client**: Check that `npm run prisma:generate` works correctly

@@ -8,9 +8,9 @@
 ## 📊 Statistiques
 
 ```
-Total Specs: 0
+Total Specs: 1
 ├── Validées: 0
-├── En Review: 0
+├── En Review: 1
 ├── En Brouillon: 0
 └── Obsolètes: 0
 
@@ -34,13 +34,15 @@ Specs en retard: 0
 
 ## 🔍 Specs En Review (🔍)
 
-*Aucune spec en review pour le moment.*
+| ID | Feature | Statut | Priorité | Spec |
+|----|---------|--------|----------|------|
+| M1-POC-001 | Socle : comptes, transactions, transferts, snapshots | 🔍 En review | HIGH | [SPEC-M1-POC](m1-poc/SPEC.md) |
 
 ---
 
 ## ✏️ Specs en Brouillon (📝)
 
-*Aucune spec en brouillon pour le moment.*
+*Aucune autre spec en brouillon pour le moment.*
 
 ---
 
