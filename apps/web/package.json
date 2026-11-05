@@ -84,8 +84,7 @@
       "@typescript-eslint",
       "jest",
       "prettier",
-      "react",
-      "react-hooks"
+      "react"
     ],
     "settings": {
       "react": {
