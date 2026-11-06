@@ -99,9 +99,9 @@ Le marquage comme payé est un `update` de l’échéance (statut et date de pai
 
 Chaque étape sera une branche et une PR distinctes, reviewables, sans merge avant l’accord explicite du demandeur.
 
-## Décision de cohérence à valider
+## Cohérence de création retenue
 
-Cette proposition choisit une création charge puis échéances par appels CRUD indépendants, sans transaction backend. Cela respecte le découplage et le principe CRUD, mais peut laisser une charge sans toutes ses échéances si une requête échoue. La review doit confirmer que cette cohérence éventuelle est acceptable pour M2. Sinon, le CDC R4 autorise une unique opération transactionnelle de création, qui devra être spécifiée comme orchestration explicite sans déplacer le CRUD des échéances dans `ChargeService`.
+Une charge et ses échéances sont créées par leurs repositories respectifs, à partir de la charge et de la fonction pure partagée de génération. Cette séparation évite que `ChargeService` crée des `Payment`. Si la création des échéances échoue, le frontend conserve l’identifiant de la charge créée, affiche l’erreur et permet de reprendre la création des échéances manquantes. Aucune transaction inter-ressources n’est ajoutée dans cette refonte.
 
 ## Historique
 
