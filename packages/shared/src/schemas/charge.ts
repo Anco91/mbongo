@@ -8,7 +8,9 @@
  */
 
 import { z } from 'zod';
+import { isValid, parseISO } from 'date-fns';
 import { filterSchema } from './filter';
+import { currencySchema } from './currency';
 
 // ============================================================================
 // Types de base
@@ -17,7 +19,7 @@ import { filterSchema } from './filter';
 /** Date ISO 8601 validation */
 const isoDate = z
   .string()
-  .refine((v) => !Number.isNaN(Date.parse(v)), 'Invalid ISO 8601 date');
+  .refine((value) => isValid(parseISO(value)), 'Invalid ISO 8601 date');
 
 // ============================================================================
 // Types Enum
@@ -32,22 +34,10 @@ export const chargeTypeSchema = z.enum([
   'UPCOMING', // mandatory upcoming (SERAFE), provisioned monthly
 ]);
 
-/** Statut d'un paiement planifié */
-export const paymentStatusSchema = z.enum([
-  'PENDING',
-  'PAID',
-  'CANCELLED',
-  'FAILED',
-]);
-
-/** Devise */
-export const currencySchema = z.enum(['CHF', 'EUR', 'USD']);
-
 /** Fréquence de répétition */
 export const frequencySchema = z.enum(['monthly', 'weekly', 'yearly', 'daily']);
 
 export type ChargeType = z.infer<typeof chargeTypeSchema>;
-export type Currency = z.infer<typeof currencySchema>;
 
 // ============================================================================
 // Schéma Principal
@@ -81,17 +71,42 @@ export const chargeSchema = z.object({
  * Schéma pour créer une nouvelle Charge
  * Omet les champs générés automatiquement (id, createdAt, updatedAt)
  */
-export const createChargeSchema = chargeSchema.omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
+export const createChargeSchema = chargeSchema
+  .omit({ id: true, createdAt: true, updatedAt: true })
+  .superRefine((charge, context) => {
+    if (
+      (charge.type === 'FIXED_RECURRING' || charge.type === 'TEMPORARY') &&
+      !charge.frequency
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['frequency'],
+        message: 'Frequency is required for recurring charges',
+      });
+    }
+    if (charge.type === 'TEMPORARY' && !charge.endDate) {
+      context.addIssue({
+        code: 'custom',
+        path: ['endDate'],
+        message: 'End date is required for temporary charges',
+      });
+    }
+    if (charge.type === 'INSTALLMENT' && !charge.installments) {
+      context.addIssue({
+        code: 'custom',
+        path: ['installments'],
+        message: 'Installment count is required',
+      });
+    }
+  });
 
 /**
  * Schéma pour mettre à jour une Charge
  * Tous les champs sont optionnels (zod.partial, PAS TS Partial<>)
  */
-export const updateChargeSchema = createChargeSchema.partial();
+export const updateChargeSchema = chargeSchema
+  .omit({ id: true, createdAt: true, updatedAt: true })
+  .partial();
 
 /** Schéma pour les requêtes GET /api/charges */
 export const chargeQuerySchema = z.object({
@@ -105,43 +120,13 @@ export const chargeQuerySchema = z.object({
   endDate: filterSchema.optional(),
 
   // Pagination
-  limit: z.number().int().positive().max(500).default(100).optional(),
+  limit: z.coerce.number().int().positive().max(500).default(100).optional(),
   cursor: z.string().optional(),
 
   // Tri
   orderBy: z.enum(['createdAt', 'startDate', 'amount']).optional(),
   orderDirection: z.enum(['asc', 'desc']).default('desc').optional(),
 });
-
-// ============================================================================
-// Schéma pour ScheduledPayment
-// ============================================================================
-
-/** Schéma pour un paiement planifié */
-export const scheduledPaymentSchema = z.object({
-  id: z.string().uuid(),
-  chargeId: z.string().uuid(),
-  amount: z.number().positive(),
-  currency: currencySchema,
-  dueDate: isoDate,
-  status: paymentStatusSchema,
-  paidAt: isoDate.nullable(),
-  createdAt: isoDate,
-  updatedAt: isoDate,
-});
-
-/** Schéma pour créer un paiement planifié */
-export const createScheduledPaymentSchema = scheduledPaymentSchema
-  .omit({
-    id: true,
-    createdAt: true,
-    updatedAt: true,
-    paidAt: true,
-    status: true,
-  })
-  .extend({
-    status: paymentStatusSchema.default('PENDING'),
-  });
 
 // ============================================================================
 // Types TypeScript
@@ -151,21 +136,13 @@ export const createScheduledPaymentSchema = scheduledPaymentSchema
 export type Charge = z.infer<typeof chargeSchema>;
 
 /** Type TypeScript pour créer une Charge */
-export type CreateChargeInput = z.infer<typeof createChargeSchema>;
+export type CreateChargeInput = z.input<typeof createChargeSchema>;
 
 /** Type TypeScript pour mettre à jour une Charge */
 export type UpdateChargeInput = z.infer<typeof updateChargeSchema>;
 
 /** Type TypeScript pour les requêtes Charge */
 export type ChargeQuery = z.infer<typeof chargeQuerySchema>;
-
-/** Type TypeScript pour un paiement planifié */
-export type ScheduledPayment = z.infer<typeof scheduledPaymentSchema>;
-
-/** Type TypeScript pour créer un paiement planifié */
-export type CreateScheduledPaymentInput = z.infer<
-  typeof createScheduledPaymentSchema
->;
 
 // ============================================================================
 // Schéma pour les requêtes de calcul

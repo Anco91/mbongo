@@ -10,14 +10,17 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/lib/api';
+import { chargesRepository } from '@/repositories/charges.repository';
+import { paymentsRepository } from '@/repositories/payments.repository';
 import {
-  Charge,
   CreateChargeInput,
   UpdateChargeInput,
-  ScheduledPayment,
+  Payment,
   ChargeQuery,
+  nextPayment,
+  generatePayments,
 } from '@mbongo/shared';
+import { formatISO } from 'date-fns';
 
 // ============================================================================
 // Query Keys
@@ -36,7 +39,7 @@ const chargeKey = (id: string) => [CHARGE_KEY, id];
 /**
  * Generate query key for charge payments
  */
-const chargePaymentsKey = (id: string) => [CHARGE_KEY, id, 'payments'];
+const chargePaymentsKey = (id: string) => ['payments', { chargeId: id }];
 
 // ============================================================================
 // Query Hooks
@@ -60,7 +63,7 @@ const chargePaymentsKey = (id: string) => [CHARGE_KEY, id, 'payments'];
 export function useCharges(query: ChargeQuery = {}) {
   return useQuery({
     queryKey: [CHARGE_KEY, query],
-    queryFn: () => api.charges.list(query),
+    queryFn: () => chargesRepository.findMany(query),
   });
 }
 
@@ -78,7 +81,7 @@ export function useCharges(query: ChargeQuery = {}) {
 export function useCharge(id: string) {
   return useQuery({
     queryKey: chargeKey(id),
-    queryFn: () => api.charges.get(id),
+    queryFn: () => chargesRepository.findOne(id),
     enabled: !!id,
   });
 }
@@ -97,7 +100,7 @@ export function useCharge(id: string) {
 export function useChargePayments(id: string) {
   return useQuery({
     queryKey: chargePaymentsKey(id),
-    queryFn: () => api.charges.getPayments(id),
+    queryFn: () => paymentsRepository.findMany({ chargeId: { eq: id } }),
     enabled: !!id,
   });
 }
@@ -115,8 +118,13 @@ export function useChargePayments(id: string) {
  */
 export function useNextPayment(id: string) {
   return useQuery({
-    queryKey: [...chargeKey(id), 'next-payment'],
-    queryFn: () => api.charges.getNextPayment(id),
+    queryKey: chargePaymentsKey(id),
+    queryFn: () =>
+      paymentsRepository.findMany({
+        chargeId: { eq: id },
+        status: { eq: 'PENDING' },
+      }),
+    select: (payments: Payment[]) => nextPayment(payments, new Date()),
     enabled: !!id,
   });
 }
@@ -147,7 +155,12 @@ export function useCreateCharge() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: CreateChargeInput) => api.charges.create(input),
+    mutationFn: async (input: CreateChargeInput) => {
+      const charge = await chargesRepository.create(input);
+      const payments = generatePayments(charge, new Date());
+      if (payments.length > 0) await paymentsRepository.createMany(payments);
+      return charge;
+    },
     onSuccess: () => {
       // Invalidate all charges queries to trigger refetch
       queryClient.invalidateQueries({ queryKey: [CHARGE_KEY] });
@@ -172,7 +185,8 @@ export function useUpdateCharge(id: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: UpdateChargeInput) => api.charges.update(id, input),
+    mutationFn: (input: UpdateChargeInput) =>
+      chargesRepository.update(id, input),
     onSuccess: (charge) => {
       // Invalidate single charge query
       queryClient.invalidateQueries({ queryKey: chargeKey(id) });
@@ -198,7 +212,7 @@ export function useDeleteCharge() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => api.charges.delete(id),
+    mutationFn: (id: string) => chargesRepository.remove(id),
     onSuccess: (_data, id) => {
       // Remove from cache
       queryClient.removeQueries({ queryKey: chargeKey(id) });
@@ -230,42 +244,16 @@ export function useMarkPaymentAsPaid() {
     }: {
       chargeId: string;
       paymentId: string;
-    }) => api.charges.markPaymentAsPaid(chargeId, paymentId),
+    }) =>
+      paymentsRepository.update(paymentId, {
+        status: 'PAID',
+        paidAt: formatISO(new Date()),
+      }),
     onSuccess: (_data, { chargeId }) => {
       // Invalidate payments for this charge
-      queryClient.invalidateQueries({ queryKey: chargePaymentsKey(chargeId) });
-      // Invalidate single charge to update payments count
-      queryClient.invalidateQueries({ queryKey: chargeKey(chargeId) });
-      // Invalidate charges list
-      queryClient.invalidateQueries({ queryKey: [CHARGE_KEY] });
-    },
-  });
-}
-
-/**
- * Regenerate payments for a charge
- *
- * @param id - Charge ID
- * @returns Mutation object with regenerate function
- *
- * @example
- * ```tsx
- * const { mutate: regeneratePayments } = useRegeneratePayments('abc123');
- *
- * regeneratePayments();
- * ```
- */
-export function useRegeneratePayments(id: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: () => api.charges.regeneratePayments(id),
-    onSuccess: () => {
-      // Invalidate charge and its payments
-      queryClient.invalidateQueries({ queryKey: chargeKey(id) });
-      queryClient.invalidateQueries({ queryKey: chargePaymentsKey(id) });
-      // Invalidate charges list
-      queryClient.invalidateQueries({ queryKey: [CHARGE_KEY] });
+      return queryClient.invalidateQueries({
+        queryKey: chargePaymentsKey(chargeId),
+      });
     },
   });
 }
@@ -301,7 +289,7 @@ export async function prefetchCharges(
 ): Promise<void> {
   await queryClient.prefetchQuery({
     queryKey: [CHARGE_KEY, query],
-    queryFn: () => api.charges.list(query),
+    queryFn: () => chargesRepository.findMany(query),
   });
 }
 
@@ -316,7 +304,7 @@ export async function prefetchCharge(
 
   await queryClient.prefetchQuery({
     queryKey: chargeKey(id),
-    queryFn: () => api.charges.get(id),
+    queryFn: () => chargesRepository.findOne(id),
   });
 }
 
@@ -331,7 +319,7 @@ export async function prefetchChargePayments(
 
   await queryClient.prefetchQuery({
     queryKey: chargePaymentsKey(id),
-    queryFn: () => api.charges.getPayments(id),
+    queryFn: () => paymentsRepository.findMany({ chargeId: { eq: id } }),
   });
 }
 

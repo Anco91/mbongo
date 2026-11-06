@@ -8,7 +8,7 @@
  * @module Server/Common/FilterToWhere
  */
 
-import { Filter } from '@mbongo/shared';
+import { ChargeQuery, Filter, PaymentQuery } from '@mbongo/shared';
 import { Prisma } from '@prisma/client';
 
 /**
@@ -87,19 +87,28 @@ function filterToCondition(filter: Filter): Record<string, unknown> {
  * // { type: { equals: 'FIXED_RECURRING' }, amount: { gte: 100 } }
  * ```
  */
-export function queryToWhere<T>(
+export function queryToWhere<TWhere>(
   query: Record<string, Filter | undefined> & {
     limit?: number;
     cursor?: string;
     page?: number;
     offset?: number;
   }
-): Prisma.PrismaWhereInput<T> {
+): TWhere {
   const where: Record<string, unknown> = {};
 
   for (const [field, filter] of Object.entries(query)) {
     // Skip pagination keys
-    if (['limit', 'cursor', 'page', 'offset'].includes(field)) {
+    if (
+      [
+        'limit',
+        'cursor',
+        'page',
+        'offset',
+        'orderBy',
+        'orderDirection',
+      ].includes(field)
+    ) {
       continue;
     }
 
@@ -109,7 +118,7 @@ export function queryToWhere<T>(
     }
   }
 
-  return where as Prisma.PrismaWhereInput<T>;
+  return where as TWhere;
 }
 
 /**
@@ -127,8 +136,7 @@ export function queryToWhere<T>(
  * ```
  */
 export function createQueryToWhere<T>() {
-  return (query: Record<string, Filter | undefined>) =>
-    queryToWhere<T>(query) as Prisma.PrismaWhereInput<T>;
+  return (query: Record<string, Filter | undefined>) => queryToWhere<T>(query);
 }
 
 /**
@@ -144,7 +152,7 @@ export interface StringFilter extends Filter {
 /**
  * Filter for date fields
  */
-export interface DateFilter extends Filter {
+export interface DateFilter extends Omit<Filter, 'lt' | 'gt'> {
   lt?: string | Date;
   gt?: string | Date;
 }
@@ -152,7 +160,7 @@ export interface DateFilter extends Filter {
 /**
  * Filter for numeric fields
  */
-export interface NumericFilter extends Filter {
+export interface NumericFilter extends Omit<Filter, 'lt' | 'gt'> {
   lt?: number;
   gt?: number;
 }
@@ -164,25 +172,23 @@ export interface NumericFilter extends Filter {
  * @returns Prisma ChargeWhereInput
  */
 export function chargeQueryToWhere(
-  query: Record<string, Filter | undefined> & {
-    limit?: number;
-    cursor?: string;
-  }
+  query: ChargeQuery
 ): Prisma.ChargeWhereInput {
-  return queryToWhere<Prisma.ChargeWhereInput>(query);
+  return queryToWhere<Prisma.ChargeWhereInput>(
+    query as unknown as Record<string, Filter | undefined>
+  );
 }
 
 /**
- * Create a Prisma where input for a scheduled payment query
+ * Create a Prisma where input for a payment query
  *
- * @param query - Scheduled payment query parameters
- * @returns Prisma ScheduledPaymentWhereInput
+ * @param query - Payment query parameters
+ * @returns Prisma PaymentWhereInput
  */
-export function scheduledPaymentQueryToWhere(
-  query: Record<string, Filter | undefined> & {
-    limit?: number;
-    cursor?: string;
-  }
-): Prisma.ScheduledPaymentWhereInput {
-  return queryToWhere<Prisma.ScheduledPaymentWhereInput>(query);
+export function paymentQueryToWhere(
+  query: PaymentQuery
+): Prisma.PaymentWhereInput {
+  return queryToWhere<Prisma.PaymentWhereInput>(
+    query as unknown as Record<string, Filter | undefined>
+  );
 }

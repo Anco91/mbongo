@@ -2,7 +2,7 @@
 
 ```yaml
 spec_id: M2-CHARGE-PAYMENTS-001
-version: 1.1.0
+version: 1.2.0
 title: Séparer les charges et les échéances
 status: VALIDATED
 author: Codex
@@ -72,6 +72,8 @@ Cette spec définit une refonte ciblée des frontières du module. Elle ne redé
 
 Les routes d’une ressource ne délèguent qu’à son controller. Les types de requête/réponse dérivent des schémas Zod partagés. Les repositories frontend exposent les mêmes opérations et encapsulent les appels HTTP ; les composants et hooks ne construisent pas directement les URLs.
 
+`POST /api/payments` accepte un Payment ou un tableau non vide de Payments. La création groupée est un CRUD batch transactionnel sur une seule ressource ; le frontend l’utilise pour persister le calendrier en une requête.
+
 ## Génération et mises à jour
 
 La génération du calendrier est une fonction partagée pure, appelée côté frontend. Le frontend persiste les échéances obtenues via le contrat CRUD des échéances. Les écritures partielles pendant cette séquence sont possibles ; aucune opération métier inter-ressources ni transaction dédiée n’est ajoutée par cette refonte. Modifier une charge ne régénère ni ne supprime implicitement ses échéances : le frontend charge les ressources concernées et applique explicitement les opérations CRUD nécessaires.
@@ -109,3 +111,4 @@ Une charge et ses échéances sont créées par leurs repositories respectifs, �
 |---|---|---|---|---|
 | 1.0.0 | 2026-11-06 | Codex | Première proposition de séparation Charges / Échéances | IN_REVIEW |
 | 1.1.0 | 2026-11-06 | Codex | Ressource `Payment` unique pour les échéances; pas de discriminant sans second cas concret | VALIDATED |
+| 1.2.0 | 2026-11-06 | Codex | Création groupée CRUD des échéances en une transaction propre à Payment | VALIDATED |

@@ -13,9 +13,6 @@ import {
   chargeQuerySchema,
   createChargeSchema,
   updateChargeSchema,
-  Charge,
-  CreateChargeInput,
-  UpdateChargeInput,
 } from '@mbongo/shared';
 import {
   parseBody,
@@ -80,7 +77,7 @@ export class ChargesController {
    * Create charge - POST /api/charges
    *
    * Validates request body and delegates to the service.
-   * Creates charge with scheduled payments atomically.
+   * Creates a charge; scheduled payments use the Payment resource.
    *
    * @param request - Next.js Request object with JSON body
    * @returns NextResponse with created charge (201) or error
@@ -95,12 +92,9 @@ export class ChargesController {
   async create(request: Request): Promise<NextResponse> {
     try {
       // Parse and validate request body
-      const input = await parseBody<CreateChargeInput>(
-        request,
-        createChargeSchema
-      );
+      const input = await parseBody(request, createChargeSchema);
 
-      // Delegate to service (creates charge + scheduled payments)
+      // Delegate to the charge CRUD service
       const charge = await this.charges.create(input);
 
       // Return created response (201)
@@ -148,10 +142,7 @@ export class ChargesController {
   async update(request: Request, id: string): Promise<NextResponse> {
     try {
       // Parse and validate request body (partial update)
-      const input = await parseBody<UpdateChargeInput>(
-        request,
-        updateChargeSchema
-      );
+      const input = await parseBody(request, updateChargeSchema);
 
       // Delegate to service
       const charge = await this.charges.update(id, input);
@@ -178,68 +169,6 @@ export class ChargesController {
     try {
       await this.charges.remove(id);
       return toNoContentResponse();
-    } catch (error) {
-      return toErrorResponse(error);
-    }
-  }
-
-  /**
-   * Regenerate payments for a charge - POST /api/charges/:id/regenerate
-   *
-   * Deletes existing payments and creates new ones based on current charge properties.
-   *
-   * @param id - Charge ID
-   * @returns NextResponse with updated charge or error
-   */
-  async regeneratePayments(id: string): Promise<NextResponse> {
-    try {
-      const charge = await this.charges.regeneratePayments(id);
-      return toSuccessResponse(charge);
-    } catch (error) {
-      return toErrorResponse(error);
-    }
-  }
-
-  /**
-   * Get payments for a charge - GET /api/charges/:id/payments
-   *
-   * @param id - Charge ID
-   * @returns NextResponse with array of scheduled payments or error
-   */
-  async getPayments(id: string): Promise<NextResponse> {
-    try {
-      const payments = await this.charges.getPayments(id);
-      return toSuccessResponse(payments);
-    } catch (error) {
-      return toErrorResponse(error);
-    }
-  }
-
-  /**
-   * Get next payment for a charge - GET /api/charges/:id/payments/next
-   *
-   * @param id - Charge ID
-   * @returns NextResponse with next payment or null
-   */
-  async getNextPayment(id: string): Promise<NextResponse> {
-    try {
-      const payment = await this.charges.getNextPayment(id);
-      return toSuccessResponse(payment);
-    } catch (error) {
-      return toErrorResponse(error);
-    }
-  }
-
-  /**
-   * Mark payment as paid - PATCH /api/charges/:id/payments/:paymentId/paid
-   *
-   * @param paymentId - Payment ID
-   * @returns NextResponse with updated payment or error
-   */
-  async markPaymentAsPaid(paymentId: string): Promise<NextResponse> {
-    try {
-      const payment = await this.charges.markPaymentAsPaid(paymentId);
-      return toSuccessResponse(payment);
     } catch (error) {
       return toErrorResponse(error);
     }
