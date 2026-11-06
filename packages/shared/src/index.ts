@@ -22,20 +22,3 @@ export * from './schemas/filter';
 // ============================================================================
 
 export * from './domain/schedule';
-
-// ============================================================================
-// Types
-// ============================================================================
-
-// Re-export types from schemas for convenience
-export type {
-  Charge,
-  CreateChargeInput,
-  UpdateChargeInput,
-  ScheduledPayment,
-  CreateScheduledPaymentInput,
-  ChargeType,
-  Currency,
-  Filter,
-  ChargeQuery,
-} from './schemas/charge';
