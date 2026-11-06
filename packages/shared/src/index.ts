@@ -15,7 +15,11 @@
 // ============================================================================
 
 export * from './schemas/charge';
+export * from './schemas/payment';
+export * from './schemas/currency';
 export * from './schemas/filter';
+export * from './contracts/charges.http';
+export * from './contracts/payments.http';
 
 // ============================================================================
 // Domain Logic
