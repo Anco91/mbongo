@@ -15,8 +15,8 @@ import {
   Charge as SharedCharge,
   ScheduledPayment as SharedScheduledPayment,
   Charge,
+  generateScheduledPayments,
 } from '@mbongo/shared';
-import { generateScheduledPayments } from '@mbongo/shared/domain';
 import { queryToWhere } from '@/server/common/filter-to-where';
 import { HttpError, NotFoundError } from '@/server/common/http';
 import { Prisma } from '@prisma/client';
