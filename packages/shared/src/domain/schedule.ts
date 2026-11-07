@@ -8,18 +8,18 @@
  */
 
 import {
+  addDays,
   addMonths,
   addWeeks,
   addYears,
+  compareAsc,
   isAfter,
+  isBefore,
   parseISO,
   setDate,
 } from 'date-fns';
-import {
-  Charge,
-  CreateScheduledPaymentInput,
-  ScheduledPayment,
-} from '../schemas/charge';
+import { Charge } from '../schemas/charge';
+import { CreatePaymentInput, Payment } from '../schemas/payment';
 
 // ============================================================================
 // Types
@@ -30,11 +30,7 @@ type Frequency = NonNullable<Charge['frequency']>;
 
 /** Map des fonctions d'incrémentation par fréquence */
 const steps: Record<Frequency, (d: Date, n: number) => Date> = {
-  daily: (d: Date, n: number) => {
-    const date = new Date(d);
-    date.setDate(date.getDate() + n);
-    return date;
-  },
+  daily: addDays,
   weekly: addWeeks,
   monthly: addMonths,
   yearly: addYears,
@@ -51,8 +47,8 @@ const steps: Record<Frequency, (d: Date, n: number) => Date> = {
  * Elle peut être testée sans base de données et réutilisée partout.
  *
  * @param charge - La charge pour laquelle générer les paiements
- * @param from - Date de départ pour la génération (défaut: aujourd'hui)
- * @returns Array de paiements planifiés
+ * @param from - Date de référence pour l'horizon du calendrier
+ * @returns Données à créer via le CRUD Payment
  *
  * @example
  * ```typescript
@@ -73,14 +69,14 @@ const steps: Record<Frequency, (d: Date, n: number) => Date> = {
  *   updatedAt: "2024-01-01",
  * };
  *
- * const payments = generateScheduledPayments(charge, new Date("2024-01-01"));
+ * const payments = generatePayments(charge, parseISO("2024-01-01"));
  * // Génère 12 paiements mensuels
  * ```
  */
-export function generateScheduledPayments(
+export function generatePayments(
   charge: Charge,
-  from: Date = new Date()
-): ScheduledPayment[] {
+  from: Date
+): CreatePaymentInput[] {
   const startDate = parseISO(charge.startDate);
   const endDate = charge.endDate ? parseISO(charge.endDate) : null;
 
@@ -150,12 +146,16 @@ function generateRecurringPayments(
   endDate: Date | null,
   from: Date,
   frequency: Frequency
-): ScheduledPayment[] {
-  const payments: ScheduledPayment[] = [];
-  let due = new Date(startDate);
+): CreatePaymentInput[] {
+  const payments: CreatePaymentInput[] = [];
+  let due = startDate;
 
   // Default horizon: 5 years from now if no end date
   const horizon = endDate ?? addYears(from, 5);
+
+  while (isBefore(due, from)) {
+    due = steps[frequency](due, 1);
+  }
 
   while (!isAfter(due, horizon)) {
     payments.push(makePayment(charge, due, charge.amount));
@@ -172,7 +172,7 @@ function generateInstallmentPayments(
   charge: Charge,
   startDate: Date,
   installments: number
-): ScheduledPayment[] {
+): CreatePaymentInput[] {
   const amountPerInstallment = charge.amount / installments;
 
   return Array.from({ length: installments }, (_, i) => {
@@ -192,17 +192,13 @@ function makePayment(
   charge: Charge,
   dueDate: Date,
   amount: number = charge.amount
-): ScheduledPayment {
+): CreatePaymentInput {
   return {
-    id: crypto.randomUUID(),
     chargeId: charge.id,
     amount: round2(amount),
     currency: charge.currency,
     dueDate: dueDate.toISOString(),
     status: 'PENDING',
-    paidAt: null,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
   };
 }
 
@@ -252,7 +248,7 @@ export function monthlyProvision(charges: Charge[]): number {
  * @example
  * ```typescript
  * const charge: Charge = { id: "1", amount: 1200, ... };
- * const payments: ScheduledPayment[] = [
+ * const payments: Payment[] = [
  *   { id: "1", amount: 400, status: "PAID", ... },
  *   { id: "2", amount: 400, status: "PAID", ... },
  * ];
@@ -261,10 +257,7 @@ export function monthlyProvision(charges: Charge[]): number {
  * // 1200 - (400 + 400) = 400
  * ```
  */
-export function remainingBalance(
-  charge: Charge,
-  payments: ScheduledPayment[]
-): number {
+export function remainingBalance(charge: Charge, payments: Payment[]): number {
   const paid = payments
     .filter((p) => p.status === 'PAID')
     .reduce((sum, p) => sum + p.amount, 0);
@@ -281,7 +274,7 @@ export function remainingBalance(
  *
  * @example
  * ```typescript
- * const payments: ScheduledPayment[] = [
+ * const payments: Payment[] = [
  *   { dueDate: "2024-01-15", ... },
  *   { dueDate: "2024-02-01", ... },
  * ];
@@ -290,10 +283,7 @@ export function remainingBalance(
  * // Retourne seulement le paiement du 15 janvier
  * ```
  */
-export function paymentsInMonth(
-  payments: ScheduledPayment[],
-  month: Date
-): ScheduledPayment[] {
+export function paymentsInMonth(payments: Payment[], month: Date): Payment[] {
   const startOfMonth = setDate(month, 1);
   const endOfMonth = setDate(month, 31);
   // Handle months with < 31 days
@@ -313,10 +303,7 @@ export function paymentsInMonth(
  * @param month - Date représentant le mois
  * @returns Total des montants
  */
-export function monthlyPaymentTotal(
-  payments: ScheduledPayment[],
-  month: Date
-): number {
+export function monthlyPaymentTotal(payments: Payment[], month: Date): number {
   const monthlyPayments = paymentsInMonth(payments, month);
   return round2(monthlyPayments.reduce((sum, p) => sum + p.amount, 0));
 }
@@ -328,10 +315,7 @@ export function monthlyPaymentTotal(
  * @param from - Date de référence (défaut: aujourd'hui)
  * @returns Prochain paiement ou null
  */
-export function nextPayment(
-  payments: ScheduledPayment[],
-  from: Date = new Date()
-): ScheduledPayment | null {
+export function nextPayment(payments: Payment[], from: Date): Payment | null {
   const pendingPayments = payments.filter((p) => p.status === 'PENDING');
 
   if (pendingPayments.length === 0) return null;
@@ -340,13 +324,13 @@ export function nextPayment(
   pendingPayments.sort((a, b) => {
     const dateA = parseISO(a.dueDate);
     const dateB = parseISO(b.dueDate);
-    return dateA.getTime() - dateB.getTime();
+    return compareAsc(dateA, dateB);
   });
 
   // Trouver le premier paiement après la date de référence
   for (const payment of pendingPayments) {
     const dueDate = parseISO(payment.dueDate);
-    if (dueDate >= from) {
+    if (!isBefore(dueDate, from)) {
       return payment;
     }
   }
@@ -361,12 +345,9 @@ export function nextPayment(
  * @param asOf - Date de référence (défaut: aujourd'hui)
  * @returns true si en retard
  */
-export function isOverdue(
-  payment: ScheduledPayment,
-  asOf: Date = new Date()
-): boolean {
+export function isOverdue(payment: Payment, asOf: Date): boolean {
   const dueDate = parseISO(payment.dueDate);
-  return payment.status === 'PENDING' && dueDate < asOf;
+  return payment.status === 'PENDING' && isBefore(dueDate, asOf);
 }
 
 /**
@@ -376,10 +357,7 @@ export function isOverdue(
  * @param asOf - Date de référence
  * @returns Paiements en retard
  */
-export function overduePayments(
-  payments: ScheduledPayment[],
-  asOf: Date = new Date()
-): ScheduledPayment[] {
+export function overduePayments(payments: Payment[], asOf: Date): Payment[] {
   return payments.filter((p) => isOverdue(p, asOf));
 }
 

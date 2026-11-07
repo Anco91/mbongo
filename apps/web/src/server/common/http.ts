@@ -8,7 +8,7 @@
  */
 
 import { NextResponse } from 'next/server';
-import { ZodError, ZodSchema, ZodIssue } from 'zod';
+import { z, ZodError, ZodIssue, ZodSchema } from 'zod';
 
 /**
  * Custom HTTP Error with status code and details
@@ -44,7 +44,7 @@ export class NotFoundError extends HttpError {
  */
 export class BadRequestError extends HttpError {
   constructor(message: string, details?: unknown) {
-    super(400, { message, ...details }, 'BAD_REQUEST');
+    super(400, { message, ...asObject(details) }, 'BAD_REQUEST');
     this.name = 'BadRequestError';
   }
 }
@@ -74,7 +74,7 @@ export class ForbiddenError extends HttpError {
  */
 export class ConflictError extends HttpError {
   constructor(message: string, details?: unknown) {
-    super(409, { message, ...details }, 'CONFLICT');
+    super(409, { message, ...asObject(details) }, 'CONFLICT');
     this.name = 'ConflictError';
   }
 }
@@ -84,9 +84,15 @@ export class ConflictError extends HttpError {
  */
 export class InternalServerError extends HttpError {
   constructor(message: string = 'Internal server error', details?: unknown) {
-    super(500, { message, ...details }, 'INTERNAL_ERROR');
+    super(500, { message, ...asObject(details) }, 'INTERNAL_ERROR');
     this.name = 'InternalServerError';
   }
+}
+
+function asObject(value: unknown): Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+    ? (value as Record<string, unknown>)
+    : {};
 }
 
 /**
@@ -102,10 +108,10 @@ export class InternalServerError extends HttpError {
  * const input = await parseBody(request, createChargeSchema);
  * ```
  */
-export async function parseBody<T>(
+export async function parseBody<TSchema extends z.ZodTypeAny>(
   request: Request,
-  schema: ZodSchema<T>
-): Promise<T> {
+  schema: TSchema
+): Promise<z.output<TSchema>> {
   const body = await request.json();
   return parse(body, schema);
 }
@@ -123,9 +129,25 @@ export async function parseBody<T>(
  * const query = parseQuery(request, chargeQuerySchema);
  * ```
  */
-export function parseQuery<T>(request: Request, schema: ZodSchema<T>): T {
+export function parseQuery<TSchema extends z.ZodTypeAny>(
+  request: Request,
+  schema: TSchema
+): z.output<TSchema> {
   const searchParams = new URL(request.url).searchParams;
-  const query = Object.fromEntries(searchParams);
+  const query: Record<string, unknown> = {};
+
+  for (const [key, value] of searchParams) {
+    const match = /^(.*)\[(\w+)\]$/.exec(key);
+    if (!match) {
+      query[key] = value;
+      continue;
+    }
+
+    const [, field, operator] = match;
+    const filters = (query[field] ??= {}) as Record<string, unknown>;
+    filters[operator] = operator === 'in' ? value.split(',') : value;
+  }
+
   return parse(query, schema);
 }
 
@@ -158,7 +180,10 @@ export function parseParams<T>(
  * @returns Parsed and validated data
  * @throws HttpError (400) if validation fails
  */
-function parse<T>(value: unknown, schema: ZodSchema<T>): T {
+function parse<TSchema extends z.ZodTypeAny>(
+  value: unknown,
+  schema: TSchema
+): z.output<TSchema> {
   const result = schema.safeParse(value);
   if (!result.success) {
     throw new HttpError(400, formatZodError(result.error), 'VALIDATION_ERROR');
@@ -238,7 +263,7 @@ export function toErrorResponse(error: unknown): NextResponse {
         error: {
           code: error.code,
           message: error.message,
-          ...(error.details && { details: error.details }),
+          ...(error.details !== undefined ? { details: error.details } : {}),
         },
       },
       { status: error.status }

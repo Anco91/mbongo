@@ -13,8 +13,9 @@ import {
   useCreateCharge,
   useDeleteCharge,
 } from './hooks/use-charges';
-import { Charge } from '@mbongo/shared';
+import { Charge, CreateChargeInput } from '@mbongo/shared';
 import Link from 'next/link';
+import { formatISO } from 'date-fns';
 
 /**
  * ChargesView Component
@@ -195,7 +196,7 @@ function ChargeRow({ charge, onDelete, isDeleting }: ChargeRowProps) {
  * Create Charge Button Component
  */
 interface CreateChargeButtonProps {
-  onCreate: (data: unknown) => void;
+  onCreate: (data: CreateChargeInput) => void;
   disabled: boolean;
 }
 
@@ -207,10 +208,15 @@ function CreateChargeButton({ onCreate, disabled }: CreateChargeButtonProps) {
         onCreate({
           label: 'New Charge',
           type: 'ONE_OFF',
-          amount: 0,
+          amount: 1,
           currency: 'CHF',
-          accountId: 'default-account-id',
-          startDate: new Date().toISOString(),
+          accountId: '00000000-0000-4000-8000-000000000001',
+          category: 'Miscellaneous',
+          startDate: formatISO(new Date()),
+          endDate: null,
+          frequency: null,
+          installments: null,
+          provisioned: false,
         });
       }}
       disabled={disabled}

@@ -17,6 +17,6 @@ export const GET = (request: Request) => chargesController.find(request);
 
 /**
  * POST /api/charges
- * Create a new charge with scheduled payments
+ * Create a charge
  */
 export const POST = (request: Request) => chargesController.create(request);
