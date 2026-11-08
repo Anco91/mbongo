@@ -129,7 +129,7 @@ export function generatePayments(
     }
 
     default:
-      throw new Error(`Unknown charge type: ${charge.type}`);
+      throw new Error('Unknown charge type');
   }
 }
 
@@ -236,6 +236,39 @@ export function monthlyProvision(charges: Charge[]): number {
   const provisionedCharges = charges.filter((c) => c.provisioned);
   const total = provisionedCharges.reduce((sum, c) => sum + c.amount, 0);
   return round2(total / 12);
+}
+
+/**
+ * Retourne les échéances d'une charge pas encore persistées.
+ *
+ * Compare le calendrier attendu (généré) aux échéances existantes
+ * par instant de `dueDate`, indépendamment du format de sérialisation ISO.
+ * Sert à reprendre une création groupée interrompue sans dupliquer les échéances.
+ *
+ * @param charge - La charge concernée
+ * @param existing - Échéances déjà persistées pour cette charge
+ * @param from - Date de référence pour l'horizon du calendrier
+ * @returns Échéances manquantes à créer via le CRUD Payment
+ *
+ * @example
+ * ```typescript
+ * const existing: Payment[] = [firstInstallment]; // déjà créé
+ * const missing = missingPayments(charge, existing, new Date());
+ * // Retourne les versements restants uniquement
+ * ```
+ */
+export function missingPayments(
+  charge: Charge,
+  existing: Payment[],
+  from: Date
+): CreatePaymentInput[] {
+  const persistedDueDates = new Set(
+    existing.map((payment) => new Date(payment.dueDate).getTime())
+  );
+
+  return generatePayments(charge, from).filter(
+    (payment) => !persistedDueDates.has(new Date(payment.dueDate).getTime())
+  );
 }
 
 /**

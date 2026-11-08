@@ -13,10 +13,12 @@ import { chargesController } from '@/server/charges/charges.controller';
  * GET /api/charges
  * Find charges with optional filtering and pagination
  */
-export const GET = (request: Request) => chargesController.find(request);
+export const GET = (request: Request): Promise<Response> =>
+  chargesController.find(request);
 
 /**
  * POST /api/charges
  * Create a charge
  */
-export const POST = (request: Request) => chargesController.create(request);
+export const POST = (request: Request): Promise<Response> =>
+  chargesController.create(request);

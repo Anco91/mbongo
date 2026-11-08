@@ -16,19 +16,25 @@ type Context = { params: Promise<{ id: string }> };
  * GET /api/charges/:id
  * Find a charge by ID
  */
-export const GET = async (_request: Request, { params }: Context) =>
-  chargesController.findOne((await params).id);
+export const GET = async (
+  _request: Request,
+  { params }: Context
+): Promise<Response> => chargesController.findOne((await params).id);
 
 /**
  * PATCH /api/charges/:id
  * Update a charge
  */
-export const PATCH = async (request: Request, { params }: Context) =>
-  chargesController.update(request, (await params).id);
+export const PATCH = async (
+  request: Request,
+  { params }: Context
+): Promise<Response> => chargesController.update(request, (await params).id);
 
 /**
  * DELETE /api/charges/:id
  * Delete a charge
  */
-export const DELETE = async (_request: Request, { params }: Context) =>
-  chargesController.remove((await params).id);
+export const DELETE = async (
+  _request: Request,
+  { params }: Context
+): Promise<Response> => chargesController.remove((await params).id);

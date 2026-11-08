@@ -44,7 +44,9 @@ interface ChargesGuardProps {
  * }
  * ```
  */
-export async function ChargesGuard({ query = {} }: ChargesGuardProps) {
+export async function ChargesGuard({
+  query = {},
+}: ChargesGuardProps): Promise<JSX.Element> {
   // Create a new QueryClient for each request
   const qc = new QueryClient();
 

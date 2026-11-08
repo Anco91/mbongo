@@ -204,7 +204,7 @@ export function genericQueryToPrisma<T extends Record<string, unknown>>(
 
   if (query.filters) {
     for (const [field, filter] of Object.entries(query.filters)) {
-      const mappedField = fieldMap?.[field] || field;
+      const mappedField = fieldMap?.[field] ?? field;
       where[mappedField] = filterToPrisma(filter);
     }
   }

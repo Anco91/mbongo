@@ -44,6 +44,7 @@
   },
   "eslintConfig": {
     "root": true,
+    "ignorePatterns": ["dist", ".turbo"],
     "env": {
       "node": true,
       "jest": true
