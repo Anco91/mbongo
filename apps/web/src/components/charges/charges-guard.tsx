@@ -15,6 +15,7 @@ import {
 import { chargeService } from '@/server/charges/charge.service';
 import { ChargesView } from './charges-view';
 import { ChargeQuery } from '@mbongo/shared';
+import { JSX } from 'react';
 
 /**
  * Props for ChargesGuard
@@ -44,7 +45,9 @@ interface ChargesGuardProps {
  * }
  * ```
  */
-export async function ChargesGuard({ query = {} }: ChargesGuardProps) {
+export async function ChargesGuard({
+  query = {},
+}: ChargesGuardProps): Promise<JSX.Element> {
   // Create a new QueryClient for each request
   const qc = new QueryClient();
 

@@ -8,6 +8,7 @@
  */
 
 import { ChargesGuard } from '@/components/charges/charges-guard';
+import { JSX } from 'react';
 
 /**
  * Charges Dashboard Page Component
@@ -23,7 +24,7 @@ import { ChargesGuard } from '@/components/charges/charges-guard';
  * // With query params: /charges?type[eq]=FIXED_RECURRING&limit=10
  * ```
  */
-export default function ChargesPage() {
+export default function ChargesPage(): JSX.Element {
   // In a real app, you could extract query params from searchParams
   // For now, we just use the default ChargesGuard
   return <ChargesGuard />;

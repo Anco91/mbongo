@@ -82,7 +82,9 @@
     ".next",
     "coverage",
     "*.js",
-    "*.d.ts"
+    "*.d.ts",
+    "**/*.test.ts",
+    "**/*.spec.ts"
   ],
   "overrides": [
     {

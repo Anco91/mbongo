@@ -44,6 +44,7 @@
   },
   "eslintConfig": {
     "root": true,
+    "ignorePatterns": ["dist", "node_modules", "*.d.ts"],
     "env": {
       "node": true,
       "jest": true

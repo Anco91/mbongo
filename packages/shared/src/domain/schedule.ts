@@ -13,10 +13,11 @@ import {
   addWeeks,
   addYears,
   compareAsc,
+  endOfMonth,
   isAfter,
   isBefore,
   parseISO,
-  setDate,
+  startOfMonth,
 } from 'date-fns';
 import { Charge } from '../schemas/charge';
 import { CreatePaymentInput, Payment } from '../schemas/payment';
@@ -128,8 +129,10 @@ export function generatePayments(
       return [makePayment(charge, startDate, charge.amount)];
     }
 
-    default:
-      throw new Error(`Unknown charge type: ${charge.type}`);
+    default: {
+      const unexpectedType = (charge as { type: string }).type;
+      throw new Error(`Unknown charge type: ${unexpectedType}`);
+    }
   }
 }
 
@@ -193,11 +196,16 @@ function makePayment(
   dueDate: Date,
   amount: number = charge.amount
 ): CreatePaymentInput {
+  const year = dueDate.getFullYear();
+  const month = String(dueDate.getMonth() + 1).padStart(2, '0');
+  const day = String(dueDate.getDate()).padStart(2, '0');
+  const utcIso = `${year}-${month}-${day}T00:00:00.000Z`;
+
   return {
     chargeId: charge.id,
     amount: round2(amount),
     currency: charge.currency,
-    dueDate: dueDate.toISOString(),
+    dueDate: utcIso,
     status: 'PENDING',
   };
 }
@@ -284,15 +292,12 @@ export function remainingBalance(charge: Charge, payments: Payment[]): number {
  * ```
  */
 export function paymentsInMonth(payments: Payment[], month: Date): Payment[] {
-  const startOfMonth = setDate(month, 1);
-  const endOfMonth = setDate(month, 31);
-  // Handle months with < 31 days
-  endOfMonth.setMonth(endOfMonth.getMonth() + 1);
-  endOfMonth.setDate(0);
+  const monthStart = startOfMonth(month);
+  const monthEnd = endOfMonth(month);
 
   return payments.filter((p) => {
     const dueDate = parseISO(p.dueDate);
-    return dueDate >= startOfMonth && dueDate <= endOfMonth;
+    return dueDate >= monthStart && dueDate <= monthEnd;
   });
 }
 

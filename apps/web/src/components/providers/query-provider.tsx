@@ -11,7 +11,7 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { useState } from 'react';
+import { JSX, useState } from 'react';
 
 /**
  * QueryProvider Component
@@ -39,7 +39,11 @@ import { useState } from 'react';
  * }
  * ```
  */
-export function QueryProvider({ children }: { children: React.ReactNode }) {
+export function QueryProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}): JSX.Element {
   // Create a QueryClient instance for each user
   const [queryClient] = useState(
     () =>

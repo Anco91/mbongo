@@ -16,6 +16,7 @@ import {
 import { Charge, CreateChargeInput } from '@mbongo/shared';
 import Link from 'next/link';
 import { formatISO } from 'date-fns';
+import { JSX } from 'react';
 
 /**
  * ChargesView Component
@@ -29,7 +30,7 @@ import { formatISO } from 'date-fns';
  * <ChargesView />
  * ```
  */
-export function ChargesView() {
+export function ChargesView(): JSX.Element {
   // Fetch charges data
   const { data: charges = [], isLoading, error, refetch } = useCharges();
 
@@ -58,7 +59,9 @@ export function ChargesView() {
         </h3>
         <p className="text-red-600 mb-4">{error.message}</p>
         <button
-          onClick={() => refetch()}
+          onClick={() => {
+            void refetch();
+          }}
           className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
         >
           Retry
@@ -143,7 +146,11 @@ interface ChargeRowProps {
   isDeleting: boolean;
 }
 
-function ChargeRow({ charge, onDelete, isDeleting }: ChargeRowProps) {
+function ChargeRow({
+  charge,
+  onDelete,
+  isDeleting,
+}: ChargeRowProps): JSX.Element {
   const isDeletingThis = isDeleting;
 
   return (
@@ -200,7 +207,10 @@ interface CreateChargeButtonProps {
   disabled: boolean;
 }
 
-function CreateChargeButton({ onCreate, disabled }: CreateChargeButtonProps) {
+function CreateChargeButton({
+  onCreate,
+  disabled,
+}: CreateChargeButtonProps): JSX.Element {
   return (
     <button
       onClick={() => {
@@ -230,7 +240,7 @@ function CreateChargeButton({ onCreate, disabled }: CreateChargeButtonProps) {
 /**
  * Loading Spinner Component
  */
-function LoadingSpinner() {
+function LoadingSpinner(): JSX.Element {
   return (
     <svg
       className="animate-spin h-5 w-5 text-indigo-600"
