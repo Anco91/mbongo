@@ -17,6 +17,7 @@ import {
 import { Charge, CreateChargeInput } from '@mbongo/shared';
 import Link from 'next/link';
 import { formatISO } from 'date-fns';
+import { JSX } from 'react';
 
 /**
  * ChargesView Component
@@ -89,7 +90,9 @@ export function ChargesView(): JSX.Element {
         </h3>
         <p className="text-red-600 mb-4">{error.message}</p>
         <button
-          onClick={() => void refetch()}
+          onClick={() => {
+            void refetch();
+          }}
           className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
         >
           Retry

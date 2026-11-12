@@ -108,10 +108,10 @@ function asObject(value: unknown): Record<string, unknown> {
  * const input = await parseBody(request, createChargeSchema);
  * ```
  */
-export async function parseBody<Output>(
+export async function parseBody<T>(
   request: Request,
-  schema: z.ZodType<Output, ZodTypeDef, unknown>
-): Promise<Output> {
+  schema: ZodSchema<T>
+): Promise<T> {
   const body: unknown = await request.json();
   return parse(body, schema);
 }
@@ -129,10 +129,7 @@ export async function parseBody<Output>(
  * const query = parseQuery(request, chargeQuerySchema);
  * ```
  */
-export function parseQuery<Output>(
-  request: Request,
-  schema: z.ZodType<Output, ZodTypeDef, unknown>
-): Output {
+export function parseQuery<T>(request: Request, schema: ZodSchema<T>): T {
   const searchParams = new URL(request.url).searchParams;
   const query: Record<string, unknown> = {};
 
@@ -180,10 +177,7 @@ export function parseParams<T>(
  * @returns Parsed and validated data
  * @throws HttpError (400) if validation fails
  */
-function parse<Output>(
-  value: unknown,
-  schema: z.ZodType<Output, ZodTypeDef, unknown>
-): Output {
+function parse<T>(value: unknown, schema: ZodSchema<T>): T {
   const result = schema.safeParse(value);
   if (!result.success) {
     throw new HttpError(400, formatZodError(result.error), 'VALIDATION_ERROR');

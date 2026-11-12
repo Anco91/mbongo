@@ -10,11 +10,11 @@
 'use client';
 
 import {
-  UseMutationResult,
-  UseQueryResult,
-  useMutation,
   useQuery,
+  useMutation,
   useQueryClient,
+  type UseQueryResult,
+  type UseMutationResult,
 } from '@tanstack/react-query';
 import { chargesRepository } from '@/repositories/charges.repository';
 import { paymentsRepository } from '@/repositories/payments.repository';
@@ -23,6 +23,7 @@ import {
   CreateChargeInput,
   UpdateChargeInput,
   Payment,
+  Charge,
   ChargeQuery,
   missingPayments,
   nextPayment,
@@ -47,16 +48,15 @@ type NextPaymentQuery = UseQueryResult<Payment | null, Error>;
 /**
  * Generate query key for a single charge
  */
-function chargeKey(id: string): string[] {
-  return [CHARGE_KEY, id];
-}
+const chargeKey = (id: string): [string, string] => [CHARGE_KEY, id];
 
 /**
  * Generate query key for charge payments
  */
-function chargePaymentsKey(id: string): unknown[] {
-  return ['payments', { chargeId: id }];
-}
+const chargePaymentsKey = (id: string): [string, { chargeId: string }] => [
+  'payments',
+  { chargeId: id },
+];
 
 // ============================================================================
 // Query Hooks
@@ -77,7 +77,9 @@ function chargePaymentsKey(id: string): unknown[] {
  * return <ChargeList charges={charges} />;
  * ```
  */
-export function useCharges(query: ChargeQuery = {}): ChargesQuery {
+export function useCharges(
+  query: ChargeQuery = {}
+): UseQueryResult<Charge[], Error> {
   return useQuery({
     queryKey: [CHARGE_KEY, query],
     queryFn: () => chargesRepository.findMany(query),
@@ -95,7 +97,7 @@ export function useCharges(query: ChargeQuery = {}): ChargesQuery {
  * const { data: charge } = useCharge('abc123');
  * ```
  */
-export function useCharge(id: string): ChargeQueryResult {
+export function useCharge(id: string): UseQueryResult<Charge, Error> {
   return useQuery({
     queryKey: chargeKey(id),
     queryFn: () => chargesRepository.findOne(id),
@@ -114,7 +116,9 @@ export function useCharge(id: string): ChargeQueryResult {
  * const { data: payments } = useChargePayments('abc123');
  * ```
  */
-export function useChargePayments(id: string): ChargePaymentsQuery {
+export function useChargePayments(
+  id: string
+): UseQueryResult<Payment[], Error> {
   return useQuery({
     queryKey: chargePaymentsKey(id),
     queryFn: () => paymentsRepository.findMany({ chargeId: { eq: id } }),
@@ -133,7 +137,9 @@ export function useChargePayments(id: string): ChargePaymentsQuery {
  * const { data: nextPayment } = useNextPayment('abc123');
  * ```
  */
-export function useNextPayment(id: string): NextPaymentQuery {
+export function useNextPayment(
+  id: string
+): UseQueryResult<Payment | null, Error> {
   return useQuery({
     queryKey: chargePaymentsKey(id),
     queryFn: () =>
@@ -192,7 +198,7 @@ function toError(error: unknown): Error {
  * ```
  */
 export function useCreateCharge(): UseMutationResult<
-  CreateChargeResult,
+  Charge,
   Error,
   CreateChargeInput
 > {
@@ -284,11 +290,11 @@ export function useUpdateCharge(
   return useMutation({
     mutationFn: (input: UpdateChargeInput) =>
       chargesRepository.update(id, input),
-    onSuccess: async () => {
+    onSuccess: (_charge) => {
       // Invalidate single charge query
-      await queryClient.invalidateQueries({ queryKey: chargeKey(id) });
+      void queryClient.invalidateQueries({ queryKey: chargeKey(id) });
       // Invalidate charges list
-      await queryClient.invalidateQueries({ queryKey: [CHARGE_KEY] });
+      void queryClient.invalidateQueries({ queryKey: [CHARGE_KEY] });
     },
   });
 }
@@ -314,7 +320,7 @@ export function useDeleteCharge(): UseMutationResult<void, Error, string> {
       // Remove from cache
       queryClient.removeQueries({ queryKey: chargeKey(chargeId) });
       // Invalidate charges list
-      await queryClient.invalidateQueries({ queryKey: [CHARGE_KEY] });
+      void queryClient.invalidateQueries({ queryKey: [CHARGE_KEY] });
     },
   });
 }
@@ -339,19 +345,14 @@ export function useMarkPaymentAsPaid(): UseMutationResult<
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      paymentId,
-    }: {
-      chargeId: string;
-      paymentId: string;
-    }): Promise<Payment> =>
+    mutationFn: ({ paymentId }: { chargeId: string; paymentId: string }) =>
       paymentsRepository.update(paymentId, {
         status: 'PAID',
         paidAt: formatISO(new Date()),
       }),
     onSuccess: async (_payment, { chargeId }) => {
       // Invalidate payments for this charge
-      await queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: chargePaymentsKey(chargeId),
       });
     },

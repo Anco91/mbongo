@@ -12,7 +12,7 @@
 
 - [ ] **Précondition qualité** :
   - [x] Implémenter le socle npm/Turbo défini dans [SPEC-TOOLING-001](docs/specs/tooling-foundation/SPEC.md).
-  - [ ] Établir lint, format et types verts pour le squelette existant avant les features.
+  - [x] Établir lint, format et types verts pour le squelette existant avant les features.
 - [ ] **M1 POC** : spec validée ; implémenter par petites PR sur branches dédiées.
 - [ ] **M2 Cœur métier** *(en cours)* : séparation CRUD `Charge` / `Payment` selon la spec validée ; charges typées, échéancier et carte différée à livrer.
 - [x] **M2 reprise des échéances** : après création d’une charge, exposer l’identifiant si la création groupée des `Payment` échoue et permettre de relancer les échéances manquantes depuis l’interface.

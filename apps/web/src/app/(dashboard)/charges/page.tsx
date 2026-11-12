@@ -8,6 +8,7 @@
  */
 
 import { ChargesGuard } from '@/components/charges/charges-guard';
+import { JSX } from 'react';
 
 /**
  * Charges Dashboard Page Component

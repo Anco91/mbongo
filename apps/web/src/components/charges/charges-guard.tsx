@@ -15,6 +15,7 @@ import {
 import { chargeService } from '@/server/charges/charge.service';
 import { ChargesView } from './charges-view';
 import { ChargeQuery } from '@mbongo/shared';
+import { JSX } from 'react';
 
 /**
  * Props for ChargesGuard

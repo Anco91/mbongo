@@ -7,6 +7,7 @@
  * @module API/Charges/[id]
  */
 
+import { NextResponse } from 'next/server';
 import { chargesController } from '@/server/charges/charges.controller';
 
 // Type for Next.js dynamic route context
@@ -19,7 +20,7 @@ type Context = { params: Promise<{ id: string }> };
 export const GET = async (
   _request: Request,
   { params }: Context
-): Promise<Response> => chargesController.findOne((await params).id);
+): Promise<NextResponse> => chargesController.findOne((await params).id);
 
 /**
  * PATCH /api/charges/:id
@@ -28,7 +29,8 @@ export const GET = async (
 export const PATCH = async (
   request: Request,
   { params }: Context
-): Promise<Response> => chargesController.update(request, (await params).id);
+): Promise<NextResponse> =>
+  chargesController.update(request, (await params).id);
 
 /**
  * DELETE /api/charges/:id
@@ -37,4 +39,4 @@ export const PATCH = async (
 export const DELETE = async (
   _request: Request,
   { params }: Context
-): Promise<Response> => chargesController.remove((await params).id);
+): Promise<NextResponse> => chargesController.remove((await params).id);
