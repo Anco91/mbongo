@@ -8,7 +8,7 @@
  * @module Server/Common/FilterToWhere
  */
 
-import { ChargeQuery, Filter, PaymentQuery } from '@mbongo/shared';
+import { ChargeQuery, Filter, PaymentQuery, AccountQuery, TransactionQuery, TransferQuery, SnapshotQuery } from '@mbongo/shared';
 import { Prisma } from '@prisma/client';
 
 /**
@@ -189,6 +189,38 @@ export function paymentQueryToWhere(
   query: PaymentQuery
 ): Prisma.PaymentWhereInput {
   return queryToWhere<Prisma.PaymentWhereInput>(
+    query as unknown as Record<string, Filter | undefined>
+  );
+}
+
+export function accountQueryToWhere(
+  query: AccountQuery
+): Prisma.AccountWhereInput {
+  return queryToWhere<Prisma.AccountWhereInput>(
+    query as unknown as Record<string, Filter | undefined>
+  );
+}
+
+export function transactionQueryToWhere(
+  query: TransactionQuery
+): Prisma.TransactionWhereInput {
+  return queryToWhere<Prisma.TransactionWhereInput>(
+    query as unknown as Record<string, Filter | undefined>
+  );
+}
+
+export function transferQueryToWhere(
+  query: TransferQuery
+): Prisma.TransferWhereInput {
+  return queryToWhere<Prisma.TransferWhereInput>(
+    query as unknown as Record<string, Filter | undefined>
+  );
+}
+
+export function snapshotQueryToWhere(
+  query: SnapshotQuery
+): Prisma.BalanceSnapshotWhereInput {
+  return queryToWhere<Prisma.BalanceSnapshotWhereInput>(
     query as unknown as Record<string, Filter | undefined>
   );
 }

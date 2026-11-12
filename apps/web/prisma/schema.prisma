@@ -14,26 +14,144 @@ datasource db {
 // Models
 // ============================================================================
 
+// ─── Foyer ───────────────────────────────────────────────────────────────────
+
+/// Member represents a household member (PRIMARY or PARTNER)
+model Member {
+  id        String    @id @default(uuid())
+  firstName String
+  role      String    // "PRIMARY" | "PARTNER"
+  accounts  Account[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("members")
+}
+
+// ─── Comptes ──────────────────────────────────────────────────────────────────
+
+/// Account represents a bank account or financial account
+model Account {
+  id                String            @id @default(uuid())
+  name              String
+  bank              String?
+  currency          String            // "CHF" | "EUR"
+  accountType       String            // "CURRENT"|"CREDIT_CARD"|"JOINT"|"SAVINGS"
+  memberId          String?
+  member            Member?           @relation(fields: [memberId], references: [id])
+  overdraftLimit    Float             @default(0)
+  deferredCard      Boolean           @default(false)
+  billingDay        Int?
+  openingBalance    Float             @default(0)   // renamed from balance
+  status            String            @default("ACTIVE") // "ACTIVE" | "CLOSED"
+  closedAt          DateTime?
+  transactions      Transaction[]
+  snapshots         BalanceSnapshot[]
+  charges           Charge[]          // existing relation preserved
+  outgoingTransfers Transfer[]        @relation("TransferSourceAccount")
+  incomingTransfers Transfer[]        @relation("TransferTargetAccount")
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([name])
+  @@index([memberId])
+  @@index([status])
+
+  @@map("accounts")
+}
+
+// ─── Transactions ─────────────────────────────────────────────────────────────
+
+/// Transaction represents a signed financial movement on an account
+model Transaction {
+  id           String    @id @default(uuid())
+  accountId    String
+  account      Account   @relation(fields: [accountId], references: [id])
+  date         DateTime
+  amount       Float     // SIGNED: negative = debit, positive = credit, non-zero
+  category     String?
+  note         String?
+  transferId   String?
+  transfer     Transfer? @relation(fields: [transferId], references: [id])
+  transferRole String?   // "SOURCE" | "TARGET"
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([accountId, date])
+  @@index([transferId])
+
+  @@map("transactions")
+}
+
+// ─── Transferts 2 phases ──────────────────────────────────────────────────────
+
+/// Transfer represents a 2-phase cross-currency wire (CHF → EUR)
+model Transfer {
+  id              String        @id @default(uuid())
+  sourceAccountId String
+  sourceAccount   Account       @relation("TransferSourceAccount", fields: [sourceAccountId], references: [id])
+  targetAccountId String
+  targetAccount   Account       @relation("TransferTargetAccount", fields: [targetAccountId], references: [id])
+  amountSent      Float
+  rateEstimated   Float
+  rateDate        DateTime
+  amountReceived  Float?
+  rateEffective   Float?
+  fees            Float?
+  memo            String?
+  status          String        @default("ESTIMATED") // "ESTIMATED" | "COMPLETED"
+  sentAt          DateTime
+  receivedAt      DateTime?
+  transactions    Transaction[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([status])
+  @@index([sourceAccountId])
+  @@index([targetAccountId])
+
+  @@map("transfers")
+}
+
+// ─── Snapshots de solde ───────────────────────────────────────────────────────
+
+/// BalanceSnapshot is a manually-recorded balance checkpoint
+model BalanceSnapshot {
+  id        String   @id @default(uuid())
+  accountId String
+  account   Account  @relation(fields: [accountId], references: [id])
+  date      DateTime
+  balance   Float
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([accountId, date])
+
+  @@map("balance_snapshots")
+}
+
+// ─── Charges & Payments (existing — unchanged) ───────────────────────────────
+
 /// Charge represents a financial charge or recurring payment
 model Charge {
-  id           String            @id @default(uuid())
+  id           String    @id @default(uuid())
   label        String
-  type         String            // ChargeType enum (validated by zod at the edge)
+  type         String    // ChargeType enum (validated by zod at the edge)
   amount       Float
-  currency     String            // Currency enum
+  currency     String    // Currency enum
   category     String
   startDate    DateTime
   endDate      DateTime?
-  frequency    String?           // Frequency enum
+  frequency    String?   // Frequency enum
   installments Int?
-  provisioned  Boolean           @default(false)
+  provisioned  Boolean   @default(false)
   accountId    String
-  account      Account           @relation(fields: [accountId], references: [id])
+  account      Account   @relation(fields: [accountId], references: [id])
   payments     Payment[]
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  // Indexes for better query performance
   @@index([accountId])
   @@index([type])
   @@index([category])
@@ -57,31 +175,10 @@ model Payment {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
-  // Indexes
   @@index([chargeId])
   @@index([dueDate])
   @@index([status])
   @@index([paidAt])
 
   @@map("scheduled_payments")
-}
-
-/// Account represents a bank account or financial account
-model Account {
-  id          String   @id @default(uuid())
-  name        String
-  bankName    String?
-  accountType String?  // AccountType enum
-  balance     Float    @default(0)
-  currency    String   @default("CHF")
-  isActive    Boolean  @default(true)
-  charges     Charge[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Indexes
-  @@index([name])
-  @@index([isActive])
-
-  @@map("accounts")
 }
