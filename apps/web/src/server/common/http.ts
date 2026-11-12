@@ -8,7 +8,7 @@
  */
 
 import { NextResponse } from 'next/server';
-import { ZodError, ZodIssue, ZodSchema } from 'zod';
+import { z, ZodError, ZodIssue, ZodSchema, ZodTypeDef } from 'zod';
 
 /**
  * Custom HTTP Error with status code and details

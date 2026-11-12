@@ -19,11 +19,13 @@ import {
 import { chargesRepository } from '@/repositories/charges.repository';
 import { paymentsRepository } from '@/repositories/payments.repository';
 import {
+  Charge,
   CreateChargeInput,
   UpdateChargeInput,
   Payment,
   Charge,
   ChargeQuery,
+  missingPayments,
   nextPayment,
   generatePayments,
 } from '@mbongo/shared';
@@ -37,6 +39,11 @@ import { formatISO } from 'date-fns';
  * Query key for charges
  */
 const CHARGE_KEY = 'charges';
+
+type ChargesQuery = UseQueryResult<Charge[], Error>;
+type ChargeQueryResult = UseQueryResult<Charge, Error>;
+type ChargePaymentsQuery = UseQueryResult<Payment[], Error>;
+type NextPaymentQuery = UseQueryResult<Payment | null, Error>;
 
 /**
  * Generate query key for a single charge
@@ -150,7 +157,32 @@ export function useNextPayment(
 // ============================================================================
 
 /**
+ * Résultat de la création d'une charge.
+ *
+ * Si la création groupée des échéances échoue, la charge créée est
+ * conservée avec l'erreur correspondante pour permettre une reprise
+ * depuis l'UI (spec M2-CHARGE-PAYMENTS-001, § Cohérence de création).
+ */
+export interface CreateChargeResult {
+  charge: Charge;
+  paymentsError: Error | null;
+}
+
+/**
+ * Convertit une erreur inconnue en Error typée.
+ */
+function toError(error: unknown): Error {
+  return error instanceof Error
+    ? error
+    : new Error('Failed to create payments for the charge');
+}
+
+/**
  * Create a new charge
+ *
+ * Retourne toujours la charge créée : si la génération ou la persistance
+ * des échéances échoue, `paymentsError` est renseigné au lieu de lever,
+ * afin que l'UI puisse proposer de reprendre les échéances manquantes.
  *
  * @returns Mutation object with create function
  *
@@ -158,13 +190,11 @@ export function useNextPayment(
  * ```tsx
  * const { mutate: createCharge, isPending } = useCreateCharge();
  *
- * const handleSubmit = (data: CreateChargeInput) => {
- *   createCharge(data, {
- *     onSuccess: () => {
- *       // Invalidate charges list to refetch
- *     },
- *   });
- * };
+ * createCharge(data, {
+ *   onSuccess: ({ charge, paymentsError }) => {
+ *     if (paymentsError) showPaymentRecovery(charge);
+ *   },
+ * });
  * ```
  */
 export function useCreateCharge(): UseMutationResult<
@@ -175,15 +205,66 @@ export function useCreateCharge(): UseMutationResult<
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: CreateChargeInput) => {
+    mutationFn: async (
+      input: CreateChargeInput
+    ): Promise<CreateChargeResult> => {
       const charge = await chargesRepository.create(input);
       const payments = generatePayments(charge, new Date());
-      if (payments.length > 0) await paymentsRepository.createMany(payments);
-      return charge;
+      if (payments.length === 0) {
+        return { charge, paymentsError: null };
+      }
+      try {
+        await paymentsRepository.createMany(payments);
+        return { charge, paymentsError: null };
+      } catch (error: unknown) {
+        return { charge, paymentsError: toError(error) };
+      }
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       // Invalidate all charges queries to trigger refetch
-      void queryClient.invalidateQueries({ queryKey: [CHARGE_KEY] });
+      await queryClient.invalidateQueries({ queryKey: [CHARGE_KEY] });
+    },
+  });
+}
+
+/**
+ * Reprend la création des échéances manquantes d'une charge.
+ *
+ * La fonction partagée `missingPayments` ne renvoie que les échéances
+ * non persistées : si tout est déjà en base, aucune écriture n'est émise.
+ *
+ * @returns Mutation object with retry function
+ *
+ * @example
+ * ```tsx
+ * const { mutateAsync: retryPayments, isPending } = useRetryChargePayments();
+ *
+ * const recovery = async (charge: Charge) => {
+ *   await retryPayments(charge);
+ * };
+ * ```
+ */
+export function useRetryChargePayments(): UseMutationResult<
+  Payment[],
+  Error,
+  Charge
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (charge: Charge): Promise<Payment[]> => {
+      const existing = await paymentsRepository.findMany({
+        chargeId: { eq: charge.id },
+      });
+      const missing = missingPayments(charge, existing, new Date());
+      if (missing.length === 0) return [];
+      return paymentsRepository.createMany(missing);
+    },
+    onSuccess: async (_payments, charge) => {
+      // Invalidate payments for this charge
+      await queryClient.invalidateQueries({
+        queryKey: chargePaymentsKey(charge.id),
+      });
     },
   });
 }
@@ -234,10 +315,10 @@ export function useDeleteCharge(): UseMutationResult<void, Error, string> {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => chargesRepository.remove(id),
-    onSuccess: (_data, id) => {
+    mutationFn: (chargeId: string) => chargesRepository.remove(chargeId),
+    onSuccess: async (_data, chargeId) => {
       // Remove from cache
-      queryClient.removeQueries({ queryKey: chargeKey(id) });
+      queryClient.removeQueries({ queryKey: chargeKey(chargeId) });
       // Invalidate charges list
       void queryClient.invalidateQueries({ queryKey: [CHARGE_KEY] });
     },
@@ -269,7 +350,7 @@ export function useMarkPaymentAsPaid(): UseMutationResult<
         status: 'PAID',
         paidAt: formatISO(new Date()),
       }),
-    onSuccess: (_data, { chargeId }) => {
+    onSuccess: async (_payment, { chargeId }) => {
       // Invalidate payments for this charge
       void queryClient.invalidateQueries({
         queryKey: chargePaymentsKey(chargeId),

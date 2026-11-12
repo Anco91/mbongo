@@ -39,6 +39,7 @@
   "devDependencies": {
     "@tanstack/react-query-devtools": "^5.106.1",
     "@testing-library/react": "^14.1.0",
+    "@types/jest": "^29.5.14",
     "@types/node": "^20.10.5",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
@@ -96,30 +97,45 @@
       }
     },
     "rules": {
-      "@typescript-eslint/explicit-function-return-type": ["error", {
-        "allowExpressions": true,
-        "allowConciseArrowFunctionExpressionsStartingWithVoid": true
-      }],
+      "@typescript-eslint/explicit-function-return-type": [
+        "error",
+        {
+          "allowExpressions": true,
+          "allowConciseArrowFunctionExpressionsStartingWithVoid": true
+        }
+      ],
       "@typescript-eslint/no-explicit-any": "error",
-      "@typescript-eslint/no-unused-vars": ["error", {
-        "argsIgnorePattern": "^_"
-      }],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          "argsIgnorePattern": "^_"
+        }
+      ],
       "@typescript-eslint/no-non-null-assertion": "warn",
       "@typescript-eslint/prefer-nullish-coalescing": "error",
       "@typescript-eslint/prefer-optional-chain": "error",
       "@typescript-eslint/prefer-readonly": "error",
       "@typescript-eslint/explicit-module-boundary-types": "off",
       "@typescript-eslint/no-inferrable-types": "error",
-      "no-console": ["error", {
-        "allow": ["warn", "error"]
-      }],
+      "no-console": [
+        "error",
+        {
+          "allow": [
+            "warn",
+            "error"
+          ]
+        }
+      ],
       "prefer-const": "error",
       "no-var": "error",
       "no-implicit-coercion": "error",
       "no-param-reassign": "error",
-      "no-plusplus": ["error", {
-        "allowForLoopAfterthoughts": true
-      }],
+      "no-plusplus": [
+        "error",
+        {
+          "allowForLoopAfterthoughts": true
+        }
+      ],
       "no-throw-literal": "error",
       "require-await": "error",
       "react/react-in-jsx-scope": "off",
@@ -152,6 +168,7 @@
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "jsdom",
+    "globalSetup": "<rootDir>/jest.global-setup.js",
     "roots": [
       "<rootDir>/src",
       "<rootDir>/__tests__"
