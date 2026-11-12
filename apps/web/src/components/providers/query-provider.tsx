@@ -39,7 +39,11 @@ import { useState } from 'react';
  * }
  * ```
  */
-export function QueryProvider({ children }: { children: React.ReactNode }) {
+export function QueryProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}): JSX.Element {
   // Create a QueryClient instance for each user
   const [queryClient] = useState(
     () =>

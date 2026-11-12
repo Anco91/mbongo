@@ -8,7 +8,7 @@
  */
 
 import { NextResponse } from 'next/server';
-import { z, ZodError, ZodIssue, ZodSchema } from 'zod';
+import { z, ZodError, ZodIssue, ZodSchema, ZodTypeDef } from 'zod';
 
 /**
  * Custom HTTP Error with status code and details
@@ -53,7 +53,7 @@ export class BadRequestError extends HttpError {
  * Unauthorized Error (401)
  */
 export class UnauthorizedError extends HttpError {
-  constructor(message: string = 'Unauthorized') {
+  constructor(message = 'Unauthorized') {
     super(401, { message }, 'UNAUTHORIZED');
     this.name = 'UnauthorizedError';
   }
@@ -63,7 +63,7 @@ export class UnauthorizedError extends HttpError {
  * Forbidden Error (403)
  */
 export class ForbiddenError extends HttpError {
-  constructor(message: string = 'Forbidden') {
+  constructor(message = 'Forbidden') {
     super(403, { message }, 'FORBIDDEN');
     this.name = 'ForbiddenError';
   }
@@ -83,7 +83,7 @@ export class ConflictError extends HttpError {
  * Internal Server Error (500)
  */
 export class InternalServerError extends HttpError {
-  constructor(message: string = 'Internal server error', details?: unknown) {
+  constructor(message = 'Internal server error', details?: unknown) {
     super(500, { message, ...asObject(details) }, 'INTERNAL_ERROR');
     this.name = 'InternalServerError';
   }
@@ -108,11 +108,11 @@ function asObject(value: unknown): Record<string, unknown> {
  * const input = await parseBody(request, createChargeSchema);
  * ```
  */
-export async function parseBody<TSchema extends z.ZodTypeAny>(
+export async function parseBody<Output>(
   request: Request,
-  schema: TSchema
-): Promise<z.output<TSchema>> {
-  const body = await request.json();
+  schema: z.ZodType<Output, ZodTypeDef, unknown>
+): Promise<Output> {
+  const body: unknown = await request.json();
   return parse(body, schema);
 }
 
@@ -129,10 +129,10 @@ export async function parseBody<TSchema extends z.ZodTypeAny>(
  * const query = parseQuery(request, chargeQuerySchema);
  * ```
  */
-export function parseQuery<TSchema extends z.ZodTypeAny>(
+export function parseQuery<Output>(
   request: Request,
-  schema: TSchema
-): z.output<TSchema> {
+  schema: z.ZodType<Output, ZodTypeDef, unknown>
+): Output {
   const searchParams = new URL(request.url).searchParams;
   const query: Record<string, unknown> = {};
 
@@ -180,10 +180,10 @@ export function parseParams<T>(
  * @returns Parsed and validated data
  * @throws HttpError (400) if validation fails
  */
-function parse<TSchema extends z.ZodTypeAny>(
+function parse<Output>(
   value: unknown,
-  schema: TSchema
-): z.output<TSchema> {
+  schema: z.ZodType<Output, ZodTypeDef, unknown>
+): Output {
   const result = schema.safeParse(value);
   if (!result.success) {
     throw new HttpError(400, formatZodError(result.error), 'VALIDATION_ERROR');
@@ -331,10 +331,7 @@ export function toErrorResponse(error: unknown): NextResponse {
  * @param status - HTTP status code (default: 200)
  * @returns NextResponse with data
  */
-export function toSuccessResponse<T>(
-  data: T,
-  status: number = 200
-): NextResponse {
+export function toSuccessResponse<T>(data: T, status = 200): NextResponse {
   return NextResponse.json(
     {
       data,

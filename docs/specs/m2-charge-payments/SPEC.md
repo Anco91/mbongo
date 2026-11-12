@@ -105,7 +105,7 @@ Chaque étape sera une branche et une PR distinctes, reviewables, sans merge ava
 
 Une charge et ses échéances sont créées par leurs repositories respectifs, à partir de la charge et de la fonction pure partagée de génération. Cette séparation évite que `ChargeService` crée des `Payment`. Si la création des échéances échoue, le frontend conserve l’identifiant de la charge créée, affiche l’erreur et permet de reprendre la création des échéances manquantes. Aucune transaction inter-ressources n’est ajoutée dans cette refonte.
 
-**État après la PR #12 :** la séparation des ressources et la création groupée sont implémentées. Le parcours UI de reprise après un échec partiel n’est pas encore implémenté; ce critère reste à faire avant de considérer cette partie de la spec comme complète.
+**État après la PR #12 :** la séparation des ressources et la création groupée sont implémentées. Le parcours UI de reprise après un échec partiel est implémenté côté frontend : `useCreateCharge` conserve la charge créée avec l'erreur de persistance, et `useRetryChargePayments` recrée uniquement les échéances manquantes (fonction partagée pure `missingPayments`).
 
 ## Historique
 
