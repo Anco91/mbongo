@@ -12,10 +12,7 @@ import {
   toCreatedResponse,
   toNoContentResponse,
 } from '@/server/common/http';
-import {
-  TransactionService,
-  transactionService,
-} from './transaction.service';
+import { TransactionService, transactionService } from './transaction.service';
 
 export class TransactionsController {
   constructor(private readonly transactions: TransactionService) {}

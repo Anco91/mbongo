@@ -1,5 +1,5 @@
 import { prisma } from '@/server/db';
-import { NotFoundError } from '@/server/common/http';
+import { NotFoundError, HttpError } from '@/server/common/http';
 import { chargeQueryToWhere } from '@/server/common/filter-to-where';
 import {
   Charge,
@@ -28,6 +28,14 @@ export class ChargeService {
   }
 
   async create(input: CreateChargeInput): Promise<Charge> {
+    const account = await prisma.account.findUnique({
+      where: { id: input.accountId },
+    });
+    if (!account) {
+      throw new HttpError(422, {
+        message: `Unknown account: ${input.accountId}`,
+      });
+    }
     const row = await prisma.charge.create({
       data: {
         label: input.label,

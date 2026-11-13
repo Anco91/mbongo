@@ -1,8 +1,12 @@
 import 'server-only';
 import { prisma } from '@/server/db';
-import { NotFoundError } from '@/server/common/http';
+import { NotFoundError, HttpError } from '@/server/common/http';
 import { snapshotQueryToWhere } from '@/server/common/filter-to-where';
-import { BalanceSnapshot, SnapshotQuery, CreateSnapshotInput } from '@mbongo/shared';
+import {
+  BalanceSnapshot,
+  SnapshotQuery,
+  CreateSnapshotInput,
+} from '@mbongo/shared';
 import { Prisma } from '@prisma/client';
 import { parseISO } from 'date-fns';
 
@@ -25,6 +29,14 @@ export class SnapshotService {
 
   // No adjustment transaction — snapshot only
   async create(input: CreateSnapshotInput): Promise<BalanceSnapshot> {
+    const account = await prisma.account.findUnique({
+      where: { id: input.accountId },
+    });
+    if (!account) {
+      throw new HttpError(422, {
+        message: `Unknown account: ${input.accountId}`,
+      });
+    }
     const row = await prisma.balanceSnapshot.create({
       data: {
         accountId: input.accountId,

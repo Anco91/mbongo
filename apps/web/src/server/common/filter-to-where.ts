@@ -8,7 +8,15 @@
  * @module Server/Common/FilterToWhere
  */
 
-import { ChargeQuery, Filter, PaymentQuery, AccountQuery, TransactionQuery, TransferQuery, SnapshotQuery } from '@mbongo/shared';
+import {
+  ChargeQuery,
+  Filter,
+  PaymentQuery,
+  AccountQuery,
+  TransactionQuery,
+  TransferQuery,
+  SnapshotQuery,
+} from '@mbongo/shared';
 import { Prisma } from '@prisma/client';
 
 /**

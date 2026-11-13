@@ -5,7 +5,9 @@ import { Prisma } from '@prisma/client';
 
 export class MemberService {
   async findMany(): Promise<Member[]> {
-    const rows = await prisma.member.findMany({ orderBy: { createdAt: 'asc' } });
+    const rows = await prisma.member.findMany({
+      orderBy: { createdAt: 'asc' },
+    });
     return rows.map((row) => this.toMember(row));
   }
 
