@@ -23,7 +23,6 @@ import {
   CreateChargeInput,
   UpdateChargeInput,
   Payment,
-  Charge,
   ChargeQuery,
   missingPayments,
   nextPayment,
@@ -39,11 +38,6 @@ import { formatISO } from 'date-fns';
  * Query key for charges
  */
 const CHARGE_KEY = 'charges';
-
-type ChargesQuery = UseQueryResult<Charge[], Error>;
-type ChargeQueryResult = UseQueryResult<Charge, Error>;
-type ChargePaymentsQuery = UseQueryResult<Payment[], Error>;
-type NextPaymentQuery = UseQueryResult<Payment | null, Error>;
 
 /**
  * Generate query key for a single charge
@@ -198,7 +192,7 @@ function toError(error: unknown): Error {
  * ```
  */
 export function useCreateCharge(): UseMutationResult<
-  Charge,
+  CreateChargeResult,
   Error,
   CreateChargeInput
 > {
@@ -316,7 +310,7 @@ export function useDeleteCharge(): UseMutationResult<void, Error, string> {
 
   return useMutation({
     mutationFn: (chargeId: string) => chargesRepository.remove(chargeId),
-    onSuccess: async (_data, chargeId) => {
+    onSuccess: (_data, chargeId) => {
       // Remove from cache
       queryClient.removeQueries({ queryKey: chargeKey(chargeId) });
       // Invalidate charges list
@@ -350,7 +344,7 @@ export function useMarkPaymentAsPaid(): UseMutationResult<
         status: 'PAID',
         paidAt: formatISO(new Date()),
       }),
-    onSuccess: async (_payment, { chargeId }) => {
+    onSuccess: (_payment, { chargeId }) => {
       // Invalidate payments for this charge
       void queryClient.invalidateQueries({
         queryKey: chargePaymentsKey(chargeId),

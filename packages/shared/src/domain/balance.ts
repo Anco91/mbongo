@@ -32,7 +32,10 @@ export function computeBalance(
   account: { openingBalance: number },
   transactions: Array<{ amount: number }>
 ): number {
-  return transactions.reduce((sum, tx) => sum + tx.amount, account.openingBalance);
+  return transactions.reduce(
+    (sum, tx) => sum + tx.amount,
+    account.openingBalance
+  );
 }
 
 /**

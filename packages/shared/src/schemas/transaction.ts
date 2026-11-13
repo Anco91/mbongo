@@ -37,13 +37,13 @@ export type TransferRole = z.infer<typeof transferRoleSchema>;
  * Schéma principal pour une Transaction (forme persistée)
  */
 export const transactionSchema = z.object({
-  id: z.string().uuid(),
-  accountId: z.string().uuid(),
+  id: z.string().min(1),
+  accountId: z.string().min(1),
   date: isoDate,
   amount: z.number().refine((v) => v !== 0, 'Amount must be non-zero'),
   category: z.string().nullable(),
-  note: z.string().nullable(),
-  transferId: z.string().uuid().nullable(),
+  note: z.string().nullable().default(null),
+  transferId: z.string().min(1).nullable(),
   transferRole: transferRoleSchema.nullable(),
   createdAt: isoDate,
   updatedAt: isoDate,
@@ -107,5 +107,3 @@ export type UpdateTransactionInput = z.infer<typeof updateTransactionSchema>;
 
 /** Type TypeScript pour les requêtes Transaction */
 export type TransactionQuery = z.infer<typeof transactionQuerySchema>;
-
-

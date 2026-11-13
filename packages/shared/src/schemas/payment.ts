@@ -12,8 +12,8 @@ export const paymentStatusSchema = z.enum([
 const isoDate = z.string().datetime();
 
 export const paymentSchema = z.object({
-  id: z.string().uuid(),
-  chargeId: z.string().uuid(),
+  id: z.string().min(1),
+  chargeId: z.string().min(1),
   amount: z.number().positive(),
   currency: currencySchema,
   dueDate: isoDate,

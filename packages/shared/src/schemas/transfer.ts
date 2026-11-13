@@ -41,16 +41,22 @@ export type TransferStatus = z.infer<typeof transferStatusSchema>;
  * Schéma principal pour un Transfer (forme persistée)
  */
 export const transferSchema = z.object({
-  id: z.string().uuid(),
-  sourceAccountId: z.string().uuid(),
-  targetAccountId: z.string().uuid(),
+  id: z.string().min(1),
+  sourceAccountId: z.string().min(1),
+  targetAccountId: z.string().min(1),
   amountSent: z.number().positive('Amount sent must be positive'),
   rateEstimated: z.number().positive('Estimated rate must be positive'),
   rateDate: isoDate,
-  amountReceived: z.number().positive('Amount received must be positive').nullable(),
-  rateEffective: z.number().positive('Effective rate must be positive').nullable(),
+  amountReceived: z
+    .number()
+    .positive('Amount received must be positive')
+    .nullable(),
+  rateEffective: z
+    .number()
+    .positive('Effective rate must be positive')
+    .nullable(),
   fees: z.number().nullable(),
-  memo: z.string().nullable(),
+  memo: z.string().nullable().default(null),
   status: transferStatusSchema,
   sentAt: isoDate,
   receivedAt: isoDate.nullable(),
@@ -128,4 +134,3 @@ export type UpdateTransferInput = z.infer<typeof updateTransferSchema>;
 
 /** Type TypeScript pour les requêtes Transfer */
 export type TransferQuery = z.infer<typeof transferQuerySchema>;
-

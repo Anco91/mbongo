@@ -29,6 +29,16 @@ export class AccountService {
   }
 
   async create(input: CreateAccountInput): Promise<Account> {
+    if (input.memberId) {
+      const member = await prisma.member.findUnique({
+        where: { id: input.memberId },
+      });
+      if (!member) {
+        throw new HttpError(422, {
+          message: `Unknown member: ${input.memberId}`,
+        });
+      }
+    }
     const row = await prisma.account.create({
       data: {
         name: input.name,
@@ -100,7 +110,8 @@ export class AccountService {
     if (input.memberId !== undefined) data.memberId = input.memberId;
     if (input.overdraftLimit !== undefined)
       data.overdraftLimit = input.overdraftLimit;
-    if (input.deferredCard !== undefined) data.deferredCard = input.deferredCard;
+    if (input.deferredCard !== undefined)
+      data.deferredCard = input.deferredCard;
     if (input.billingDay !== undefined) data.billingDay = input.billingDay;
     if (input.openingBalance !== undefined)
       data.openingBalance = input.openingBalance;

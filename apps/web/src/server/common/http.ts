@@ -8,7 +8,8 @@
  */
 
 import { NextResponse } from 'next/server';
-import { z, ZodError, ZodIssue, ZodSchema, ZodTypeDef } from 'zod';
+import { ZodError, ZodIssue, ZodSchema } from 'zod';
+import { Prisma } from '@prisma/client';
 
 /**
  * Custom HTTP Error with status code and details
@@ -112,7 +113,12 @@ export async function parseBody<T>(
   request: Request,
   schema: ZodSchema<T>
 ): Promise<T> {
-  const body: unknown = await request.json();
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    throw new BadRequestError('Malformed JSON body');
+  }
   return parse(body, schema);
 }
 
@@ -275,6 +281,24 @@ export function toErrorResponse(error: unknown): NextResponse {
         },
       },
       { status: 400 }
+    );
+  }
+
+  // Handle Prisma known request errors with a readable status code.
+  // P2003 (foreign key constraint) means the client sent a reference to a
+  // record that does not exist — a user error (422), never a server error.
+  if (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === 'P2003'
+  ) {
+    return NextResponse.json(
+      {
+        error: {
+          code: 'UNKNOWN_REFERENCE',
+          message: 'Referenced record does not exist',
+        },
+      },
+      { status: 422 }
     );
   }
 

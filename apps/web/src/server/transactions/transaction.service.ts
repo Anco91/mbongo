@@ -43,7 +43,10 @@ export class TransactionService {
     return this.toTransaction(row);
   }
 
-  async update(id: string, input: UpdateTransactionInput): Promise<Transaction> {
+  async update(
+    id: string,
+    input: UpdateTransactionInput
+  ): Promise<Transaction> {
     const existing = await prisma.transaction.findUnique({ where: { id } });
     if (!existing) throw new NotFoundError('Transaction', id);
     const row = await prisma.transaction.update({
@@ -75,7 +78,8 @@ export class TransactionService {
     if (input.category !== undefined) data.category = input.category;
     if (input.note !== undefined) data.note = input.note;
     if (input.transferId !== undefined) data.transferId = input.transferId;
-    if (input.transferRole !== undefined) data.transferRole = input.transferRole;
+    if (input.transferRole !== undefined)
+      data.transferRole = input.transferRole;
     return data;
   }
 

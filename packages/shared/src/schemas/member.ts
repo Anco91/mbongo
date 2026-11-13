@@ -27,7 +27,7 @@ export type MemberRole = z.infer<typeof memberRoleSchema>;
  * Schéma principal pour un Member (forme persistée)
  */
 export const memberSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string().min(1),
   firstName: z.string().min(1, 'First name is required'),
   role: memberRoleSchema,
   createdAt: isoDate,

@@ -47,17 +47,17 @@ export type ChargeType = z.infer<typeof chargeTypeSchema>;
  * Schéma principal pour une Charge (forme persitée)
  */
 export const chargeSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string().min(1),
   label: z.string().min(1, 'Label is required'),
   type: chargeTypeSchema,
   amount: z.number().positive('Amount must be positive'),
   currency: currencySchema,
-  accountId: z.string().uuid(),
+  accountId: z.string().min(1),
   category: z.string().min(1, 'Category is required'),
   startDate: isoDate,
-  endDate: isoDate.nullable(),
-  frequency: frequencySchema.nullable(),
-  installments: z.number().int().positive().nullable(),
+  endDate: isoDate.nullable().default(null),
+  frequency: frequencySchema.nullable().default(null),
+  installments: z.number().int().positive().nullable().default(null),
   provisioned: z.boolean().default(false),
   createdAt: isoDate,
   updatedAt: isoDate,
