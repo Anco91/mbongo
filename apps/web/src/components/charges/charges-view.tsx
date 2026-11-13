@@ -14,9 +14,8 @@ import {
   useDeleteCharge,
   useRetryChargePayments,
 } from './hooks/use-charges';
-import { Charge, CreateChargeInput } from '@mbongo/shared';
+import { Charge } from '@mbongo/shared';
 import Link from 'next/link';
-import { formatISO } from 'date-fns';
 import { JSX } from 'react';
 
 /**
@@ -38,8 +37,6 @@ export function ChargesView(): JSX.Element {
   // Create charge mutation (returns the created charge even if the
   // grouped payment creation fails, so the UI can offer recovery)
   const {
-    mutate: createCharge,
-    isPending: isCreating,
     data: createResult,
     error: createError,
     reset: resetCreate,
@@ -111,7 +108,12 @@ export function ChargesView(): JSX.Element {
         <p className="text-gray-600 mb-6">
           Create your first charge to get started.
         </p>
-        <CreateChargeButton onCreate={createCharge} disabled={isCreating} />
+        <Link
+          href="/charges/nouveau"
+          className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
+        >
+          Create Charge
+        </Link>
       </div>
     );
   }
@@ -131,7 +133,12 @@ export function ChargesView(): JSX.Element {
       )}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Charges</h1>
-        <CreateChargeButton onCreate={createCharge} disabled={isCreating} />
+        <Link
+          href="/charges/nouveau"
+          className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+        >
+          Create Charge
+        </Link>
       </div>
 
       <div className="bg-white shadow overflow-hidden sm:rounded-md">
@@ -325,44 +332,6 @@ function ChargeRow({
         </div>
       </td>
     </tr>
-  );
-}
-
-/**
- * Create Charge Button Component
- */
-interface CreateChargeButtonProps {
-  onCreate: (data: CreateChargeInput) => void;
-  disabled: boolean;
-}
-
-function CreateChargeButton({
-  onCreate,
-  disabled,
-}: CreateChargeButtonProps): JSX.Element {
-  return (
-    <button
-      onClick={() => {
-        // In a real app, this would open a modal with a form
-        onCreate({
-          label: 'New Charge',
-          type: 'ONE_OFF',
-          amount: 1,
-          currency: 'CHF',
-          accountId: '00000000-0000-4000-8000-000000000001',
-          category: 'Miscellaneous',
-          startDate: formatISO(new Date()),
-          endDate: null,
-          frequency: null,
-          installments: null,
-          provisioned: false,
-        });
-      }}
-      disabled={disabled}
-      className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      {disabled ? 'Creating...' : 'Create Charge'}
-    </button>
   );
 }
 
