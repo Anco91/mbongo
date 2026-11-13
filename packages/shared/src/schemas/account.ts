@@ -29,10 +29,10 @@ export const accountCurrencySchema = z.enum(['CHF', 'EUR']);
 
 /** Types de comptes possibles */
 export const accountTypeSchema = z.enum([
-  'CURRENT',     // Compte courant
+  'CURRENT', // Compte courant
   'CREDIT_CARD', // Carte de crédit
-  'JOINT',       // Compte joint
-  'SAVINGS',     // Compte épargne
+  'JOINT', // Compte joint
+  'SAVINGS', // Compte épargne
 ]);
 
 /** Statuts de compte possibles */
@@ -53,18 +53,18 @@ export type AccountStatus = z.infer<typeof accountStatusSchema>;
  * Schéma principal pour un Account (forme persistée)
  */
 export const accountSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string().min(1),
   name: z.string().min(1, 'Name is required'),
-  bank: z.string().nullable(),
+  bank: z.string().nullable().default(null),
   currency: accountCurrencySchema,
   accountType: accountTypeSchema,
-  memberId: z.string().uuid().nullable(),
+  memberId: z.string().min(1).nullable().default(null),
   overdraftLimit: z.number().default(0),
   deferredCard: z.boolean().default(false),
-  billingDay: z.number().int().min(1).max(31).nullable(),
+  billingDay: z.number().int().min(1).max(31).nullable().default(null),
   openingBalance: z.number().default(0),
-  status: accountStatusSchema,
-  closedAt: isoDate.nullable(),
+  status: accountStatusSchema.default('ACTIVE'),
+  closedAt: isoDate.nullable().default(null),
   createdAt: isoDate,
   updatedAt: isoDate,
 });

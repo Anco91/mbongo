@@ -28,11 +28,11 @@ const isoDate = z
  * Schéma principal pour un BalanceSnapshot (forme persistée)
  */
 export const balanceSnapshotSchema = z.object({
-  id: z.string().uuid(),
-  accountId: z.string().uuid(),
+  id: z.string().min(1),
+  accountId: z.string().min(1),
   date: isoDate,
   balance: z.number(),
-  note: z.string().nullable(),
+  note: z.string().nullable().default(null),
   createdAt: isoDate,
   updatedAt: isoDate,
 });
@@ -78,4 +78,3 @@ export type CreateSnapshotInput = z.infer<typeof createSnapshotSchema>;
 
 /** Type TypeScript pour les requêtes BalanceSnapshot */
 export type SnapshotQuery = z.infer<typeof snapshotQuerySchema>;
-
