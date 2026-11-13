@@ -27,12 +27,14 @@
     "quality:fix": "npm run lint:fix && npm run format && npm run typecheck"
   },
   "dependencies": {
+    "@hookform/resolvers": "^7.0.6",
     "@mbongo/shared": "^2.0.0",
     "@prisma/client": "^5.8.0",
     "@tanstack/react-query": "^5.17.0",
     "next": "^15.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-hook-form": "^7.92.0",
     "server-only": "^0.0.1",
     "zod": "^3.22.0"
   },
@@ -177,11 +179,15 @@
       "**/__tests__/**/*.+(ts|tsx|js)",
       "**/?(*.)+(spec|test).+(ts|tsx|js)"
     ],
+    "testPathIgnorePatterns": ["/stubs/"],
     "transform": {
       "^.+\\.(ts|tsx)$": [
         "ts-jest",
         {
-          "useESM": true
+          "useESM": true,
+          "tsconfig": {
+            "jsx": "react-jsx"
+          }
         }
       ]
     },
@@ -209,11 +215,13 @@
     "clearMocks": true,
     "restoreMocks": true,
     "moduleNameMapper": {
+      "^server-only$": "<rootDir>/__tests__/stubs/server-only.js",
       "^@/server/(.*)$": "<rootDir>/src/server/$1",
       "^@/components/(.*)$": "<rootDir>/src/components/$1",
       "^@/app/(.*)$": "<rootDir>/src/app/$1",
       "^@mbongo/shared$": "<rootDir>/../../packages/shared/src/index.ts",
-      "^@mbongo/shared/(.*)$": "<rootDir>/../../packages/shared/src/$1"
+      "^@mbongo/shared/(.*)$": "<rootDir>/../../packages/shared/src/$1",
+      "^@/(.*)$": "<rootDir>/src/$1"
     }
   }
 }

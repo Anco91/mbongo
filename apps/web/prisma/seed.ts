@@ -8,9 +8,11 @@
 
 import { PrismaClient } from '@prisma/client';
 
+/* eslint-disable no-console -- a seed script logs its progress */
+
 const prisma = new PrismaClient();
 
-async function main() {
+async function main(): Promise<void> {
   console.log('🌱 Seeding database...');
 
   // ─── Members ──────────────────────────────────────────────────────────────
@@ -164,7 +166,9 @@ async function main() {
     },
   });
 
-  console.log(`  ✓ Transfer ESTIMATED: ${transfer.memo} (${transfer.amountSent} CHF)`);
+  console.log(
+    `  ✓ Transfer ESTIMATED: ${transfer.memo} (${transfer.amountSent} CHF)`
+  );
 
   // ─── BalanceSnapshot sur UBS Courant ──────────────────────────────────────
   await prisma.balanceSnapshot.upsert({
@@ -189,6 +193,6 @@ main()
     console.error('❌ Seed failed:', error);
     process.exit(1);
   })
-  .finally(async () => {
-    await prisma.$disconnect();
+  .finally(() => {
+    void prisma.$disconnect();
   });
