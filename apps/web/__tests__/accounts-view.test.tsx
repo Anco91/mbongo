@@ -125,6 +125,88 @@ describe('AccountsView', () => {
     const balance = screen.getByText(/−?-?[\s\u00A0\u202F]?200\.00\s?CHF/);
     expect(balance.className).toContain('text-red-600');
   });
+
+  it('shows the computed card encours with the settlement account (M2)', () => {
+    const card = {
+      ...account,
+      id: 'card-ubs-0001',
+      name: 'Carte UBS',
+      accountType: 'CREDIT_CARD',
+      billingDay: 28,
+      linkedAccountId: 'account-ubs-courant',
+    };
+    (useAccounts as jest.Mock).mockReturnValue({
+      data: [card, account],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+    (useTransactions as jest.Mock).mockReturnValue({
+      data: [
+        {
+          id: 'tx-card-1',
+          accountId: 'card-ubs-0001',
+          amount: -640.2,
+          date: now,
+          createdAt: now,
+          updatedAt: now,
+        },
+      ],
+    });
+
+    render(createElement(AccountsView));
+
+    expect(screen.getByText(/Encours carte :/)).toBeTruthy();
+    expect(screen.getByText(/640\.20/)).toBeTruthy();
+    expect(screen.getByText(/prélèvement sur UBS Courant/)).toBeTruthy();
+  });
+
+  it('hides the card encours when the cycle is empty (after billing)', () => {
+    const card = {
+      ...account,
+      id: 'card-ubs-0001',
+      name: 'Carte UBS',
+      accountType: 'CREDIT_CARD',
+      billingDay: 28,
+      linkedAccountId: 'account-ubs-courant',
+    };
+    (useAccounts as jest.Mock).mockReturnValue({
+      data: [card],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+    (useTransactions as jest.Mock).mockReturnValue({ data: [] });
+
+    render(createElement(AccountsView));
+
+    expect(screen.queryByText(/Encours carte :/)).toBeFalsy();
+  });
+
+  it('documents the deferred-debit anti-double-booking convention (M2)', () => {
+    const deferred = {
+      ...account,
+      id: 'joint-bnp-0001',
+      name: 'Compte joint BNP',
+      currency: 'EUR',
+      accountType: 'JOINT',
+      deferredCard: true,
+    };
+    (useAccounts as jest.Mock).mockReturnValue({
+      data: [deferred],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+    (useTransactions as jest.Mock).mockReturnValue({ data: [] });
+
+    render(createElement(AccountsView));
+
+    expect(
+      screen.getByText(/Ne saisissez jamais le prélèvement groupé/)
+    ).toBeTruthy();
+    expect(screen.getByText(/anti-double-compte/)).toBeTruthy();
+  });
 });
 
 describe('AccountsView — error and loading states', () => {

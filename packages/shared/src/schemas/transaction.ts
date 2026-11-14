@@ -59,11 +59,18 @@ export const transactionSchema = z.object({
  * `transferId` et `transferRole` sont conservés : ils sont renseignés
  * par TransferService lors de la création d'une transaction liée.
  */
-export const createTransactionSchema = transactionSchema.omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
+export const createTransactionSchema = transactionSchema
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    // Une transaction saisie manuellement n'est pas liée à un transfert :
+    // ces champs ne sont renseignés que par TransferService.
+    transferId: z.string().min(1).nullable().default(null),
+    transferRole: transferRoleSchema.nullable().default(null),
+  });
 
 /**
  * Schéma pour mettre à jour une Transaction.

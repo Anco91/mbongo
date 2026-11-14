@@ -65,7 +65,16 @@ export class TransactionService {
         'Transaction is linked to a transfer and cannot be deleted'
       );
     }
-    await prisma.transaction.delete({ where: { id } });
+    // M2 (spec payment-schedule) : une transaction rapprochée supprimée
+    // dérapproche automatiquement son échéance — retour PENDING, sans date
+    // de paiement. Aucune échéance PAID ne reste orpheline.
+    await prisma.$transaction(async (tx) => {
+      await tx.payment.updateMany({
+        where: { transactionId: id },
+        data: { transactionId: null, status: 'PENDING', paidAt: null },
+      });
+      await tx.transaction.delete({ where: { id } });
+    });
   }
 
   private toPrisma(

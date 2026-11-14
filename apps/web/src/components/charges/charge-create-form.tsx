@@ -60,7 +60,7 @@ export function ChargeCreateForm(): JSX.Element {
   const {
     mutate: createCharge,
     isPending: isCreating,
-    data: createResult,
+    data: createdCharge,
     error,
   } = useCreateCharge();
 
@@ -95,22 +95,14 @@ export function ChargeCreateForm(): JSX.Element {
     void submit(event);
   };
 
-  if (createResult) {
+  if (createdCharge) {
     return (
       <div className="space-y-4">
-        {createResult.paymentsError ? (
-          <div className="p-4 border border-yellow-300 rounded-lg bg-yellow-50">
-            <p className="text-sm text-yellow-700">
-              Charge créée, mais la génération des échéances a échoué.
-            </p>
-          </div>
-        ) : (
-          <div className="p-4 border border-emerald-300 rounded-lg bg-emerald-50">
-            <p className="text-emerald-700">
-              Charge créée — échéances générées.
-            </p>
-          </div>
-        )}
+        <div className="p-4 border border-emerald-300 rounded-lg bg-emerald-50">
+          <p className="text-emerald-700">
+            Charge créée — échéances générées (tout-ou-rien).
+          </p>
+        </div>
         <Link
           href="/charges"
           className="inline-block px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"

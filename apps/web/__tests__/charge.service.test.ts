@@ -12,6 +12,7 @@ import { HttpError } from '@/server/common/http';
 
 jest.mock('@/server/db', () => ({
   prisma: {
+    $transaction: jest.fn(),
     account: { findUnique: jest.fn() },
     charge: {
       findMany: jest.fn(),
@@ -20,11 +21,13 @@ jest.mock('@/server/db', () => ({
       update: jest.fn(),
       delete: jest.fn(),
     },
+    payment: { createMany: jest.fn(), deleteMany: jest.fn() },
   },
 }));
 
 import { prisma } from '@/server/db';
 
+const mockedTransaction = prisma.$transaction as jest.Mock;
 const mockedFindUnique = prisma.account.findUnique as jest.Mock;
 const mockedCreate = prisma.charge.create as jest.Mock;
 
@@ -51,7 +54,7 @@ const chargeRow = {
   category: 'Logement',
   startDate: new Date('2026-11-01T00:00:00.000Z'),
   endDate: null,
-  frequency: 'MONTHLY',
+  frequency: 'monthly',
   installments: null,
   provisioned: false,
   accountId: 'account-ubs-courant',
@@ -62,6 +65,10 @@ const chargeRow = {
 describe('ChargeService.create', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Le client Prisma transmis à la transaction EST le mock prisma lui-même.
+    mockedTransaction.mockImplementation((fn: (tx: unknown) => unknown) =>
+      fn(prisma)
+    );
   });
 
   it('rejects an unknown account with a readable 422', async () => {
@@ -103,6 +110,9 @@ describe('ChargeService — other methods', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedTransaction.mockImplementation((fn: (tx: unknown) => unknown) =>
+      fn(prisma)
+    );
   });
 
   it('finds many charges with query', async () => {

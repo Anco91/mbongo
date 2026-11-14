@@ -11,6 +11,8 @@ import { createElement } from 'react';
 import { AccountCreateForm } from '@/components/accounts/account-create-form';
 
 jest.mock('@/components/accounts/hooks/use-accounts', () => ({
+  useAccounts: jest.fn(),
+  useAccount: jest.fn(),
   useCreateAccount: jest.fn(),
 }));
 
@@ -18,7 +20,10 @@ jest.mock('@/components/members/hooks/use-members', () => ({
   useMembers: jest.fn(),
 }));
 
-import { useCreateAccount } from '@/components/accounts/hooks/use-accounts';
+import {
+  useAccounts,
+  useCreateAccount,
+} from '@/components/accounts/hooks/use-accounts';
 import { useMembers } from '@/components/members/hooks/use-members';
 
 const mockMutate = jest.fn();
@@ -26,6 +31,7 @@ const mockMutate = jest.fn();
 beforeEach(() => {
   jest.clearAllMocks();
   (useMembers as jest.Mock).mockReturnValue({ data: [] });
+  (useAccounts as jest.Mock).mockReturnValue({ data: [] });
   (useCreateAccount as jest.Mock).mockReturnValue({
     mutate: mockMutate,
     isPending: false,
@@ -110,6 +116,73 @@ describe('AccountCreateForm', () => {
     });
 
     expect(screen.getByLabelText(/Jour de facturation/)).toBeTruthy();
+  });
+
+  it('shows the settlement selector only for CREDIT_CARD and refuses a card without one', async () => {
+    (useAccounts as jest.Mock).mockReturnValue({
+      data: [
+        {
+          id: 'account-ubs-courant',
+          name: 'UBS Courant',
+          currency: 'CHF',
+          accountType: 'CURRENT',
+          status: 'ACTIVE',
+        },
+      ],
+    });
+
+    render(createElement(AccountCreateForm));
+
+    // Caché pour un compte courant
+    expect(screen.queryByLabelText(/Prélèvement sur/)).toBeFalsy();
+
+    fireEvent.change(screen.getByLabelText(/Type de compte/), {
+      target: { value: 'CREDIT_CARD' },
+    });
+
+    // Visible et requis pour une carte
+    expect(screen.getByLabelText(/Prélèvement sur/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Créer le compte' }));
+
+    await waitFor(() =>
+      expect(screen.getByText(/requires a settlement account/)).toBeTruthy()
+    );
+    expect(mockMutate).not.toHaveBeenCalled();
+  });
+
+  it('submits a credit card with its settlement account', async () => {
+    (useAccounts as jest.Mock).mockReturnValue({
+      data: [
+        {
+          id: 'account-ubs-courant',
+          name: 'UBS Courant',
+          currency: 'CHF',
+          accountType: 'CURRENT',
+          status: 'ACTIVE',
+        },
+      ],
+    });
+
+    render(createElement(AccountCreateForm));
+
+    fireEvent.change(screen.getByLabelText('Nom du compte'), {
+      target: { value: 'Carte UBS' },
+    });
+    fireEvent.change(screen.getByLabelText(/Type de compte/), {
+      target: { value: 'CREDIT_CARD' },
+    });
+    fireEvent.change(screen.getByLabelText(/Prélèvement sur/), {
+      target: { value: 'account-ubs-courant' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Créer le compte' }));
+
+    await waitFor(() => expect(mockMutate).toHaveBeenCalled());
+    expect(mockMutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        accountType: 'CREDIT_CARD',
+        linkedAccountId: 'account-ubs-courant',
+      })
+    );
   });
 
   it('shows the success panel after creation', () => {

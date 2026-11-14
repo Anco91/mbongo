@@ -19,12 +19,21 @@ export const paymentSchema = z.object({
   dueDate: isoDate,
   status: paymentStatusSchema,
   paidAt: isoDate.nullable(),
+  transactionId: z.string().min(1).nullable(),
   createdAt: isoDate,
   updatedAt: isoDate,
 });
 
 export const createPaymentSchema = paymentSchema
-  .omit({ id: true, createdAt: true, updatedAt: true, paidAt: true })
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+    paidAt: true,
+    // A payment is never created already reconciled: the link is made
+    // afterwards through updatePaymentSchema (reconciliation).
+    transactionId: true,
+  })
   .extend({ status: paymentStatusSchema.default('PENDING') });
 export const createPaymentsSchema = z.array(createPaymentSchema).min(1);
 export const createPaymentRequestSchema = z.union([
@@ -35,6 +44,11 @@ export const createPaymentRequestSchema = z.union([
 export const updatePaymentSchema = paymentSchema
   .omit({ id: true, createdAt: true, updatedAt: true })
   .partial();
+
+/** Rapprochement : la transaction à lier est requise. */
+export const reconcilePaymentSchema = z.object({
+  transactionId: z.string().min(1),
+});
 
 export const paymentQuerySchema = z.object({
   chargeId: filterSchema.optional(),
