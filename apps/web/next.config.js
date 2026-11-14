@@ -1,9 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  experimental: {
-    serverComponentsExternalPackages: ['@prisma/client', '@mbongo/shared'],
-  },
+  serverExternalPackages: ['@prisma/client', '@mbongo/shared'],
   webpack: (config) => {
     // Allow importing from shared package
     config.resolve.alias = {
