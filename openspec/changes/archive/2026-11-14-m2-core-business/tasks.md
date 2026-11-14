@@ -18,7 +18,7 @@
 - [x] 3.2 Implémenter la règle d'édition dans `chargeService.update` (champs calendrier ⇒ `$transaction` : remplacement des futures `PENDING` sans rapprochement, `PAID`/rapprochées intouchées) et vérifier par tests d'intégration : révision de montant, échéances payées préservées, édition sans impact calendrier
 - [x] 3.3 Implémenter le rapprochement dans `paymentService` (liaison unique + `PAID` + `paidAt`, rapprochement après coche, dérapprochement volontaire ⇒ `PENDING`) et vérifier par tests d'intégration : double liaison refusée avec message lisible, rapprochement d'une échéance déjà `PAID`
 - [x] 3.4 Implémenter la dérapprochement automatique à la suppression d'une transaction rapprochée (dans le service de suppression de transaction) et vérifier par test d'intégration : transaction supprimée ⇒ échéance `PENDING` sans date de paiement, aucune échéance `PAID` orpheline
-- [ ] 3.5 Étendre `accountService.create`/`update` : `linkedAccountId` requis pour `CREDIT_CARD`, refusé (400) pour les autres types, 422 "compte de règlement inconnu" si inexistant — vérifier par tests d'intégration des quatre scénarios de la spec account-management
+- [x] 3.5 Étendre `accountService.create`/`update` : `linkedAccountId` requis pour `CREDIT_CARD`, refusé (400) pour les autres types, 422 "compte de règlement inconnu" si inexistant — vérifier par tests d'intégration des quatre scénarios de la spec account-management
 - [x] 3.6 Exposer le rapprochement dans `/api/payments` (et la suppression de transaction via `/api/transactions`) avec validation zod à la frontière — vérifier par appel HTTP de test que les réponses suivent les codes de spec (200/400/409/422)
 
 ## 4. UI — échéancier et rapprochement
