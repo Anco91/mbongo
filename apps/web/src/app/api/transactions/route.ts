@@ -16,3 +16,10 @@ import { transactionsController } from '@/server/transactions/transactions.contr
  */
 export const GET = (request: Request): Promise<NextResponse> =>
   transactionsController.find(request);
+
+/**
+ * POST /api/transactions
+ * Create a new transaction
+ */
+export const POST = (request: Request): Promise<NextResponse> =>
+  transactionsController.create(request);

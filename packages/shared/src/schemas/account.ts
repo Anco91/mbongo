@@ -62,6 +62,7 @@ export const accountSchema = z.object({
   overdraftLimit: z.number().default(0),
   deferredCard: z.boolean().default(false),
   billingDay: z.number().int().min(1).max(31).nullable().default(null),
+  linkedAccountId: z.string().min(1).nullable().default(null),
   openingBalance: z.number().default(0),
   status: accountStatusSchema.default('ACTIVE'),
   closedAt: isoDate.nullable().default(null),
@@ -74,20 +75,62 @@ export const accountSchema = z.object({
 // ============================================================================
 
 /**
- * Schéma pour créer un nouveau Account
- * Omet les champs générés automatiquement (id, createdAt, updatedAt)
+ * Invariant linkedAccountId : requis pour une carte de crédit (CREDIT_CARD)
+ * dont le type est explicitement présent, refusé pour tout autre type.
  */
-export const createAccountSchema = accountSchema.omit({
+function validateLinkedAccountRefine(
+  value: { linkedAccountId?: string | null; accountType?: unknown },
+  ctx: z.RefinementCtx
+): void {
+  if (!value) return;
+  if (value.accountType === 'CREDIT_CARD' && !value.linkedAccountId) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['linkedAccountId'],
+      message: 'A credit card requires a settlement account (linkedAccountId)',
+    });
+    return;
+  }
+  if (!value.linkedAccountId) return;
+  if (value.accountType !== 'CREDIT_CARD') {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['linkedAccountId'],
+      message: 'linkedAccountId is only allowed for CREDIT_CARD accounts',
+    });
+  }
+}
+
+/**
+ * Base commune (sans champs générés) avant application de l'invariant.
+ * Le .partial() doit se faire sur l'objet brut : un schema déjà raffiné
+ * (superRefine) n'expose plus .partial().
+ */
+const createAccountBase = accountSchema.omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
 /**
+ * Schéma pour créer un nouveau Account
+ * Omet les champs générés automatiquement (id, createdAt, updatedAt)
+ *
+ * L'invariant linkedAccountId est appliqué par superRefine INLINE (pas de
+ * helper générique) : un wrapper `T extends z.ZodTypeAny` élargit le type
+ * déduit au point de casser l'inférence de zodResolver côté formulaire.
+ */
+export const createAccountSchema = createAccountBase.superRefine(
+  validateLinkedAccountRefine
+);
+
+/**
  * Schéma pour mettre à jour un Account
  * Tous les champs sont optionnels (zod.partial, PAS TS Partial<>)
  */
-export const updateAccountSchema = createAccountSchema.partial();
+export const updateAccountSchema = createAccountBase
+  .partial()
+  .superRefine(validateLinkedAccountRefine);
 
 /** Schéma pour les requêtes GET /api/accounts */
 export const accountQuerySchema = z.object({

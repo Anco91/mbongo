@@ -11,7 +11,7 @@
 
 import { useAccounts } from './hooks/use-accounts';
 import { useTransactions } from '@/hooks/use-transactions';
-import { computeBalance } from '@mbongo/shared';
+import { cardBilling, computeBalance } from '@mbongo/shared';
 import Link from 'next/link';
 import { JSX } from 'react';
 
@@ -84,12 +84,22 @@ export function AccountsView(): JSX.Element {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {activeAccounts.map((account) => {
-            const balance = computeBalance(
-              account,
-              transactions.filter(
-                (transaction) => transaction.accountId === account.id
-              )
+            const accountTransactions = transactions.filter(
+              (transaction) => transaction.accountId === account.id
             );
+            const balance = computeBalance(account, accountTransactions);
+            // M2 (spec deferred-card) : encours carte calculé à la volée,
+            // jamais stocké. Affiché pour toute carte (crédit ou différé).
+            const isCard =
+              account.accountType === 'CREDIT_CARD' || account.deferredCard;
+            const billing = isCard
+              ? cardBilling(account, accountTransactions, new Date())
+              : null;
+            const settlement = billing
+              ? activeAccounts.find(
+                  (candidate) => candidate.id === billing.settlementAccountId
+                )
+              : null;
             return (
               <div
                 key={account.id}
@@ -122,8 +132,32 @@ export function AccountsView(): JSX.Element {
                   </p>
                 )}
                 {account.deferredCard && (
-                  <p className="mt-1 text-xs text-gray-500">
-                    Carte à débit différé
+                  <>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Carte à débit différé
+                    </p>
+                    {/* Convention anti-double-compte (M2, spec
+                        deferred-card) : le prélèvement groupé de fin de
+                        mois ne se saisit JAMAIS comme transaction — les
+                        achats déjà enregistrés font le travail. */}
+                    <p className="mt-2 rounded-lg bg-amber-50 p-2.5 text-xs text-amber-700">
+                      Carte à débit différé : saisissez vos achats à leur date
+                      d&apos;achat. Ne saisissez jamais le prélèvement groupé de
+                      fin de mois comme transaction supplémentaire — le solde
+                      reflète déjà les achats (anti-double-compte).
+                    </p>
+                  </>
+                )}
+                {billing && billing.encours > 0 && (
+                  <p className="mt-1 text-xs text-amber-700">
+                    Encours carte :{' '}
+                    {formatAmount(billing.encours, account.currency)}
+                    {billing.nextBillingDate && ' — facturation le '}
+                    {billing.nextBillingDate &&
+                      new Intl.DateTimeFormat('fr-CH').format(
+                        billing.nextBillingDate
+                      )}
+                    {settlement && <> — prélèvement sur {settlement.name}</>}
                   </p>
                 )}
               </div>

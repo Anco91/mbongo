@@ -157,32 +157,17 @@ describe('ChargeCreateForm', () => {
     (useCreateCharge as jest.Mock).mockReturnValue({
       mutate: mockMutate,
       isPending: false,
-      data: { paymentsError: null },
+      data: { id: 'charge-1', label: 'Loyer GE' },
       error: null,
     });
 
     render(createElement(ChargeCreateForm));
 
-    expect(screen.getByText('Charge créée — échéances générées.')).toBeTruthy();
+    expect(
+      screen.getByText('Charge créée — échéances générées (tout-ou-rien).')
+    ).toBeTruthy();
     expect(
       screen.getByRole('link', { name: 'Retour aux charges' })
-    ).toBeTruthy();
-  });
-
-  it('warns when the payments generation failed after creation', () => {
-    (useCreateCharge as jest.Mock).mockReturnValue({
-      mutate: mockMutate,
-      isPending: false,
-      data: { paymentsError: 'boom' },
-      error: null,
-    });
-
-    render(createElement(ChargeCreateForm));
-
-    expect(
-      screen.getByText(
-        'Charge créée, mais la génération des échéances a échoué.'
-      )
     ).toBeTruthy();
   });
 

@@ -24,9 +24,7 @@ import {
   UpdateChargeInput,
   Payment,
   ChargeQuery,
-  missingPayments,
   nextPayment,
-  generatePayments,
 } from '@mbongo/shared';
 import { formatISO } from 'date-fns';
 
@@ -151,32 +149,11 @@ export function useNextPayment(
 // ============================================================================
 
 /**
- * Résultat de la création d'une charge.
- *
- * Si la création groupée des échéances échoue, la charge créée est
- * conservée avec l'erreur correspondante pour permettre une reprise
- * depuis l'UI (spec M2-CHARGE-PAYMENTS-001, § Cohérence de création).
- */
-export interface CreateChargeResult {
-  charge: Charge;
-  paymentsError: Error | null;
-}
-
-/**
- * Convertit une erreur inconnue en Error typée.
- */
-function toError(error: unknown): Error {
-  return error instanceof Error
-    ? error
-    : new Error('Failed to create payments for the charge');
-}
-
-/**
  * Create a new charge
  *
- * Retourne toujours la charge créée : si la génération ou la persistance
- * des échéances échoue, `paymentsError` est renseigné au lieu de lever,
- * afin que l'UI puisse proposer de reprendre les échéances manquantes.
+ * La création est transactionnelle côté serveur (M2, design D5) : la charge
+ * et ses échéances sont créées tout-ou-rien dans un seul appel. Un échec
+ * laisse la base inchangée — il suffit de resoumettre le formulaire.
  *
  * @returns Mutation object with create function
  *
@@ -185,80 +162,24 @@ function toError(error: unknown): Error {
  * const { mutate: createCharge, isPending } = useCreateCharge();
  *
  * createCharge(data, {
- *   onSuccess: ({ charge, paymentsError }) => {
- *     if (paymentsError) showPaymentRecovery(charge);
- *   },
+ *   onSuccess: (charge) => router.push('/charges'),
  * });
  * ```
  */
 export function useCreateCharge(): UseMutationResult<
-  CreateChargeResult,
+  Charge,
   Error,
   CreateChargeInput
 > {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (
-      input: CreateChargeInput
-    ): Promise<CreateChargeResult> => {
-      const charge = await chargesRepository.create(input);
-      const payments = generatePayments(charge, new Date());
-      if (payments.length === 0) {
-        return { charge, paymentsError: null };
-      }
-      try {
-        await paymentsRepository.createMany(payments);
-        return { charge, paymentsError: null };
-      } catch (error: unknown) {
-        return { charge, paymentsError: toError(error) };
-      }
-    },
+    mutationFn: (input: CreateChargeInput): Promise<Charge> =>
+      chargesRepository.create(input),
     onSuccess: async () => {
       // Invalidate all charges queries to trigger refetch
       await queryClient.invalidateQueries({ queryKey: [CHARGE_KEY] });
-    },
-  });
-}
-
-/**
- * Reprend la création des échéances manquantes d'une charge.
- *
- * La fonction partagée `missingPayments` ne renvoie que les échéances
- * non persistées : si tout est déjà en base, aucune écriture n'est émise.
- *
- * @returns Mutation object with retry function
- *
- * @example
- * ```tsx
- * const { mutateAsync: retryPayments, isPending } = useRetryChargePayments();
- *
- * const recovery = async (charge: Charge) => {
- *   await retryPayments(charge);
- * };
- * ```
- */
-export function useRetryChargePayments(): UseMutationResult<
-  Payment[],
-  Error,
-  Charge
-> {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (charge: Charge): Promise<Payment[]> => {
-      const existing = await paymentsRepository.findMany({
-        chargeId: { eq: charge.id },
-      });
-      const missing = missingPayments(charge, existing, new Date());
-      if (missing.length === 0) return [];
-      return paymentsRepository.createMany(missing);
-    },
-    onSuccess: async (_payments, charge) => {
-      // Invalidate payments for this charge
-      await queryClient.invalidateQueries({
-        queryKey: chargePaymentsKey(charge.id),
-      });
+      await queryClient.invalidateQueries({ queryKey: ['payments'] });
     },
   });
 }

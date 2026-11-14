@@ -38,3 +38,5 @@ export * from './contracts/snapshots.http';
 export * from './domain/schedule';
 export * from './domain/balance';
 export * from './domain/conversion';
+export * from './domain/card-billing';
+export * from './domain/payment-status';

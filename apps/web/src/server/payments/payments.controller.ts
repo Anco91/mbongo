@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import {
   createPaymentRequestSchema,
   paymentQuerySchema,
+  reconcilePaymentSchema,
   updatePaymentSchema,
 } from '@mbongo/shared';
 import {
@@ -60,6 +61,27 @@ export class PaymentsController {
     try {
       await this.payments.remove(id);
       return toNoContentResponse();
+    } catch (error) {
+      return toErrorResponse(error);
+    }
+  }
+
+  /** Rapproche une échéance d'une transaction (M2, spec payment-schedule). */
+  async reconcile(request: Request, id: string): Promise<NextResponse> {
+    try {
+      const input = await parseBody(request, reconcilePaymentSchema);
+      return toSuccessResponse(
+        await this.payments.reconcile(id, input.transactionId)
+      );
+    } catch (error) {
+      return toErrorResponse(error);
+    }
+  }
+
+  /** Dérapproche une échéance (retour PENDING). */
+  async unlink(_request: Request, id: string): Promise<NextResponse> {
+    try {
+      return toSuccessResponse(await this.payments.unlink(id));
     } catch (error) {
       return toErrorResponse(error);
     }

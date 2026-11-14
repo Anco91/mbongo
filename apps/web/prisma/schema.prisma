@@ -42,6 +42,9 @@ model Account {
   overdraftLimit    Float             @default(0)
   deferredCard      Boolean           @default(false)
   billingDay        Int?
+  linkedAccountId   String?
+  linkedAccount     Account?          @relation("CardSettlement", fields: [linkedAccountId], references: [id])
+  settlementCards   Account[]         @relation("CardSettlement")
   openingBalance    Float             @default(0)   // renamed from balance
   status            String            @default("ACTIVE") // "ACTIVE" | "CLOSED"
   closedAt          DateTime?
@@ -56,6 +59,7 @@ model Account {
   @@index([name])
   @@index([memberId])
   @@index([status])
+  @@index([linkedAccountId])
 
   @@map("accounts")
 }
@@ -72,10 +76,11 @@ model Transaction {
   category     String?
   note         String?
   transferId   String?
-  transfer     Transfer? @relation(fields: [transferId], references: [id])
-  transferRole String?   // "SOURCE" | "TARGET"
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  transfer     Transfer?    @relation(fields: [transferId], references: [id])
+  transferRole String?      // "SOURCE" | "TARGET"
+  payments     Payment[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
   @@index([accountId, date])
   @@index([transferId])
@@ -164,17 +169,20 @@ model Charge {
 
 /// Payment represents an upcoming charge due date
 model Payment {
-  id         String    @id @default(uuid())
-  amount     Float
-  currency   String
-  dueDate    DateTime
-  status     String    @default("PENDING") // PaymentStatus enum
-  paidAt     DateTime?
-  chargeId   String
-  charge     Charge    @relation(fields: [chargeId], references: [id], onDelete: Cascade)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id            String       @id @default(uuid())
+  amount        Float
+  currency      String
+  dueDate       DateTime
+  status        String       @default("PENDING") // PaymentStatus enum
+  paidAt        DateTime?
+  chargeId      String
+  charge        Charge       @relation(fields: [chargeId], references: [id], onDelete: Cascade)
+  transactionId String?
+  transaction   Transaction? @relation(fields: [transactionId], references: [id])
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
+  @@unique([transactionId])
   @@index([chargeId])
   @@index([dueDate])
   @@index([status])

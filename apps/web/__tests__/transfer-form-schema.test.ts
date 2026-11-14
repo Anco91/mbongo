@@ -22,6 +22,7 @@ const account = (id: string, currency: 'CHF' | 'EUR'): Account => ({
   overdraftLimit: 0,
   deferredCard: false,
   billingDay: null,
+  linkedAccountId: null,
   openingBalance: 0,
   status: 'ACTIVE',
   closedAt: null,

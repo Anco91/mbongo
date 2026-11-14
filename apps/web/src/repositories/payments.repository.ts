@@ -44,6 +44,18 @@ export const paymentsRepository: PaymentHttp = {
     );
   },
 
+  async reconcile(id: string, transactionId: string): Promise<Payment> {
+    return paymentSchema.parse(
+      await request('POST', `/payments/${id}/reconcile`, {
+        body: { transactionId },
+      })
+    );
+  },
+
+  async unlink(id: string): Promise<Payment> {
+    return paymentSchema.parse(await request('POST', `/payments/${id}/unlink`));
+  },
+
   async remove(id: string): Promise<void> {
     await request<void>('DELETE', `/payments/${id}`);
   },

@@ -13,6 +13,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createAccountSchema, type CreateAccountInput } from '@mbongo/shared';
 import { useMembers } from '@/components/members/hooks/use-members';
+import { useAccounts } from '@/components/accounts/hooks/use-accounts';
 import { useCreateAccount } from './hooks/use-accounts';
 import Link from 'next/link';
 import { JSX } from 'react';
@@ -22,6 +23,7 @@ import { JSX } from 'react';
  */
 export function AccountCreateForm(): JSX.Element {
   const { data: members = [] } = useMembers();
+  const { data: accounts = [] } = useAccounts();
   const {
     mutate: createAccount,
     isPending: isCreating,
@@ -45,12 +47,19 @@ export function AccountCreateForm(): JSX.Element {
       overdraftLimit: 0,
       deferredCard: false,
       billingDay: null,
+      linkedAccountId: null,
       openingBalance: 0,
     },
   });
 
   const currency = watch('currency');
   const accountType = watch('accountType');
+
+  // Comptes de règlement possibles : actifs, et pas eux-mêmes des cartes.
+  const activeAccounts = accounts.filter(
+    (account) =>
+      account.status === 'ACTIVE' && account.accountType !== 'CREDIT_CARD'
+  );
 
   const submit = handleSubmit((data) => createAccount(data));
 
@@ -166,6 +175,23 @@ export function AccountCreateForm(): JSX.Element {
             {...register('billingDay', { valueAsNumber: true })}
             className={inputClass}
           />
+        </Field>
+      )}
+
+      {accountType === 'CREDIT_CARD' && (
+        <Field label="Prélèvement sur" error={errors.linkedAccountId?.message}>
+          <select
+            {...register('linkedAccountId')}
+            className={inputClass}
+            defaultValue=""
+          >
+            <option value="">— Choisir le compte de règlement —</option>
+            {activeAccounts.map((account) => (
+              <option key={account.id} value={account.id}>
+                {account.name}
+              </option>
+            ))}
+          </select>
         </Field>
       )}
 
