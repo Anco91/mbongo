@@ -11,7 +11,11 @@ import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createElement, type ReactElement } from 'react';
 import { AccountsGuard } from '@/components/accounts/accounts-guard';
+import { AccountsContent } from '@/components/accounts/accounts-content';
 import { TransfersGuard } from '@/components/transfers/transfers-guard';
+import { TransfersContent } from '@/components/transfers/transfers-content';
+import { DashboardGuard } from '@/components/dashboard/dashboard-guard';
+import { DashboardContent } from '@/components/dashboard/dashboard-content';
 
 jest.mock('@/server/db', () => ({ prisma: {} }));
 
@@ -27,9 +31,24 @@ jest.mock('@/server/transfers/transfer.service', () => ({
   transferService: { findMany: jest.fn() },
 }));
 
+jest.mock('@/server/charges/charge.service', () => ({
+  chargeService: { findMany: jest.fn() },
+}));
+
+jest.mock('@/server/payments/payment.service', () => ({
+  paymentService: { findMany: jest.fn() },
+}));
+
+jest.mock('@/server/members/member.service', () => ({
+  memberService: { findMany: jest.fn() },
+}));
+
 import { accountService } from '@/server/accounts/account.service';
 import { transactionService } from '@/server/transactions/transaction.service';
 import { transferService } from '@/server/transfers/transfer.service';
+import { chargeService } from '@/server/charges/charge.service';
+import { paymentService } from '@/server/payments/payment.service';
+import { memberService } from '@/server/members/member.service';
 
 const now = '2026-11-12T00:00:00.000Z';
 
@@ -108,7 +127,7 @@ describe('AccountsGuard', () => {
       },
     ]);
 
-    await renderHydrated(AccountsGuard({}));
+    await renderHydrated(AccountsGuard({ children: <AccountsContent /> }));
 
     expect(screen.getByText('UBS Courant')).toBeTruthy();
     // Computed balance: 1000 - 300 = 700
@@ -124,9 +143,25 @@ describe('TransfersGuard', () => {
       accountsTarget,
     ]);
 
-    await renderHydrated(TransfersGuard({}));
+    await renderHydrated(TransfersGuard({ children: <TransfersContent /> }));
 
     expect(screen.getByText(/UBS Courant → BNP Perso/)).toBeTruthy();
     expect(screen.getByText('En attente du crédit')).toBeTruthy();
+  });
+});
+
+describe('DashboardGuard', () => {
+  it('hydrates dashboard data into the client view', async () => {
+    (accountService.findMany as jest.Mock).mockResolvedValue([account]);
+    (transactionService.findMany as jest.Mock).mockResolvedValue([]);
+    (transferService.findMany as jest.Mock).mockResolvedValue([]);
+    (chargeService.findMany as jest.Mock).mockResolvedValue([]);
+    (paymentService.findMany as jest.Mock).mockResolvedValue([]);
+    (memberService.findMany as jest.Mock).mockResolvedValue([]);
+
+    await renderHydrated(DashboardGuard({ children: <DashboardContent /> }));
+
+    expect(screen.getByText(/Patrimoine consolidé/i)).toBeTruthy();
+    expect(screen.getByText('Flux du mois')).toBeTruthy();
   });
 });

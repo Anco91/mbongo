@@ -55,28 +55,40 @@ apps/
     │   │   │   │   └── [id]/
     │   │   │   │       └── route.ts # GET, PATCH, DELETE
     │   │   │   └── ...
-    │   │   ├── (dashboard)/       # Pages Server Components
-    │   │   │   └── charges/
-    │   │   │       └── page.tsx
+    │   │   ├── page.tsx           # Dashboard (accueil `/`)
+    │   │   ├── charges/           # Pages Server Components (routes EN)
+    │   │   │   ├── page.tsx
+    │   │   │   └── new/page.tsx   # Formulaire de création dédié
+    │   │   ├── schedule/
+    │   │   ├── transfers/
     │   │   └── layout.tsx
     │   │
     │   ├── server/                # Backend (NestJS-like)
     │   │   ├── db.ts              # PrismaService (Singleton)
     │   │   ├── common/            # Utilities backend
-    │   │   │   ├── filter-to-where.ts  # Traducteur filtres → Prisma
-    │   │   │   ├── http.ts         # Validation Zod + Error handling
+    │   │   │   ├── where-translator.ts # Noyau générique filtres → Prisma
+    │   │   │   ├── http.ts        # Validation Zod + Error handling
     │   │   │   └── ...
     │   │   └── <module>/         # Modules par domaine
-    │   │       ├── <module>.service.ts    # Service (CRUD + logique)
+    │   │       ├── <module>.service.ts    # Service (CRUD + méthodes transactionnelles)
     │   │       ├── <module>.controller.ts # Controller (Validation + Délégation)
     │   │       └── ...
     │   │
-    │   └── components/           # Composants React
-    │       └── <feature>/
-    │           ├── <feature>-guard.tsx   # Container RSC
-    │           ├── <feature>-view.tsx    # Composant UI
-    │           └── hooks/
-    │               └── use-<feature>.ts   # Hooks client
+    │   ├── hooks/                # ⭐ Hooks de domaine (place unique)
+    │   │   └── use-<feature>.ts  # TanStack Query — seul accès client aux /api
+    │   │
+    │   ├── components/           # Composants React
+    │   │   ├── common/           # ⭐ Primitives projet (tout le style vit ici)
+    │   │   │   ├── status-badge.tsx
+    │   │   │   ├── detail-sheet.tsx
+    │   │   │   ├── chart-fullscreen.tsx
+    │   │   │   └── ...
+    │   │   ├── ui/               # Primitives de base (style shadcn)
+    │   │   └── <feature>/
+    │   │           ├── <feature>-view.tsx    # Coquille de composition
+    │   │           ├── <feature>-guard.tsx   # Données (RSC, children)
+    │   │           ├── <feature>-content.tsx # Présentation pure (client)
+    │   │           └── <feature>-create-form.tsx
     │
 packages/
 └── shared/                      # Code partagé (Domain pur)
@@ -86,9 +98,10 @@ packages/
     │   └── ...
     ├── domain/                  # Logique métier pure
     │   ├── schedule.ts          # Calculs de planning
-    │   ├── calculation.ts       # Calculs financiers
+    │   ├── alerts.ts            # Règles d'alertes
     │   └── ...
     └── lib/                     # Utilities partagées
+        ├── calculation/         # Agrégations (sankey, donut, consolidé)
         └── types.ts
 ```
 
@@ -103,9 +116,60 @@ packages/
 | Page Next.js | kebab-case | `page.tsx`, `charges/page.tsx` |
 | Composant | PascalCase | `ChargesView.tsx` |
 | Hook | `use-<nom>.ts` | `use-charges.ts` |
-| Utility | kebab-case | `filter-to-where.ts` |
+| Utility | kebab-case | `where-translator.ts` |
 | Type/Interface | PascalCase | `Charge`, `ChargeQuery` |
 | Constante | UPPER_SNAKE_CASE | `MAX_LIMIT`, `DEFAULT_CURRENCY` |
+
+---
+
+## 🌐 Routes (English only)
+
+Toutes les URLs sont en anglais (décision M3) :
+
+| Route | Contenu |
+|-------|---------|
+| `/` | Dashboard (accueil) |
+| `/charges` | Liste des charges |
+| `/charges/new` | Création de charge (page dédiée) |
+| `/schedule` | Échéancier |
+| `/schedule/[id]` | Détail d'une échéance |
+| `/transfers` | Transferts CHF → EUR |
+| `/transfers/new` | Création de transfert |
+| `/accounts` | Comptes |
+| `/accounts/new` | Création de compte |
+
+Anciennes routes FR (`/echeancier`, `/comptes`, `/transferts`, `*/nouveau`) : plus aucune URL FR référencée dans le code — les redirections temporaires ont été retirées de `next.config.js` (task 6.1). Pour les favoris/bookmarks existants, les routes EN sont canoniques.
+
+**Icônes** : la maquette utilise `nucleo-sharp` (licence Nucleo payante, non disponible). Substitution par `lucide-react` via `components/common/icons.tsx` qui réexporte les glyphes sous les noms `Icon*` de la maquette — un seul fichier à modifier si nucleo-sharp est acquis.
+
+---
+
+## 🧭 Pattern vue/guard (unique)
+
+Chaque écran suit le même pipeline — écrit une fois ici, appliqué partout :
+
+```
+page.tsx (routage)  →  XxxView  (coquille de composition : sections, en-tête)
+                    →  XxxGuard (appelle le service directement (R5), rend
+                                 children avec les données ; Suspense/error)
+                    →  XxxContent (présentation pure, client, sans effet de bord)
+```
+
+- Le **Guard** est un composant async : il garantit les données avant le rendu et les passe via `children` (pattern « guard renders children with data »).
+- Le **Content** ne connaît ni `server/` ni les API routes : il reçoit tout par props (types zod de `packages/shared`).
+- Les hooks de domaine (TanStack Query) vivent dans `src/hooks/` — place unique ; aucun `components/*/hooks/`.
+- Aucun composant client n'importe `server/` (garanti par `server-only`).
+
+---
+
+## 🎨 Design System & Form Kit
+
+**Tout le style vit dans les primitives** (`components/common/` et `components/ui/`) — jamais dans les vues ni les formulaires.
+
+- Primitives de présentation : `StatusBadge`, `TypeBadge`, `AccountChip`, `SectionTitle`, `ExpandButton`, `DetailSheet` (bottom sheet), `DetailRow`, `ChartFullscreen` (zoom/pan), `DeleteButton`.
+- Primitives de formulaire : `FormField` (label + contrôle + hint/error), `TextInput`, `SelectInput`, `ToggleInput`, `AmountInput` (CHF/EUR).
+- Kit `<Form>` composé (React Hook Form + `zodResolver` sur les schémas zod de `packages/shared`) : formulaires déclaratifs, typés par le schéma du domaine ; aucun type recréé à la volée.
+- Référence visuelle : `mock_POC.tsx.todo` (maquette validée, direction UI officielle du socle M3) — les classes Tailwind des primitives en sont reprises. Phone-frame de la maquette = artefact de démo, pas de l'app.
 
 ---
 
@@ -234,16 +298,27 @@ function processData(data: any) {} // Trop vague
 #### Classes (Style NestJS)
 
 ```typescript
-// ✅ BON - Service avec méthodes CRUD standards
+// ✅ BON - Service avec méthodes CRUD standards et where-translator générique
 import { prisma } from "@/server/db";
-import { ChargeQuery, CreateChargeInput, UpdateChargeInput } from "@mbongo/shared";
-import { queryToWhere } from "@/server/common/filter-to-where";
+import { Charge, ChargeQuery, CreateChargeInput, UpdateChargeInput } from "@mbongo/shared";
+import { createWhereTranslator } from "@/server/common/where-translator";
+import { Prisma } from "@prisma/client";
+
+const chargeWhere = createWhereTranslator<Prisma.ChargeWhereInput>({
+  label: { ops: ['eq', 'contains', 'startsWith', 'endsWith'] },
+  type: { ops: ['eq', 'in', 'not'] },
+  currency: { ops: ['eq', 'in'] },
+  accountId: { ops: ['eq', 'in'] },
+  category: { ops: ['eq', 'contains', 'in'] },
+  frequency: { ops: ['eq', 'in'] },
+  provisioned: { ops: ['eq'] },
+});
 
 export class ChargeService {
   // CRUD Standards
   async findMany(query: ChargeQuery): Promise<Charge[]> {
     return prisma.charge.findMany({
-      where: queryToWhere(query),
+      where: chargeWhere(query as Record<string, unknown>),
       orderBy: { startDate: "desc" },
       take: query.limit,
     });

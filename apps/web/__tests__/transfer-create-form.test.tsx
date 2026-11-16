@@ -11,16 +11,16 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { createElement } from 'react';
 import { TransferCreateForm } from '@/components/transfers/transfer-create-form';
 
-jest.mock('@/components/transfers/hooks/use-transfers', () => ({
+jest.mock('@/hooks/use-transfers', () => ({
   useCreateTransfer: jest.fn(),
 }));
 
-jest.mock('@/components/accounts/hooks/use-accounts', () => ({
+jest.mock('@/hooks/use-accounts', () => ({
   useAccounts: jest.fn(),
 }));
 
-import { useCreateTransfer } from '@/components/transfers/hooks/use-transfers';
-import { useAccounts } from '@/components/accounts/hooks/use-accounts';
+import { useCreateTransfer } from '@/hooks/use-transfers';
+import { useAccounts } from '@/hooks/use-accounts';
 
 const now = '2026-11-12T00:00:00.000Z';
 

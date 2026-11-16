@@ -2,9 +2,9 @@
  * Transfer Create Form Component
  *
  * Dedicated creation page form (one page, one responsibility — mock_POC).
- * Phase 1 only: the transfer is created as ESTIMATED; the credit is
- * recorded later from the transfers list. Validation is the shared zod
- * schema — the single source of truth (R7).
+ * Built on the form kit. Phase 1 only: the transfer is created as
+ * ESTIMATED; the credit is recorded later from the transfers list.
+ * Validation is the shared zod schema — the single source of truth (R7).
  *
  * @module Components/Transfers/TransferCreateForm
  */
@@ -19,8 +19,17 @@ import {
   type Account,
   type CreateTransferInput,
 } from '@mbongo/shared';
-import { useAccounts } from '@/components/accounts/hooks/use-accounts';
-import { useCreateTransfer } from './hooks/use-transfers';
+import { useAccounts } from '@/hooks/use-accounts';
+import { useCreateTransfer } from '@/hooks/use-transfers';
+import {
+  Form,
+  FormSection,
+  FormHint,
+  TextInput,
+  SelectInput,
+  AmountInput,
+} from '@/components/common/form-kit';
+import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { JSX } from 'react';
 import type { z } from 'zod';
@@ -65,12 +74,7 @@ export function TransferCreateForm(): JSX.Element {
     error,
   } = useCreateTransfer();
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm<CreateTransferInput>({
+  const form = useForm<CreateTransferInput>({
     resolver: zodResolver(buildTransferFormSchema(accounts)),
     defaultValues: {
       sourceAccountId: '',
@@ -83,14 +87,18 @@ export function TransferCreateForm(): JSX.Element {
     },
   });
 
-  const amountSent = watch('amountSent');
-  const rateEstimated = watch('rateEstimated');
-  const sourceAccountId = watch('sourceAccountId');
-  const targetAccountId = watch('targetAccountId');
+  const amountSent = form.watch('amountSent');
+  const rateEstimated = form.watch('rateEstimated');
+  const sourceAccountId = form.watch('sourceAccountId');
+  const targetAccountId = form.watch('targetAccountId');
 
   const activeAccounts = accounts.filter((a) => a.status === 'ACTIVE');
-  const chfAccounts = activeAccounts.filter((a) => a.currency === 'CHF');
-  const eurAccounts = activeAccounts.filter((a) => a.currency === 'EUR');
+  const chfAccounts = activeAccounts
+    .filter((a) => a.currency === 'CHF')
+    .map((a) => ({ value: a.id, label: a.name }));
+  const eurAccounts = activeAccounts
+    .filter((a) => a.currency === 'EUR')
+    .map((a) => ({ value: a.id, label: a.name }));
 
   // Live estimated counter-value preview (shared domain function).
   const hasPreview =
@@ -100,24 +108,20 @@ export function TransferCreateForm(): JSX.Element {
     rateEstimated > 0;
   const preview = hasPreview ? counterValue(amountSent, rateEstimated) : null;
 
-  const submit = handleSubmit((data) => createTransfer(data));
-
-  const onSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
-    void submit(event);
-  };
+  const onSubmit = form.handleSubmit((data) => createTransfer(data));
 
   if (isSuccess) {
     return (
       <div className="space-y-4">
-        <div className="p-4 border border-emerald-300 rounded-lg bg-emerald-50">
+        <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-4">
           <p className="text-emerald-700">
             Transfert enregistré (estimé). Enregistrez le crédit reçu depuis la
             liste des transferts.
           </p>
         </div>
         <Link
-          href="/transferts"
-          className="inline-block px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
+          href="/transfers"
+          className="inline-block rounded bg-slate-900 px-4 py-2 text-white transition-colors hover:bg-slate-800"
         >
           Retour aux transferts
         </Link>
@@ -126,132 +130,68 @@ export function TransferCreateForm(): JSX.Element {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4" noValidate>
-      <Field
-        label="Compte source (CHF)"
-        error={errors.sourceAccountId?.message}
-      >
-        <select {...register('sourceAccountId')} className={inputClass}>
-          <option value="">— Choisir un compte CHF —</option>
-          {chfAccounts.map((account) => (
-            <option key={account.id} value={account.id}>
-              {account.name}
-            </option>
-          ))}
-        </select>
-      </Field>
+    <Form form={form} onSubmit={onSubmit}>
+      <FormSection title="Comptes">
+        <SelectInput
+          name="sourceAccountId"
+          label="Compte source (CHF)"
+          options={chfAccounts}
+          placeholder="— Choisir un compte CHF —"
+        />
+        <SelectInput
+          name="targetAccountId"
+          label="Compte cible (EUR)"
+          options={eurAccounts}
+          placeholder="— Choisir un compte EUR —"
+        />
+        {sourceAccountId &&
+          targetAccountId &&
+          sourceAccountId === targetAccountId && (
+            <p className="text-xs text-red-600">
+              Le compte cible doit être différent du compte source.
+            </p>
+          )}
+      </FormSection>
 
-      <Field label="Compte cible (EUR)" error={errors.targetAccountId?.message}>
-        <select {...register('targetAccountId')} className={inputClass}>
-          <option value="">— Choisir un compte EUR —</option>
-          {eurAccounts.map((account) => (
-            <option key={account.id} value={account.id}>
-              {account.name}
-            </option>
-          ))}
-        </select>
-      </Field>
-
-      {sourceAccountId &&
-        targetAccountId &&
-        sourceAccountId === targetAccountId && (
-          <p className="text-xs text-red-600">
-            Le compte cible doit être différent du compte source.
+      <FormSection title="Montant & taux">
+        <AmountInput name="amountSent" label="Montant envoyé (CHF)" />
+        <AmountInput
+          name="rateEstimated"
+          label="Taux de référence (EUR pour 1 CHF)"
+          hint="Ex. 1,0634 → 1 CHF ≈ 1,0634 EUR"
+        />
+        {preview !== null && (
+          <p className="rounded-lg bg-indigo-50 p-2.5 text-sm text-indigo-700">
+            Contre-valeur estimée :{' '}
+            <span className="font-semibold">
+              {new Intl.NumberFormat('fr-CH', {
+                style: 'currency',
+                currency: 'EUR',
+              }).format(preview)}
+            </span>
           </p>
         )}
+      </FormSection>
 
-      <Field label="Montant envoyé (CHF)" error={errors.amountSent?.message}>
-        <input
-          type="number"
-          step="0.01"
-          min="0"
-          {...register('amountSent', { valueAsNumber: true })}
-          className={inputClass}
-        />
-      </Field>
-
-      <Field
-        label="Taux de référence (EUR pour 1 CHF)"
-        error={errors.rateEstimated?.message}
-      >
-        <input
-          type="number"
-          step="0.0001"
-          min="0"
-          {...register('rateEstimated', { valueAsNumber: true })}
-          className={inputClass}
-        />
-        <p className="text-[11px] text-gray-400">
-          Ex. 1,0634 → 1 CHF ≈ 1,0634 EUR
-        </p>
-      </Field>
-
-      {preview !== null && (
-        <p className="rounded-lg bg-indigo-50 p-2.5 text-sm text-indigo-700">
-          Contre-valeur estimée :{' '}
-          <span className="font-semibold">
-            {new Intl.NumberFormat('fr-CH', {
-              style: 'currency',
-              currency: 'EUR',
-            }).format(preview)}
-          </span>
-        </p>
-      )}
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field
+      <FormSection title="Dates & mémo">
+        <TextInput
+          name="rateDate"
           label="Date du taux de référence"
-          error={errors.rateDate?.message}
-        >
-          <input type="date" {...register('rateDate')} className={inputClass} />
-        </Field>
-
-        <Field label="Date d'envoi" error={errors.sentAt?.message}>
-          <input type="date" {...register('sentAt')} className={inputClass} />
-        </Field>
-      </div>
-
-      <Field label="Mémo (optionnel)" error={errors.memo?.message}>
-        <input type="text" {...register('memo')} className={inputClass} />
-      </Field>
+          type="date"
+        />
+        <TextInput name="sentAt" label="Date d'envoi" type="date" />
+        <TextInput name="memo" label="Mémo (optionnel)" />
+        <FormHint>
+          Deux phases : estimé à l&apos;envoi, recalculé au crédit réel. Le taux
+          est toujours daté, les frais jamais fondus dedans.
+        </FormHint>
+      </FormSection>
 
       {error && <p className="text-sm text-red-600">{error.message}</p>}
 
-      <button
-        type="submit"
-        disabled={isCreating}
-        className="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50"
-      >
+      <Button type="submit" size="lg" className="w-full" disabled={isCreating}>
         {isCreating ? 'Enregistrement…' : 'Enregistrer le transfert (estimé)'}
-      </button>
-
-      <Link
-        href="/transferts"
-        className="block text-center text-sm text-gray-500 hover:text-gray-700"
-      >
-        Annuler
-      </Link>
-    </form>
-  );
-}
-
-const inputClass =
-  'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:border-indigo-400 focus:outline-none';
-
-interface FieldProps {
-  label: string;
-  error?: string;
-  children: React.ReactNode;
-}
-
-function Field({ label, error, children }: FieldProps): JSX.Element {
-  return (
-    <div className="space-y-1.5">
-      <label className="block space-y-1.5">
-        <span className="block text-xs font-medium text-gray-600">{label}</span>
-        {children}
-      </label>
-      {error && <p className="text-xs text-red-600">{error}</p>}
-    </div>
+      </Button>
+    </Form>
   );
 }

@@ -10,21 +10,21 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { createElement } from 'react';
 import { AccountCreateForm } from '@/components/accounts/account-create-form';
 
-jest.mock('@/components/accounts/hooks/use-accounts', () => ({
+jest.mock('@/hooks/use-accounts', () => ({
   useAccounts: jest.fn(),
   useAccount: jest.fn(),
   useCreateAccount: jest.fn(),
 }));
 
-jest.mock('@/components/members/hooks/use-members', () => ({
+jest.mock('@/hooks/use-members', () => ({
   useMembers: jest.fn(),
 }));
 
 import {
   useAccounts,
   useCreateAccount,
-} from '@/components/accounts/hooks/use-accounts';
-import { useMembers } from '@/components/members/hooks/use-members';
+} from '@/hooks/use-accounts';
+import { useMembers } from '@/hooks/use-members';
 
 const mockMutate = jest.fn();
 
@@ -96,9 +96,7 @@ describe('AccountCreateForm', () => {
       screen.getByText(/Pas de découvert autorisé en Suisse/)
     ).toBeTruthy();
 
-    fireEvent.change(screen.getByLabelText('Devise'), {
-      target: { value: 'EUR' },
-    });
+    fireEvent.click(screen.getByText('EUR'));
 
     expect(screen.getByLabelText(/Découvert autorisé/)).toBeTruthy();
     expect(

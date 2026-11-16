@@ -13,7 +13,6 @@ import {
   QueryClient,
 } from '@tanstack/react-query';
 import { chargeService } from '@/server/charges/charge.service';
-import { ChargesView } from './charges-view';
 import { ChargeQuery } from '@mbongo/shared';
 import { JSX } from 'react';
 
@@ -47,7 +46,8 @@ interface ChargesGuardProps {
  */
 export async function ChargesGuard({
   query = {},
-}: ChargesGuardProps): Promise<JSX.Element> {
+  children,
+}: ChargesGuardProps & { children: React.ReactNode }): Promise<JSX.Element> {
   // Create a new QueryClient for each request
   const qc = new QueryClient();
 
@@ -60,8 +60,6 @@ export async function ChargesGuard({
 
   // Render the client-side view with hydration
   return (
-    <HydrationBoundary state={dehydrate(qc)}>
-      <ChargesView />
-    </HydrationBoundary>
+    <HydrationBoundary state={dehydrate(qc)}>{children}</HydrationBoundary>
   );
 }

@@ -15,7 +15,6 @@ import {
 } from '@tanstack/react-query';
 import { transferService } from '@/server/transfers/transfer.service';
 import { accountService } from '@/server/accounts/account.service';
-import { TransfersView } from './transfers-view';
 import { TransferQuery } from '@mbongo/shared';
 import { JSX } from 'react';
 
@@ -34,7 +33,8 @@ interface TransfersGuardProps {
  */
 export async function TransfersGuard({
   query = {},
-}: TransfersGuardProps): Promise<JSX.Element> {
+  children,
+}: TransfersGuardProps & { children: React.ReactNode }): Promise<JSX.Element> {
   const qc = new QueryClient();
 
   await Promise.all([
@@ -49,8 +49,6 @@ export async function TransfersGuard({
   ]);
 
   return (
-    <HydrationBoundary state={dehydrate(qc)}>
-      <TransfersView />
-    </HydrationBoundary>
+    <HydrationBoundary state={dehydrate(qc)}>{children}</HydrationBoundary>
   );
 }

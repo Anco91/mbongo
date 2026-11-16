@@ -7,8 +7,8 @@
  * @module API/Charges
  */
 
-import { NextResponse } from 'next/server';
 import { chargesController } from '@/server/charges/charges.controller';
+import { NextResponse } from 'next/server';
 
 /**
  * GET /api/charges

@@ -1,7 +1,7 @@
 import 'server-only';
 import { prisma } from '@/server/db';
 import { NotFoundError, HttpError } from '@/server/common/http';
-import { transferQueryToWhere } from '@/server/common/filter-to-where';
+import { createWhereTranslator } from '@/server/common/where-translator';
 import {
   Transfer,
   TransferQuery,
@@ -14,10 +14,17 @@ import {
 import { Prisma } from '@prisma/client';
 import { parseISO } from 'date-fns';
 
+const transferWhereTranslator =
+  createWhereTranslator<Prisma.TransferWhereInput>({
+    status: { ops: ['eq', 'in'] },
+    sourceAccountId: { ops: ['eq', 'in'] },
+    targetAccountId: { ops: ['eq', 'in'] },
+  });
+
 export class TransferService {
   async findMany(query: TransferQuery): Promise<Transfer[]> {
     const rows = await prisma.transfer.findMany({
-      where: transferQueryToWhere(query),
+      where: transferWhereTranslator(query as Record<string, unknown>),
       orderBy: { createdAt: 'desc' },
       take: query.limit,
       cursor: query.cursor ? { id: query.cursor } : undefined,

@@ -1,7 +1,7 @@
 import 'server-only';
 import { prisma } from '@/server/db';
 import { NotFoundError, HttpError } from '@/server/common/http';
-import { snapshotQueryToWhere } from '@/server/common/filter-to-where';
+import { createWhereTranslator } from '@/server/common/where-translator';
 import {
   BalanceSnapshot,
   SnapshotQuery,
@@ -10,10 +10,19 @@ import {
 import { Prisma } from '@prisma/client';
 import { parseISO } from 'date-fns';
 
+const snapshotWhereTranslator =
+  createWhereTranslator<Prisma.BalanceSnapshotWhereInput>({
+    accountId: { ops: ['eq', 'in'] },
+    date: {
+      ops: ['eq', 'gte', 'lte', 'gt', 'lt'],
+      transform: (v) => (typeof v === 'string' ? parseISO(v) : v),
+    },
+  });
+
 export class SnapshotService {
   async findMany(query: SnapshotQuery): Promise<BalanceSnapshot[]> {
     const rows = await prisma.balanceSnapshot.findMany({
-      where: snapshotQueryToWhere(query),
+      where: snapshotWhereTranslator(query as Record<string, unknown>),
       orderBy: { date: 'desc' },
       take: query.limit,
       cursor: query.cursor ? { id: query.cursor } : undefined,

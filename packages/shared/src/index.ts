@@ -32,7 +32,7 @@ export * from './contracts/transfers.http';
 export * from './contracts/snapshots.http';
 
 // ============================================================================
-// Domain Logic
+// Domain Logic & Calculations
 // ============================================================================
 
 export * from './domain/schedule';
@@ -40,3 +40,7 @@ export * from './domain/balance';
 export * from './domain/conversion';
 export * from './domain/card-billing';
 export * from './domain/payment-status';
+export * from './domain/alerts';
+export * from './lib/calculation/sankey';
+export * from './lib/calculation/donut';
+export * from './lib/calculation/consolidated';

@@ -399,6 +399,44 @@ export function overduePayments(payments: Payment[], asOf: Date): Payment[] {
   return payments.filter((p) => isOverdue(p, asOf));
 }
 
+/**
+ * Calcule le budget mensuel avec la règle anti-double comptage des provisions :
+ * Les charges provisionnées comptent via leur provision mensuelle (somme / 12)
+ * et leurs échéances réelles du mois sont exclues.
+ */
+export function computeMonthlyBudget(
+  charges: Charge[],
+  payments: Payment[],
+  month: Date
+): {
+  total: number;
+  paymentsTotal: number;
+  provisionsTotal: number;
+  regularPayments: Payment[];
+} {
+  const provisionedChargeIds = new Set(
+    charges.filter((c) => c.provisioned).map((c) => c.id)
+  );
+
+  const monthPayments = paymentsInMonth(payments, month);
+  const regularPayments = monthPayments.filter(
+    (p) => !provisionedChargeIds.has(p.chargeId)
+  );
+
+  const paymentsTotal = round2(
+    regularPayments.reduce((sum, p) => sum + p.amount, 0)
+  );
+  const provisionsTotal = monthlyProvision(charges);
+  const total = round2(paymentsTotal + provisionsTotal);
+
+  return {
+    total,
+    paymentsTotal,
+    provisionsTotal,
+    regularPayments,
+  };
+}
+
 // ============================================================================
 // Exports
 // ============================================================================
