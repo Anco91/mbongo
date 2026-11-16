@@ -19,19 +19,21 @@ import { chargeService } from '@/server/charges/charge.service';
 import { accountService } from '@/server/accounts/account.service';
 import { transactionService } from '@/server/transactions/transaction.service';
 import { addDays, parseISO } from 'date-fns';
-import { PaymentDetailView } from './payment-detail-view';
 import { JSX } from 'react';
 
 /**
  * PaymentDetailGuard Component
  *
  * @param props.id - The payment ID
+ * @param props.children - Content rendered inside the hydration boundary
  * @returns JSX Element
  */
 export async function PaymentDetailGuard({
   id,
+  children,
 }: {
   id: string;
+  children: React.ReactNode;
 }): Promise<JSX.Element> {
   const qc = new QueryClient();
 
@@ -67,8 +69,6 @@ export async function PaymentDetailGuard({
   ]);
 
   return (
-    <HydrationBoundary state={dehydrate(qc)}>
-      <PaymentDetailView paymentId={id} accountId={charge.accountId} />
-    </HydrationBoundary>
+    <HydrationBoundary state={dehydrate(qc)}>{children}</HydrationBoundary>
   );
 }

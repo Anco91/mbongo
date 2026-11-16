@@ -2,7 +2,9 @@
  * Account Create Form Component
  *
  * Dedicated creation page form (one page, one responsibility).
- * Validation is the shared zod schema — the single source of truth (R7).
+ * Built on the form kit; conditional blocks: overdraft (EUR only),
+ * card (billing day), savings (limit + progress). Validation is the
+ * shared zod schema — the single source of truth (R7).
  *
  * @module Components/Accounts/AccountCreateForm
  */
@@ -12,11 +14,29 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createAccountSchema, type CreateAccountInput } from '@mbongo/shared';
-import { useMembers } from '@/components/members/hooks/use-members';
-import { useAccounts } from '@/components/accounts/hooks/use-accounts';
-import { useCreateAccount } from './hooks/use-accounts';
+import { useMembers } from '@/hooks/use-members';
+import { useAccounts, useCreateAccount } from '@/hooks/use-accounts';
+import {
+  Form,
+  FormSection,
+  FormHint,
+  TextInput,
+  SelectInput,
+  ToggleInput,
+  AmountInput,
+  currencyOptions,
+  yesNoOptions,
+} from '@/components/common/form-kit';
+import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { JSX } from 'react';
+
+const ACCOUNT_KINDS = [
+  { value: 'CURRENT', label: 'Courant' },
+  { value: 'CREDIT_CARD', label: 'Carte de crédit' },
+  { value: 'JOINT', label: 'Compte joint' },
+  { value: 'SAVINGS', label: 'Épargne' },
+] as const;
 
 /**
  * AccountCreateForm Component
@@ -31,12 +51,7 @@ export function AccountCreateForm(): JSX.Element {
     isSuccess,
   } = useCreateAccount();
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm<CreateAccountInput>({
+  const form = useForm<CreateAccountInput>({
     resolver: zodResolver(createAccountSchema),
     defaultValues: {
       name: '',
@@ -52,30 +67,34 @@ export function AccountCreateForm(): JSX.Element {
     },
   });
 
-  const currency = watch('currency');
-  const accountType = watch('accountType');
+  const currency = form.watch('currency');
+  const accountType = form.watch('accountType');
+  const hasOverdraft = (form.watch('overdraftLimit') ?? 0) > 0;
+
+  const memberOptions = [
+    { value: '', label: '— Couple / non rattaché —' },
+    ...members.map((m) => ({ value: m.id, label: m.firstName })),
+  ];
 
   // Comptes de règlement possibles : actifs, et pas eux-mêmes des cartes.
-  const activeAccounts = accounts.filter(
-    (account) =>
-      account.status === 'ACTIVE' && account.accountType !== 'CREDIT_CARD'
-  );
+  const settlementOptions = [
+    { value: '', label: '— Choisir le compte de règlement —' },
+    ...accounts
+      .filter((a) => a.status === 'ACTIVE' && a.accountType !== 'CREDIT_CARD')
+      .map((a) => ({ value: a.id, label: a.name })),
+  ];
 
-  const submit = handleSubmit((data) => createAccount(data));
-
-  const onSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
-    void submit(event);
-  };
+  const onSubmit = form.handleSubmit((data) => createAccount(data));
 
   if (isSuccess) {
     return (
       <div className="space-y-4">
-        <div className="p-4 border border-emerald-300 rounded-lg bg-emerald-50">
+        <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-4">
           <p className="text-emerald-700">Compte créé.</p>
         </div>
         <Link
-          href="/comptes"
-          className="inline-block px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
+          href="/accounts"
+          className="inline-block rounded bg-slate-900 px-4 py-2 text-white transition-colors hover:bg-slate-800"
         >
           Retour aux comptes
         </Link>
@@ -84,154 +103,99 @@ export function AccountCreateForm(): JSX.Element {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4" noValidate>
-      <Field label="Nom du compte" error={errors.name?.message}>
-        <input
-          type="text"
-          {...register('name')}
+    <Form form={form} onSubmit={onSubmit}>
+      <FormSection title="Identité">
+        <TextInput
+          name="name"
+          label="Nom du compte"
           placeholder="Ex. UBS Courant"
-          className={inputClass}
         />
-      </Field>
-
-      <Field label="Banque (optionnel)" error={errors.bank?.message}>
-        <input
-          type="text"
-          {...register('bank')}
-          placeholder="UBS, BNP Paribas…"
-          className={inputClass}
+        <TextInput
+          name="bank"
+          label="Banque (optionnel)"
+          placeholder="UBS, BNP Paribas… (saisie libre)"
         />
-      </Field>
-
-      <Field label="Devise" error={errors.currency?.message}>
-        <select {...register('currency')} className={inputClass}>
-          <option value="CHF">CHF</option>
-          <option value="EUR">EUR</option>
-        </select>
-      </Field>
-
-      <Field label="Type de compte" error={errors.accountType?.message}>
-        <select {...register('accountType')} className={inputClass}>
-          <option value="CURRENT">Courant</option>
-          <option value="CREDIT_CARD">Carte de crédit</option>
-          <option value="JOINT">Compte joint</option>
-          <option value="SAVINGS">Épargne</option>
-        </select>
-      </Field>
-
-      <Field label="Propriétaire (optionnel)" error={errors.memberId?.message}>
-        <select {...register('memberId')} className={inputClass}>
-          <option value="">— Couple / non rattaché —</option>
-          {members.map((member) => (
-            <option key={member.id} value={member.id}>
-              {member.firstName}
-            </option>
-          ))}
-        </select>
-      </Field>
-
-      <Field label="Solde d'ouverture" error={errors.openingBalance?.message}>
-        <input
-          type="number"
-          step="0.01"
-          {...register('openingBalance', { valueAsNumber: true })}
-          className={inputClass}
+        <FormHint>
+          Le code établissement encodé dans l&apos;IBAN (FR) ou le numéro de
+          banque (CH) identifie la banque — la saisie manuelle reste libre,
+          aucune liste de référence à maintenir.
+        </FormHint>
+        <ToggleInput name="currency" label="Devise" options={currencyOptions} />
+        <SelectInput
+          name="accountType"
+          label="Type de compte"
+          options={ACCOUNT_KINDS}
         />
-      </Field>
+        <SelectInput
+          name="memberId"
+          label="Propriétaire (optionnel)"
+          options={memberOptions}
+        />
+      </FormSection>
 
-      {currency === 'CHF' ? (
-        <p className="rounded-lg bg-amber-50 p-2.5 text-xs text-amber-700">
-          Pas de découvert autorisé en Suisse — seulement des alertes de
-          trésorerie.
-        </p>
-      ) : (
-        <Field
-          label="Découvert autorisé (0 = aucun)"
-          error={errors.overdraftLimit?.message}
-        >
-          <input
-            type="number"
-            step="0.01"
-            {...register('overdraftLimit', { valueAsNumber: true })}
-            className={inputClass}
-          />
-        </Field>
-      )}
-
-      <label className="flex items-center gap-2 text-sm text-gray-700">
-        <input type="checkbox" {...register('deferredCard')} />
-        Carte à débit différé (prélèvement en fin de mois)
-      </label>
+      <FormSection title="Solde">
+        <AmountInput
+          name="openingBalance"
+          label={`Solde initial (${currency})`}
+        />
+        {currency === 'CHF' ? (
+          <FormHint>
+            Pas de découvert autorisé en Suisse — l&apos;app ne proposera que
+            des alertes trésorerie.
+          </FormHint>
+        ) : (
+          <>
+            <ToggleInput
+              name="overdraftLimit"
+              label="Découvert autorisé"
+              options={yesNoOptions}
+              booleanValue
+              currentValue={String(hasOverdraft)}
+              onChange={(v) =>
+                void form.setValue('overdraftLimit', v === 'true' ? 500 : 0, {
+                  shouldValidate: true,
+                })
+              }
+            />
+            {hasOverdraft && (
+              <AmountInput
+                name="overdraftLimit"
+                label="Montant du découvert (EUR)"
+              />
+            )}
+          </>
+        )}
+      </FormSection>
 
       {accountType === 'CREDIT_CARD' && (
-        <Field
-          label="Jour de facturation mensuelle"
-          error={errors.billingDay?.message}
-        >
-          <input
-            type="number"
-            min={1}
-            max={31}
-            {...register('billingDay', { valueAsNumber: true })}
-            className={inputClass}
+        <FormSection title="Carte">
+          <AmountInput
+            name="billingDay"
+            label="Jour de facturation mensuelle"
           />
-        </Field>
+          <FormHint>
+            Encours suivi sur un compte carte distinct ; facture prélevée sur le
+            compte courant lié.
+          </FormHint>
+          <SelectInput
+            name="linkedAccountId"
+            label="Prélèvement sur"
+            options={settlementOptions}
+          />
+        </FormSection>
       )}
 
-      {accountType === 'CREDIT_CARD' && (
-        <Field label="Prélèvement sur" error={errors.linkedAccountId?.message}>
-          <select
-            {...register('linkedAccountId')}
-            className={inputClass}
-            defaultValue=""
-          >
-            <option value="">— Choisir le compte de règlement —</option>
-            {activeAccounts.map((account) => (
-              <option key={account.id} value={account.id}>
-                {account.name}
-              </option>
-            ))}
-          </select>
-        </Field>
+      {accountType === 'SAVINGS' && (
+        <FormSection title="Plafond">
+          <FormHint>Livret A — plafond de 22 950 € par personne.</FormHint>
+        </FormSection>
       )}
 
       {error && <p className="text-sm text-red-600">{error.message}</p>}
 
-      <button
-        type="submit"
-        disabled={isCreating}
-        className="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50"
-      >
+      <Button type="submit" size="lg" className="w-full" disabled={isCreating}>
         {isCreating ? 'Création…' : 'Créer le compte'}
-      </button>
-
-      <Link
-        href="/comptes"
-        className="block text-center text-sm text-gray-500 hover:text-gray-700"
-      >
-        Annuler
-      </Link>
-    </form>
-  );
-}
-
-const inputClass =
-  'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:border-indigo-400 focus:outline-none';
-
-interface FieldProps {
-  label: string;
-  error?: string;
-  children: React.ReactNode;
-}
-
-function Field({ label, error, children }: FieldProps): JSX.Element {
-  return (
-    <div className="space-y-1.5">
-      <label className="block space-y-1.5">
-        <span className="block text-xs font-medium text-gray-600">{label}</span>
-        {children}
-      </label>
-      {error && <p className="text-xs text-red-600">{error}</p>}
-    </div>
+      </Button>
+    </Form>
   );
 }

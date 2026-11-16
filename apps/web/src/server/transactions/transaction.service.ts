@@ -1,7 +1,7 @@
 import 'server-only';
 import { prisma } from '@/server/db';
 import { NotFoundError, HttpError } from '@/server/common/http';
-import { transactionQueryToWhere } from '@/server/common/filter-to-where';
+import { createWhereTranslator } from '@/server/common/where-translator';
 import {
   Transaction,
   TransactionQuery,
@@ -11,10 +11,32 @@ import {
 import { Prisma } from '@prisma/client';
 import { parseISO } from 'date-fns';
 
+const transactionWhereTranslator =
+  createWhereTranslator<Prisma.TransactionWhereInput>({
+    accountId: { ops: ['eq', 'in'] },
+    category: { ops: ['eq', 'contains', 'in'] },
+    transferId: { ops: ['eq', 'in'] },
+    transferRole: { ops: ['eq', 'in'] },
+    dateFrom: {
+      ops: ['gte'],
+      target: 'date',
+      transform: (v) => (typeof v === 'string' ? parseISO(v) : v),
+    },
+    dateTo: {
+      ops: ['lte'],
+      target: 'date',
+      transform: (v) => (typeof v === 'string' ? parseISO(v) : v),
+    },
+    date: {
+      ops: ['eq', 'gte', 'lte', 'gt', 'lt'],
+      transform: (v) => (typeof v === 'string' ? parseISO(v) : v),
+    },
+  });
+
 export class TransactionService {
   async findMany(query: TransactionQuery): Promise<Transaction[]> {
     const rows = await prisma.transaction.findMany({
-      where: transactionQueryToWhere(query),
+      where: transactionWhereTranslator(query as Record<string, unknown>),
       orderBy: { date: 'desc' },
       take: query.limit,
       cursor: query.cursor ? { id: query.cursor } : undefined,

@@ -9,7 +9,7 @@
 
 export * from './server/db';
 export * from './server/common/http';
-export * from './server/common/filter-to-where';
+export * from './server/common/where-translator';
 export * from './server/charges/charge.service';
 export * from './server/charges/charges.controller';
 export * from './lib/api';

@@ -1,7 +1,7 @@
 import 'server-only';
 import { prisma } from '@/server/db';
 import { NotFoundError, HttpError } from '@/server/common/http';
-import { accountQueryToWhere } from '@/server/common/filter-to-where';
+import { createWhereTranslator } from '@/server/common/where-translator';
 import {
   Account,
   AccountQuery,
@@ -11,10 +11,22 @@ import {
 import { Prisma } from '@prisma/client';
 import { parseISO } from 'date-fns';
 
+const accountWhereTranslator = createWhereTranslator<Prisma.AccountWhereInput>({
+  name: { ops: ['eq', 'contains', 'startsWith', 'endsWith'] },
+  bank: { ops: ['eq', 'contains'] },
+  currency: { ops: ['eq', 'in'] },
+  accountType: { ops: ['eq', 'in'] },
+  memberId: { ops: ['eq', 'in'] },
+  status: { ops: ['eq', 'in'] },
+  deferredCard: { ops: ['eq'] },
+  billingDay: { ops: ['eq', 'gte', 'lte'] },
+  linkedAccountId: { ops: ['eq', 'in'] },
+});
+
 export class AccountService {
   async findMany(query: AccountQuery): Promise<Account[]> {
     const rows = await prisma.account.findMany({
-      where: accountQueryToWhere(query),
+      where: accountWhereTranslator(query as Record<string, unknown>),
       orderBy: { createdAt: 'desc' },
       take: query.limit,
       cursor: query.cursor ? { id: query.cursor } : undefined,

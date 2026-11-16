@@ -15,7 +15,6 @@ import {
 } from '@tanstack/react-query';
 import { accountService } from '@/server/accounts/account.service';
 import { transactionService } from '@/server/transactions/transaction.service';
-import { AccountsView } from './accounts-view';
 import { AccountQuery } from '@mbongo/shared';
 import { JSX } from 'react';
 
@@ -34,7 +33,8 @@ interface AccountsGuardProps {
  */
 export async function AccountsGuard({
   query = {},
-}: AccountsGuardProps): Promise<JSX.Element> {
+  children,
+}: AccountsGuardProps & { children: React.ReactNode }): Promise<JSX.Element> {
   const qc = new QueryClient();
 
   await Promise.all([
@@ -49,8 +49,6 @@ export async function AccountsGuard({
   ]);
 
   return (
-    <HydrationBoundary state={dehydrate(qc)}>
-      <AccountsView />
-    </HydrationBoundary>
+    <HydrationBoundary state={dehydrate(qc)}>{children}</HydrationBoundary>
   );
 }

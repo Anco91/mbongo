@@ -2,6 +2,7 @@
  * Charge Create Form Component
  *
  * Dedicated creation page form (one page, one responsibility — mock_POC).
+ * Built entirely on the form kit (styles live in the primitives, never here).
  * The form adapts its fields to the selected charge type, and validation
  * is the shared zod schema — the single source of truth (R7).
  *
@@ -13,8 +14,20 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createChargeSchema, type CreateChargeInput } from '@mbongo/shared';
-import { useAccounts } from '@/components/accounts/hooks/use-accounts';
-import { useCreateCharge } from './hooks/use-charges';
+import { useAccounts } from '@/hooks/use-accounts';
+import { useCreateCharge } from '@/hooks/use-charges';
+import {
+  Form,
+  FormSection,
+  FormHint,
+  TextInput,
+  SelectInput,
+  ToggleInput,
+  AmountInput,
+  currencyOptions,
+  yesNoOptions,
+} from '@/components/common/form-kit';
+import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { JSX } from 'react';
 
@@ -50,7 +63,12 @@ const CATEGORIES = [
   'Abonnements',
   'Médias',
   'Divers',
-];
+].map((c) => ({ value: c, label: c }));
+
+const FREQUENCIES = [
+  { value: 'monthly', label: 'Mensuelle' },
+  { value: 'yearly', label: 'Annuelle' },
+] as const;
 
 /**
  * ChargeCreateForm Component
@@ -64,12 +82,7 @@ export function ChargeCreateForm(): JSX.Element {
     error,
   } = useCreateCharge();
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm<CreateChargeInput>({
+  const form = useForm<CreateChargeInput>({
     resolver: zodResolver(createChargeSchema),
     defaultValues: {
       label: '',
@@ -86,26 +99,28 @@ export function ChargeCreateForm(): JSX.Element {
     },
   });
 
-  const type = watch('type');
+  const type = form.watch('type');
+  const currency = form.watch('currency');
+  const provisioned = form.watch('provisioned');
   const activeType = CHARGE_TYPES.find((t) => t.value === type);
 
-  const submit = handleSubmit((data) => createCharge(data));
+  const activeAccounts = accounts
+    .filter((a) => a.status === 'ACTIVE')
+    .map((a) => ({ value: a.id, label: `${a.name} (${a.currency})` }));
 
-  const onSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
-    void submit(event);
-  };
+  const onSubmit = form.handleSubmit((data) => createCharge(data));
 
   if (createdCharge) {
     return (
       <div className="space-y-4">
-        <div className="p-4 border border-emerald-300 rounded-lg bg-emerald-50">
+        <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-4">
           <p className="text-emerald-700">
             Charge créée — échéances générées (tout-ou-rien).
           </p>
         </div>
         <Link
           href="/charges"
-          className="inline-block px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
+          className="inline-block rounded bg-slate-900 px-4 py-2 text-white transition-colors hover:bg-slate-800"
         >
           Retour aux charges
         </Link>
@@ -113,207 +128,101 @@ export function ChargeCreateForm(): JSX.Element {
     );
   }
 
-  const activeAccounts = accounts.filter((a) => a.status === 'ACTIVE');
-
   return (
-    <form onSubmit={onSubmit} className="space-y-4" noValidate>
-      <Field label="Intitulé" error={errors.label?.message}>
-        <input
-          type="text"
-          {...register('label')}
+    <Form form={form} onSubmit={onSubmit}>
+      <FormSection title="Général">
+        <TextInput
+          name="label"
+          label="Intitulé"
           placeholder="Ex. Loyer GE, LaMaL…"
-          className={inputClass}
         />
-      </Field>
-
-      <Field label="Type de charge" error={errors.type?.message}>
-        <select {...register('type')} className={inputClass}>
-          {CHARGE_TYPES.map((t) => (
-            <option key={t.value} value={t.value}>
-              {t.label}
-            </option>
-          ))}
-        </select>
+        <SelectInput
+          name="type"
+          label="Type de charge"
+          options={CHARGE_TYPES}
+        />
         {activeType && (
-          <p className="text-[11px] text-gray-400">{activeType.hint}</p>
+          <p className="-mt-1 text-[11px] text-slate-400">{activeType.hint}</p>
         )}
-      </Field>
+        <SelectInput name="category" label="Catégorie" options={CATEGORIES} />
+      </FormSection>
 
-      <Field label="Catégorie" error={errors.category?.message}>
-        <select {...register('category')} className={inputClass}>
-          {CATEGORIES.map((category) => (
-            <option key={category} value={category}>
-              {category}
-            </option>
-          ))}
-        </select>
-      </Field>
-
-      <Field label="Devise" error={errors.currency?.message}>
-        <select {...register('currency')} className={inputClass}>
-          <option value="CHF">CHF</option>
-          <option value="EUR">EUR</option>
-        </select>
-      </Field>
-
-      <Field label="Montant" error={errors.amount?.message}>
-        <input
-          type="number"
-          step="0.01"
-          {...register('amount', { valueAsNumber: true })}
-          className={inputClass}
+      <FormSection title="Montant & compte">
+        <ToggleInput name="currency" label="Devise" options={currencyOptions} />
+        <AmountInput name="amount" label={`Montant (${currency})`} />
+        <SelectInput
+          name="accountId"
+          label="Compte débité"
+          options={activeAccounts}
+          placeholder="— Choisir un compte —"
         />
-      </Field>
+      </FormSection>
 
-      <Field label="Compte débité" error={errors.accountId?.message}>
-        <select {...register('accountId')} className={inputClass}>
-          <option value="">— Choisir un compte —</option>
-          {activeAccounts.map((account) => (
-            <option key={account.id} value={account.id}>
-              {account.name} ({account.currency})
-            </option>
-          ))}
-        </select>
-      </Field>
-
+      {/* Conditional block — the form adapts to the charge type */}
       {type === 'FIXED_RECURRING' && (
         <FormSection title="Récurrence">
-          <Field label="Périodicité" error={errors.frequency?.message}>
-            <select {...register('frequency')} className={inputClass}>
-              <option value="monthly">Mensuelle</option>
-              <option value="yearly">Annuelle</option>
-            </select>
-          </Field>
-          <p className="rounded-lg bg-gray-50 p-2.5 text-[11px] text-gray-500">
+          <SelectInput
+            name="frequency"
+            label="Périodicité"
+            options={FREQUENCIES}
+          />
+          <FormHint>
             Échéance générée chaque période. Montant révisable (ex. LaMaL
             révisée chaque 1ᵉʳ janvier).
-          </p>
+          </FormHint>
         </FormSection>
       )}
 
       {type === 'INSTALLMENT' && (
         <FormSection title="Échéancier">
-          <Field
-            label="Nombre d'échéances"
-            error={errors.installments?.message}
-          >
-            <input
-              type="number"
-              min={2}
-              {...register('installments', { valueAsNumber: true })}
-              className={inputClass}
-            />
-          </Field>
-          <Field label="Première échéance" error={errors.startDate?.message}>
-            <input
-              type="date"
-              {...register('startDate')}
-              className={inputClass}
-            />
-          </Field>
+          <AmountInput name="installments" label="Nombre d'échéances" />
+          <TextInput name="startDate" label="Première échéance" type="date" />
         </FormSection>
       )}
 
       {type === 'TEMPORARY' && (
         <FormSection title="Récurrence bornée">
-          <Field label="Périodicité" error={errors.frequency?.message}>
-            <select {...register('frequency')} className={inputClass}>
-              <option value="monthly">Mensuelle</option>
-              <option value="yearly">Annuelle</option>
-            </select>
-          </Field>
-          <Field label="Fin de l'engagement" error={errors.endDate?.message}>
-            <input
-              type="date"
-              {...register('endDate')}
-              className={inputClass}
-            />
-          </Field>
+          <SelectInput
+            name="frequency"
+            label="Périodicité"
+            options={FREQUENCIES}
+          />
+          <TextInput name="startDate" label="Début" type="date" />
+          <TextInput name="endDate" label="Fin de l'engagement" type="date" />
         </FormSection>
       )}
 
       {type === 'ONE_OFF' && (
         <FormSection title="Paiement">
-          <Field label="Date" error={errors.startDate?.message}>
-            <input
-              type="date"
-              {...register('startDate')}
-              className={inputClass}
-            />
-          </Field>
+          <TextInput name="startDate" label="Date" type="date" />
         </FormSection>
       )}
 
       {type === 'UPCOMING' && (
         <FormSection title="Prévision & provision">
-          <Field label="Date prévue" error={errors.startDate?.message}>
-            <input
-              type="date"
-              {...register('startDate')}
-              className={inputClass}
-            />
-          </Field>
-          <label className="flex items-center gap-2 text-sm text-gray-700">
-            <input type="checkbox" {...register('provisioned')} />
-            Provisionner (lissage mensuel)
-          </label>
+          <TextInput name="startDate" label="Date prévue" type="date" />
+          <ToggleInput
+            name="provisioned"
+            label="Provisionner (lissage mensuel)"
+            options={yesNoOptions}
+            booleanValue
+          />
+          {provisioned && (
+            <FormHint>
+              {currency === 'CHF'
+                ? '335,00 CHF / an → 27,92 CHF / mois'
+                : 'Montant / an → montant / 12 par mois'}{' '}
+              débités du compte sélectionné.
+            </FormHint>
+          )}
         </FormSection>
       )}
 
       {error && <p className="text-sm text-red-600">{error.message}</p>}
 
-      <button
-        type="submit"
-        disabled={isCreating}
-        className="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50"
-      >
+      <Button type="submit" size="lg" className="w-full" disabled={isCreating}>
         {isCreating ? 'Création…' : 'Créer la charge'}
-      </button>
-
-      <Link
-        href="/charges"
-        className="block text-center text-sm text-gray-500 hover:text-gray-700"
-      >
-        Annuler
-      </Link>
-    </form>
-  );
-}
-
-const inputClass =
-  'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:border-indigo-400 focus:outline-none';
-
-function FormSection({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}): JSX.Element {
-  return (
-    <section className="space-y-3 border-t border-gray-100 pt-4">
-      <p className="text-[11px] font-medium uppercase tracking-wider text-gray-400">
-        {title}
-      </p>
-      {children}
-    </section>
-  );
-}
-
-interface FieldProps {
-  label: string;
-  error?: string;
-  children: React.ReactNode;
-}
-
-function Field({ label, error, children }: FieldProps): JSX.Element {
-  return (
-    <div className="space-y-1.5">
-      <label className="block space-y-1.5">
-        <span className="block text-xs font-medium text-gray-600">{label}</span>
-        {children}
-      </label>
-      {error && <p className="text-xs text-red-600">{error}</p>}
-    </div>
+      </Button>
+    </Form>
   );
 }

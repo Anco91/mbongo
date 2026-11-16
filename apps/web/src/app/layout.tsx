@@ -11,6 +11,8 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { QueryProvider } from '@/components/providers/query-provider';
+import { AppHeader } from '@/components/common/app-header';
+import { TabNav } from '@/components/common/tab-nav';
 import { JSX } from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -40,7 +42,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <QueryProvider>{children}</QueryProvider>
+        <QueryProvider>
+          <div className="flex min-h-screen justify-center bg-slate-100">
+            <div className="flex w-full max-w-[390px] flex-col bg-white">
+              <AppHeader />
+              <main className="flex-1 overflow-y-auto bg-slate-50 p-4 pb-8">
+                {children}
+              </main>
+              <TabNav />
+            </div>
+          </div>
+        </QueryProvider>
       </body>
     </html>
   );

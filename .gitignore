@@ -15,6 +15,9 @@ build/
 # Misc
 .DS_Store
 *.pem
+# Local agent harness config (may contain secrets)
+.claude/settings.json
+.config/
 
 # Debug
 npm-debug.log*

@@ -15,8 +15,8 @@ import {
   useCreateAccount,
   useUpdateAccount,
   useCloseAccount,
-} from '@/components/accounts/hooks/use-accounts';
-import { useMembers } from '@/components/members/hooks/use-members';
+} from '@/hooks/use-accounts';
+import { useMembers } from '@/hooks/use-members';
 import { useTransactions } from '@/hooks/use-transactions';
 
 const fetchMock = jest.fn();

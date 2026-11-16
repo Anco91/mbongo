@@ -7,8 +7,8 @@
  * @module API/Charges/[id]
  */
 
-import { NextResponse } from 'next/server';
 import { chargesController } from '@/server/charges/charges.controller';
+import { NextResponse } from 'next/server';
 
 // Type for Next.js dynamic route context
 type Context = { params: Promise<{ id: string }> };

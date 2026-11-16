@@ -19,7 +19,6 @@ import { paymentService } from '@/server/payments/payment.service';
 import { accountService } from '@/server/accounts/account.service';
 import { transactionService } from '@/server/transactions/transaction.service';
 import { addDays, startOfDay } from 'date-fns';
-import { ScheduleView } from './schedule-view';
 import { JSX } from 'react';
 
 /**
@@ -36,7 +35,11 @@ import { JSX } from 'react';
  *
  * @returns JSX Element
  */
-export async function ScheduleGuard(): Promise<JSX.Element> {
+export async function ScheduleGuard({
+  children,
+}: {
+  children: React.ReactNode;
+}): Promise<JSX.Element> {
   const qc = new QueryClient();
   const today = startOfDay(new Date());
   const windowEnd = addDays(today, 60);
@@ -71,8 +74,6 @@ export async function ScheduleGuard(): Promise<JSX.Element> {
   ]);
 
   return (
-    <HydrationBoundary state={dehydrate(qc)}>
-      <ScheduleView />
-    </HydrationBoundary>
+    <HydrationBoundary state={dehydrate(qc)}>{children}</HydrationBoundary>
   );
 }

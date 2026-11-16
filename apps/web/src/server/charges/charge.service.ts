@@ -1,6 +1,6 @@
 import { prisma } from '@/server/db';
 import { NotFoundError, HttpError } from '@/server/common/http';
-import { chargeQueryToWhere } from '@/server/common/filter-to-where';
+import { createWhereTranslator } from '@/server/common/where-translator';
 import {
   Charge,
   ChargeQuery,
@@ -11,10 +11,20 @@ import {
 import { Prisma } from '@prisma/client';
 import { parseISO, startOfDay } from 'date-fns';
 
+const chargeWhereTranslator = createWhereTranslator<Prisma.ChargeWhereInput>({
+  label: { ops: ['eq', 'contains', 'startsWith', 'endsWith'] },
+  type: { ops: ['eq', 'in', 'not'] },
+  currency: { ops: ['eq', 'in'] },
+  accountId: { ops: ['eq', 'in'] },
+  category: { ops: ['eq', 'contains', 'in'] },
+  frequency: { ops: ['eq', 'in'] },
+  provisioned: { ops: ['eq'] },
+});
+
 export class ChargeService {
   async findMany(query: ChargeQuery): Promise<Charge[]> {
     const rows = await prisma.charge.findMany({
-      where: chargeQueryToWhere(query),
+      where: chargeWhereTranslator(query as Record<string, unknown>),
       orderBy: { startDate: 'desc' },
       take: query.limit,
       cursor: query.cursor ? { id: query.cursor } : undefined,

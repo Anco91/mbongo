@@ -1,5 +1,5 @@
 import { NotFoundError, HttpError } from '@/server/common/http';
-import { paymentQueryToWhere } from '@/server/common/filter-to-where';
+import { createWhereTranslator } from '@/server/common/where-translator';
 import { prisma } from '@/server/db';
 import {
   CreatePaymentInput,
@@ -9,6 +9,16 @@ import {
 } from '@mbongo/shared';
 import { Prisma } from '@prisma/client';
 import { parseISO } from 'date-fns';
+
+const paymentWhereTranslator = createWhereTranslator<Prisma.PaymentWhereInput>({
+  chargeId: { ops: ['eq', 'in'] },
+  status: { ops: ['eq', 'in'] },
+  dueDate: {
+    ops: ['eq', 'gte', 'lte', 'gt', 'lt'],
+    transform: (v) => (typeof v === 'string' ? parseISO(v) : v),
+  },
+  transactionId: { ops: ['eq', 'in'] },
+});
 
 /** Erreur Prisma d'unicité violée. */
 function isUniqueViolation(error: unknown): boolean {
@@ -22,7 +32,7 @@ function isUniqueViolation(error: unknown): boolean {
 export class PaymentService {
   async findMany(query: PaymentQuery): Promise<Payment[]> {
     const rows = await prisma.payment.findMany({
-      where: paymentQueryToWhere(query),
+      where: paymentWhereTranslator(query as Record<string, unknown>),
       orderBy: { dueDate: 'asc' },
       take: query.limit,
       cursor: query.cursor ? { id: query.cursor } : undefined,

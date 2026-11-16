@@ -10,16 +10,16 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { createElement } from 'react';
 import { ChargeCreateForm } from '@/components/charges/charge-create-form';
 
-jest.mock('@/components/charges/hooks/use-charges', () => ({
+jest.mock('@/hooks/use-charges', () => ({
   useCreateCharge: jest.fn(),
 }));
 
-jest.mock('@/components/accounts/hooks/use-accounts', () => ({
+jest.mock('@/hooks/use-accounts', () => ({
   useAccounts: jest.fn(),
 }));
 
-import { useCreateCharge } from '@/components/charges/hooks/use-charges';
-import { useAccounts } from '@/components/accounts/hooks/use-accounts';
+import { useCreateCharge } from '@/hooks/use-charges';
+import { useAccounts } from '@/hooks/use-accounts';
 
 const now = '2026-11-12T00:00:00.000Z';
 
@@ -92,7 +92,7 @@ describe('ChargeCreateForm', () => {
     fireEvent.change(screen.getByLabelText('Intitulé'), {
       target: { value: 'Loyer GE' },
     });
-    fireEvent.change(screen.getByLabelText('Montant'), {
+    fireEvent.change(screen.getByLabelText(/Montant \(/), {
       target: { value: '1850' },
     });
     fireEvent.change(screen.getByLabelText('Compte débité'), {

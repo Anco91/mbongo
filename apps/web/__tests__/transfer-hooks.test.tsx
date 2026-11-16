@@ -14,7 +14,7 @@ import {
   useTransfers,
   useCreateTransfer,
   useCompleteTransfer,
-} from '@/components/transfers/hooks/use-transfers';
+} from '@/hooks/use-transfers';
 
 const fetchMock = jest.fn();
 
