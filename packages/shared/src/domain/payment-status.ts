@@ -15,6 +15,34 @@ import { Payment } from '../schemas/payment';
 import { Transaction } from '../schemas/transaction';
 
 // ============================================================================
+// Libellés FR (source de vérité unique, codes ET libellés acceptés en UI)
+// ============================================================================
+
+/**
+ * Map code → libellé FR pour tous les statuts affichables (échéances,
+ * transferts). Source de vérité partagée : `StatusBadge` accepte le code
+ * brut ou le libellé déjà traduit, aucun break pour les appels existants.
+ */
+export const PAYMENT_STATUS_LABELS: Record<string, string> = {
+  UPCOMING: 'À venir',
+  DUE: 'Dû',
+  PAID: 'Payé',
+  CANCELLED: 'Annulé',
+  FAILED: 'Échec',
+  ESTIMATED: 'Estimé',
+  COMPLETED: 'Réalisé',
+  PENDING: 'En attente',
+};
+
+/**
+ * Libellé FR d'un statut : passe le code brut (`DUE`) ou le libellé déjà
+ * traduit (`Dû`) — identité dans le second cas.
+ */
+export function paymentStatusLabel(status: string): string {
+  return PAYMENT_STATUS_LABELS[status] ?? status;
+}
+
+// ============================================================================
 // Statut d'affichage
 // ============================================================================
 

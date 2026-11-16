@@ -35,11 +35,17 @@ jest.mock('@/hooks/use-transfers', () => ({
   useTransfers: jest.fn(),
 }));
 
+jest.mock('@/hooks/use-exchange-rate', () => ({
+  useExchangeRate: jest.fn(),
+}));
+
 import { useAccounts } from '@/hooks/use-accounts';
 import { useTransactions } from '@/hooks/use-transactions';
 import { useCharges } from '@/hooks/use-charges';
 import { usePayments } from '@/hooks/use-schedule';
 import { useTransfers } from '@/hooks/use-transfers';
+import { useExchangeRate } from '@/hooks/use-exchange-rate';
+import { DisplayCurrencyProvider } from '@/components/providers/display-currency-provider';
 
 const accounts = [
   {
@@ -139,23 +145,42 @@ describe('DashboardContent', () => {
     (useTransactions as jest.Mock).mockReturnValue({ data: [] });
     (useCharges as jest.Mock).mockReturnValue({ data: charges });
     (useTransfers as jest.Mock).mockReturnValue({ data: transfers });
+    (useExchangeRate as jest.Mock).mockReturnValue({
+      rate: 0.93,
+      rateDate: '2026-11-01',
+      source: 'fallback',
+      isLoading: false,
+    });
   });
 
   it('renders consolidated wealth in EUR and CHF in parallel', () => {
     (usePayments as jest.Mock).mockReturnValue({ data: [] });
 
-    render(createElement(DashboardContent));
+    render(
+      createElement(
+        DisplayCurrencyProvider,
+        null,
+        createElement(DashboardContent)
+      )
+    );
 
     // 2000 EUR + (1500 * 0.93 = 1395) = 3395 EUR
     expect(screen.getByText(/Patrimoine consolidé/i)).toBeTruthy();
     expect(screen.getByText(/3[\s\u00A0\u202F]?395[\.,]00\s?€/)).toBeTruthy();
-    expect(screen.getByText(/1[\s\u00A0\u202F]?500[\.,]00\s?CHF/)).toBeTruthy();
+    // Parallel = the full counter-value in CHF (3395 / 0.93 ≈ 3650.54)
+    expect(screen.getByText(/3[\s\u00A0\u202F]?650[\.,]54\s?CHF/)).toBeTruthy();
   });
 
   it('renders the provisions card with monthly smoothing and total', () => {
     (usePayments as jest.Mock).mockReturnValue({ data: [] });
 
-    render(createElement(DashboardContent));
+    render(
+      createElement(
+        DisplayCurrencyProvider,
+        null,
+        createElement(DashboardContent)
+      )
+    );
 
     expect(screen.getByText('Provisions · lissage mensuel')).toBeTruthy();
     expect(screen.getByText('SERAFE')).toBeTruthy();
@@ -216,7 +241,13 @@ describe('DashboardContent', () => {
     ];
     (usePayments as jest.Mock).mockReturnValue({ data: payments });
 
-    render(createElement(DashboardContent));
+    render(
+      createElement(
+        DisplayCurrencyProvider,
+        null,
+        createElement(DashboardContent)
+      )
+    );
 
     expect(screen.getByText('Échéances du mois')).toBeTruthy();
     const toggleBtn = screen.getByText(/Afficher les 1 autres échéances/i);
@@ -229,7 +260,13 @@ describe('DashboardContent', () => {
   it('renders section titles for Sankey and Donut', () => {
     (usePayments as jest.Mock).mockReturnValue({ data: [] });
 
-    render(createElement(DashboardContent));
+    render(
+      createElement(
+        DisplayCurrencyProvider,
+        null,
+        createElement(DashboardContent)
+      )
+    );
 
     expect(screen.getByText('Flux du mois')).toBeTruthy();
     expect(screen.getByText('Dépenses par catégorie')).toBeTruthy();

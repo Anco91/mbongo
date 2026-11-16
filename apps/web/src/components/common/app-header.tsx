@@ -8,9 +8,16 @@
 
 'use client';
 
+import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { IconChevronLeft } from '@/components/common/icons';
-import { JSX, useState } from 'react';
+import { IconChevronLeft, IconBell } from '@/components/common/icons';
+import { useDisplayCurrency } from '@/components/providers/display-currency-provider';
+import {
+  useActiveAlerts,
+  useAlertsRead,
+  alertFingerprint,
+} from '@/hooks/use-alerts';
+import { JSX } from 'react';
 
 const titles: Record<string, string> = {
   '/': 'Tableau de bord',
@@ -36,9 +43,15 @@ function currentMonthLabel(): string {
 export function AppHeader(): JSX.Element {
   const pathname = usePathname();
   const router = useRouter();
-  // Display-currency selector (maquette). Selection is local for now; the
-  // consolidated view always shows EUR with its rate date (cdc § 3.4).
-  const [displayCurrency, setDisplayCurrency] = useState<'EUR' | 'CHF'>('EUR');
+  // Display-currency selector (maquette). Shared context + localStorage:
+  // the choice drives the consolidated display and persists across views.
+  const { displayCurrency, setDisplayCurrency } = useDisplayCurrency();
+  // Bell badge: active alerts not yet read on this device.
+  const alerts = useActiveAlerts();
+  const { readIds } = useAlertsRead();
+  const unreadCount = alerts.filter(
+    (a) => !readIds.has(alertFingerprint(a))
+  ).length;
 
   const subTitle = subTitles[pathname];
   const isScheduleDetail = /^\/schedule\/[^/]+$/.test(pathname);
@@ -79,21 +92,35 @@ export function AppHeader(): JSX.Element {
           {title}
         </h1>
       </div>
-      <div className="flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">
-        {(['EUR', 'CHF'] as const).map((c) => (
-          <button
-            key={c}
-            type="button"
-            onClick={() => setDisplayCurrency(c)}
-            className={
-              displayCurrency === c
-                ? 'rounded-full bg-white px-1.5 py-0.5 shadow-sm'
-                : 'px-1 py-0.5'
-            }
-          >
-            {c}
-          </button>
-        ))}
+      <div className="flex items-center gap-2">
+        <Link
+          href="/alerts"
+          className="relative flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition-colors hover:bg-slate-100"
+          aria-label={`Alertes${unreadCount > 0 ? ` (${unreadCount} non lues)` : ''}`}
+        >
+          <IconBell className="h-5 w-5" />
+          {unreadCount > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white">
+              {unreadCount}
+            </span>
+          )}
+        </Link>
+        <div className="flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">
+          {(['EUR', 'CHF'] as const).map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => setDisplayCurrency(c)}
+              className={
+                displayCurrency === c
+                  ? 'rounded-full bg-white px-1.5 py-0.5 shadow-sm'
+                  : 'px-1 py-0.5'
+              }
+            >
+              {c}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
