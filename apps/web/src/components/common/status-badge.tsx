@@ -1,11 +1,15 @@
 /**
  * Status Badge — status of a payment, charge or transfer.
  * Class map follows the validated maquette (mock_POC.tsx.todo).
+ * Raw codes (`DUE`, `COMPLETED`…) and French labels (`Dû`, `Réalisé`…)
+ * are both accepted; FR labels come from the shared source of truth
+ * (`PAYMENT_STATUS_LABELS`), so the UI never shows a raw code.
  *
  * @module Components/Common/StatusBadge
  */
 
 import { cn } from '@/lib/utils';
+import { paymentStatusLabel } from '@mbongo/shared';
 import { JSX } from 'react';
 
 const styles: Record<string, string> = {
@@ -25,15 +29,16 @@ export function StatusBadge({
   status: string;
   className?: string;
 }): JSX.Element {
+  const label = paymentStatusLabel(status);
   return (
     <span
       className={cn(
         'rounded-full px-2 py-0.5 text-[11px] font-medium',
-        styles[status] ?? 'bg-slate-100 text-slate-700',
+        styles[label] ?? 'bg-slate-100 text-slate-700',
         className
       )}
     >
-      {status}
+      {label}
     </span>
   );
 }

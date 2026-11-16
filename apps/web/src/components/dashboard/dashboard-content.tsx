@@ -3,41 +3,34 @@
  *
  * Implements M3 Dashboard Features (tasks 5.1–5.5):
  * - Consolidated Wealth (dated EUR + parallel CHF)
- * - Financial Alerts Banner (computeAlerts, sorted by severity)
  * - Monthly Flows (Sankey with fullscreen zoom/pan)
  * - Category Expenses (Donut with legend & fullscreen)
  * - Upcoming Payments of the month with DetailSheet & show more/less
  * - Provisions & Monthly Smoothing with DetailSheet & household total
+ * (Alerts moved to the dedicated /alerts view + bell badge — M4.)
  *
  * @module Components/Dashboard/DashboardContent
  */
 
 'use client';
 
-import { useMemo, useState, useEffect, JSX } from 'react';
-import {
-  Sankey,
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-} from 'recharts';
+import { useMemo, useState, useEffect, useCallback, JSX } from 'react';
 import {
   computeBalance,
   computeConsolidatedBalance,
   computeDonutExpenses,
   computeSankeyFlows,
-  computeAlerts,
   monthlyProvision,
   paymentsInMonth,
   paymentDisplayStatus,
+  paymentStatusLabel,
 } from '@mbongo/shared';
 import { useAccounts } from '@/hooks/use-accounts';
 import { useTransactions } from '@/hooks/use-transactions';
 import { useCharges } from '@/hooks/use-charges';
 import { usePayments } from '@/hooks/use-schedule';
 import { useTransfers } from '@/hooks/use-transfers';
+import { useDisplayCurrency } from '@/components/providers/display-currency-provider';
 import {
   AccountChip,
   DetailRow,
@@ -47,6 +40,11 @@ import {
   StatusBadge,
   ChartFullscreen,
 } from '@/components/common';
+import { SankeyFlowsChart } from '@/components/common/sankey-flows-chart';
+import {
+  DonutCategoriesChart,
+  DonutLegend,
+} from '@/components/common/donut-categories-chart';
 import { formatAmount, formatDate } from '@/components/common/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -69,6 +67,16 @@ export function DashboardContent(): JSX.Element {
   const { data: charges = [] } = useCharges();
   const { data: payments = [] } = usePayments();
   const { data: transfers = [] } = useTransfers();
+  // Shared display currency + current rate (live official, fallback transfers).
+  const { displayCurrency, rate, rateDate, rateSource, convert } =
+    useDisplayCurrency();
+
+  /** Formats a EUR-converted value in the display currency (injected in charts). */
+  const formatDisplay = useCallback(
+    (eurValue: number): string =>
+      formatAmount(convert(eurValue), displayCurrency),
+    [convert, displayCurrency]
+  );
 
   const accountsById = useMemo(
     () => new Map(accounts.map((acc) => [acc.id, acc])),
@@ -90,25 +98,19 @@ export function DashboardContent(): JSX.Element {
     return map;
   }, [accounts, transactions]);
 
-  // 2. Patrimoine consolidé
+  // 2. Patrimoine consolidé — au taux courant (live prioritaire, fallback transferts)
   const consolidated = useMemo(
-    () => computeConsolidatedBalance(accounts, balances, transfers),
-    [accounts, balances, transfers]
-  );
-
-  // 3. Alertes financières
-  const alerts = useMemo(
     () =>
-      computeAlerts({
+      computeConsolidatedBalance(
         accounts,
         balances,
-        payments,
-        charges,
-      }),
-    [accounts, balances, payments, charges]
+        transfers,
+        rate != null && rateDate != null ? { rate, rateDate } : null
+      ),
+    [accounts, balances, transfers, rate, rateDate]
   );
 
-  // 4. Flux Sankey du mois
+  // 3. Flux Sankey du mois
   const sankeyData = useMemo(
     () =>
       computeSankeyFlows({
@@ -122,7 +124,7 @@ export function DashboardContent(): JSX.Element {
     [accounts, transactions, transfers, payments, charges, consolidated.rate]
   );
 
-  // 5. Donut dépenses du mois
+  // 4. Donut dépenses du mois
   const donutData = useMemo(
     () =>
       computeDonutExpenses({
@@ -139,7 +141,7 @@ export function DashboardContent(): JSX.Element {
     [donutData]
   );
 
-  // 6. Échéances du mois
+  // 5. Échéances du mois
   const now = useMemo(() => new Date(), []);
   const monthPayments = useMemo(
     () => paymentsInMonth(payments, now),
@@ -150,7 +152,7 @@ export function DashboardContent(): JSX.Element {
     ? monthPayments
     : monthPayments.slice(0, 3);
 
-  // 7. Charges provisionnées
+  // 6. Charges provisionnées
   const provisionedCharges = useMemo(
     () => charges.filter((c) => c.provisioned),
     [charges]
@@ -163,57 +165,44 @@ export function DashboardContent(): JSX.Element {
 
   return (
     <div className="space-y-4">
-      {/* 1. Bandeau d'alertes (si présentes) */}
-      {alerts.length > 0 && (
-        <div className="space-y-2">
-          {alerts.map((alert) => (
-            <div
-              key={alert.id}
-              className={`rounded-lg border px-3.5 py-2.5 text-xs ${
-                alert.severity === 'danger'
-                  ? 'border-rose-200 bg-rose-50 text-rose-800'
-                  : alert.severity === 'warning'
-                    ? 'border-amber-200 bg-amber-50 text-amber-800'
-                    : 'border-blue-200 bg-blue-50 text-blue-800'
-              }`}
-            >
-              <div className="flex items-center justify-between font-semibold">
-                <span>{alert.title}</span>
-                <span className="uppercase text-[10px] tracking-wider opacity-75">
-                  {alert.severity}
-                </span>
-              </div>
-              <p className="mt-0.5 text-slate-600">{alert.message}</p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* 2. Patrimoine consolidé */}
+      {/* 1. Patrimoine consolidé */}
       <Card>
         <CardContent className="pt-5">
           <p className="text-xs text-slate-500">
             Patrimoine consolidé
-            {consolidated.rateDate && (
-              <> · au taux du {formatDate(consolidated.rateDate)}</>
-            )}
+            {consolidated.rateDate &&
+              (rateSource === 'live'
+                ? ` · au taux du ${formatDate(consolidated.rateDate)} · BCE`
+                : ` · dernier taux connu du ${formatDate(consolidated.rateDate)}`)}
           </p>
           <div className="mt-1 flex items-end justify-between">
             <div>
               <p className="text-3xl font-semibold tracking-tight text-slate-900">
                 {consolidated.isAvailable && consolidated.totalEur !== null
-                  ? formatAmount(consolidated.totalEur, 'EUR')
+                  ? formatAmount(
+                      convert(consolidated.totalEur),
+                      displayCurrency
+                    )
                   : 'Taux indisponible'}
               </p>
               <p className="mt-0.5 text-xs text-slate-500">
-                ≈ {formatAmount(consolidated.totalChf, 'CHF')} en parallèle
+                ≈{' '}
+                {formatAmount(
+                  displayCurrency === 'EUR'
+                    ? rate && rate > 0
+                      ? convert(consolidated.totalEur ?? 0) / rate
+                      : (consolidated.totalChf ?? 0)
+                    : (consolidated.totalEur ?? 0),
+                  displayCurrency === 'EUR' ? 'CHF' : 'EUR'
+                )}{' '}
+                en parallèle
               </p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* 3. Flux du mois (Sankey) */}
+      {/* 2. Flux du mois (Sankey) */}
       <div>
         <SectionTitle>Flux du mois</SectionTitle>
         <Card>
@@ -225,17 +214,7 @@ export function DashboardContent(): JSX.Element {
           </CardHeader>
           <CardContent className="h-56">
             {mounted && sankeyData.nodes.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <Sankey
-                  data={sankeyData}
-                  nodeWidth={8}
-                  nodePadding={14}
-                  margin={{ top: 4, right: 70, bottom: 4, left: 4 }}
-                  link={{ stroke: '#94a3b8', strokeOpacity: 0.35 }}
-                >
-                  <Tooltip />
-                </Sankey>
-              </ResponsiveContainer>
+              <SankeyFlowsChart data={sankeyData} />
             ) : (
               <div className="flex h-full items-center justify-center text-xs text-slate-400">
                 Aucun flux pour ce mois
@@ -245,55 +224,25 @@ export function DashboardContent(): JSX.Element {
         </Card>
       </div>
 
-      {/* 4. Dépenses par catégorie (Donut) */}
+      {/* 3. Dépenses par catégorie (Donut) */}
       <div>
         <SectionTitle>Dépenses par catégorie</SectionTitle>
         <Card>
           <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs font-medium text-slate-500">
-              Mois courant · {formatAmount(totalDonutValue, 'EUR')}
+              Mois courant ·{' '}
+              {formatAmount(convert(totalDonutValue), displayCurrency)}
             </CardTitle>
             <ExpandButton onClick={() => setFullscreenChart('donut')} />
           </CardHeader>
           <CardContent>
             {mounted && donutData.length > 0 ? (
               <div className="flex items-center gap-4">
-                <div className="h-28 w-28 shrink-0">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={donutData}
-                        dataKey="value"
-                        innerRadius="55%"
-                        outerRadius="90%"
-                        paddingAngle={2}
-                        stroke="none"
-                      >
-                        {donutData.map((d) => (
-                          <Cell key={d.name} fill={d.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="grid flex-1 grid-cols-2 gap-x-3 gap-y-1.5">
-                  {donutData.map((d) => (
-                    <div
-                      key={d.name}
-                      className="flex items-center gap-1.5 text-[11px] text-slate-600"
-                    >
-                      <span
-                        className="h-2 w-2 shrink-0 rounded-full"
-                        style={{ backgroundColor: d.color }}
-                      />
-                      <span className="truncate">{d.name}</span>
-                      <span className="ml-auto text-slate-400">
-                        {formatAmount(d.value, 'EUR')}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                <DonutCategoriesChart
+                  data={donutData}
+                  formatValue={formatDisplay}
+                />
+                <DonutLegend data={donutData} formatValue={formatDisplay} />
               </div>
             ) : (
               <div className="py-6 text-center text-xs text-slate-400">
@@ -304,7 +253,7 @@ export function DashboardContent(): JSX.Element {
         </Card>
       </div>
 
-      {/* 5. Échéances du mois */}
+      {/* 4. Échéances du mois */}
       <div>
         <SectionTitle>Échéances du mois</SectionTitle>
         <Card>
@@ -358,7 +307,10 @@ export function DashboardContent(): JSX.Element {
                       label="Compte débité"
                       value={account?.name ?? 'Compte inconnu'}
                     />
-                    <DetailRow label="Statut" value={status} />
+                    <DetailRow
+                      label="Statut"
+                      value={paymentStatusLabel(status)}
+                    />
                     {charge?.category && (
                       <DetailRow label="Catégorie" value={charge.category} />
                     )}
@@ -386,7 +338,7 @@ export function DashboardContent(): JSX.Element {
         </Card>
       </div>
 
-      {/* 6. Provisions · lissage mensuel */}
+      {/* 5. Provisions · lissage mensuel */}
       <div>
         <SectionTitle>Provisions · lissage mensuel</SectionTitle>
         <Card>
@@ -459,7 +411,7 @@ export function DashboardContent(): JSX.Element {
         </Card>
       </div>
 
-      {/* 7. Plein écran charts */}
+      {/* 6. Plein écran charts */}
       {fullscreenChart && (
         <ChartFullscreen
           title={
@@ -471,56 +423,24 @@ export function DashboardContent(): JSX.Element {
         >
           {fullscreenChart === 'sankey' ? (
             <div className="h-full w-full px-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <Sankey
-                  data={sankeyData}
-                  nodeWidth={8}
-                  nodePadding={14}
-                  margin={{ top: 20, right: 100, bottom: 20, left: 20 }}
-                  link={{ stroke: '#94a3b8', strokeOpacity: 0.35 }}
-                >
-                  <Tooltip />
-                </Sankey>
-              </ResponsiveContainer>
+              <SankeyFlowsChart
+                data={sankeyData}
+                margin={{ top: 20, right: 100, bottom: 20, left: 20 }}
+                showLabels
+              />
             </div>
           ) : (
             <div className="flex h-full w-full flex-col items-center justify-center gap-4">
-              <div className="h-[360px] w-[360px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={donutData}
-                      dataKey="value"
-                      innerRadius="55%"
-                      outerRadius="90%"
-                      paddingAngle={2}
-                      stroke="none"
-                    >
-                      {donutData.map((d) => (
-                        <Cell key={d.name} fill={d.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="flex max-w-[320px] flex-wrap justify-center gap-x-3 gap-y-1.5">
-                {donutData.map((d) => (
-                  <div
-                    key={d.name}
-                    className="flex items-center gap-1.5 text-[11px] text-slate-600"
-                  >
-                    <span
-                      className="h-2 w-2 rounded-full"
-                      style={{ backgroundColor: d.color }}
-                    />
-                    <span>{d.name}</span>
-                    <span className="text-slate-400">
-                      {formatAmount(d.value, 'EUR')}
-                    </span>
-                  </div>
-                ))}
-              </div>
+              <DonutCategoriesChart
+                data={donutData}
+                formatValue={formatDisplay}
+                size={360}
+              />
+              <DonutLegend
+                data={donutData}
+                formatValue={formatDisplay}
+                layout="wrap"
+              />
             </div>
           )}
         </ChartFullscreen>

@@ -11,7 +11,7 @@
 
 'use client';
 
-import { JSX } from 'react';
+import { useState, type JSX } from 'react';
 import Link from 'next/link';
 import { useTransfers, useCompleteTransfer } from '@/hooks/use-transfers';
 import { useAccounts } from '@/hooks/use-accounts';
@@ -24,9 +24,17 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { IconArrowRight, IconClock } from '@/components/common/icons';
 
+/** Pagination révélation (mobile) : 3 visibles au départ, +5 par paquet. */
+const INITIAL_VISIBLE = 3;
+const PAGE_SIZE = 5;
+
 export function TransfersContent(): JSX.Element {
   const { data: transfers = [], isLoading, error, refetch } = useTransfers();
   const { data: accounts = [] } = useAccounts();
+  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
+
+  // Ordre inchangé (date desc côté API) : la pagination ne révèle que la suite.
+  const visibleTransfers = transfers.slice(0, visibleCount);
 
   if (isLoading) {
     return (
@@ -71,7 +79,7 @@ export function TransfersContent(): JSX.Element {
         </p>
       </div>
 
-      {transfers.map((transfer) => (
+      {visibleTransfers.map((transfer) => (
         <Card key={transfer.id}>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
@@ -151,6 +159,16 @@ export function TransfersContent(): JSX.Element {
           </CardContent>
         </Card>
       ))}
+
+      {transfers.length > visibleCount && (
+        <button
+          type="button"
+          onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+          className="w-full py-2.5 text-xs font-medium text-emerald-700"
+        >
+          Afficher les {transfers.length - visibleCount} autres transferts
+        </button>
+      )}
 
       {transfers.length === 0 && (
         <div className="rounded-lg border border-slate-200 p-8 text-center">

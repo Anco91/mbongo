@@ -16,6 +16,7 @@ import { TransfersGuard } from '@/components/transfers/transfers-guard';
 import { TransfersContent } from '@/components/transfers/transfers-content';
 import { DashboardGuard } from '@/components/dashboard/dashboard-guard';
 import { DashboardContent } from '@/components/dashboard/dashboard-content';
+import { DisplayCurrencyProvider } from '@/components/providers/display-currency-provider';
 
 jest.mock('@/server/db', () => ({ prisma: {} }));
 
@@ -41,6 +42,16 @@ jest.mock('@/server/payments/payment.service', () => ({
 
 jest.mock('@/server/members/member.service', () => ({
   memberService: { findMany: jest.fn() },
+}));
+
+// Display-currency provider deps: no network in tests.
+jest.mock('@/hooks/use-exchange-rate', () => ({
+  useExchangeRate: jest.fn(() => ({
+    rate: null,
+    rateDate: null,
+    source: 'none',
+    isLoading: false,
+  })),
 }));
 
 import { accountService } from '@/server/accounts/account.service';
@@ -159,7 +170,15 @@ describe('DashboardGuard', () => {
     (paymentService.findMany as jest.Mock).mockResolvedValue([]);
     (memberService.findMany as jest.Mock).mockResolvedValue([]);
 
-    await renderHydrated(DashboardGuard({ children: <DashboardContent /> }));
+    await renderHydrated(
+      DashboardGuard({
+        children: (
+          <DisplayCurrencyProvider>
+            <DashboardContent />
+          </DisplayCurrencyProvider>
+        ),
+      })
+    );
 
     expect(screen.getByText(/Patrimoine consolidé/i)).toBeTruthy();
     expect(screen.getByText('Flux du mois')).toBeTruthy();

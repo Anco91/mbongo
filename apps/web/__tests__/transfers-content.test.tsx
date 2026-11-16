@@ -63,6 +63,55 @@ beforeEach(() => {
   });
 });
 
+const pagedTransfer = (index: number): typeof estimated => ({
+  ...estimated,
+  id: `transfer-${index}`,
+  amountSent: 100 + index,
+});
+
+describe('Transfers pagination', () => {
+  it('shows the first 3 transfers and reveals the rest by packets of 5', () => {
+    (useTransfers as jest.Mock).mockReturnValue({
+      data: Array.from({ length: 12 }, (_, i) => pagedTransfer(i)),
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
+    render(createElement(TransfersContent));
+
+    expect(screen.getAllByText(/UBS Courant → BNP Perso/).length).toBe(3);
+    expect(screen.getByText('Afficher les 9 autres transferts')).toBeTruthy();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Afficher les 9 autres transferts' })
+    );
+    expect(screen.getAllByText(/UBS Courant → BNP Perso/).length).toBe(8);
+    expect(screen.getByText('Afficher les 4 autres transferts')).toBeTruthy();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Afficher les 4 autres transferts' })
+    );
+    // Tout visible, plus de bouton, ordre inchangé, rien perdu.
+    expect(screen.getAllByText(/UBS Courant → BNP Perso/).length).toBe(12);
+    expect(screen.queryByText(/Afficher les .+ autres/)).toBeNull();
+  });
+
+  it('shows every transfer without the button when few exist', () => {
+    (useTransfers as jest.Mock).mockReturnValue({
+      data: [estimated, pagedTransfer(2)],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
+    render(createElement(TransfersContent));
+
+    expect(screen.getAllByText(/UBS Courant → BNP Perso/).length).toBe(2);
+    expect(screen.queryByText(/Afficher les .+ autres/)).toBeNull();
+  });
+});
+
 describe('TransfersContent', () => {
   it('shows both phases with "En attente du crédit" for estimated transfers', () => {
     (useTransfers as jest.Mock).mockReturnValue({

@@ -21,4 +21,5 @@ export {
   ChevronLeft as IconChevronLeft,
   Trash2 as IconTrash,
   AlertTriangle as IconTriangleAlert,
+  Bell as IconBell,
 } from 'lucide-react';
