@@ -2,14 +2,14 @@
 
 ## 1. Socle membre : lastName + CRUD API
 
-- [ ] 1.1 `packages/shared` : `memberSchema` + `lastName` optionnel (create/update) ; Prisma migration `members.lastName` nullable ; service `create/update/delete` (delete = transaction : nullification `memberId` des comptes puis delete) ; controller + routes `POST/PATCH/DELETE /api/members` ; repository + hooks `useCreateMember/useUpdateMember/useDeleteMember` ; tests service/where/routes
-- [ ] 1.2 `ownerLabel(memberId, members)` dérivation pure + `OwnerBadge` (components/common, chip « prénom » ou « Foyer ») ; test rendu des deux cas
-- [ ] 1.3 Vue `/household` : view/guard/content + formulaire (prénom, nom, rôle) sur form kit + `DeleteButton` ; lien « Vue foyer » depuis la page comptes ; AppHeader title `/household` ; tests content (liste, filtres, actions)
+- [x] 1.1 `packages/shared` : `memberSchema` + `lastName` optionnel (create/update) ; Prisma migration `members.lastName` nullable ; service `create/update/delete` (delete = transaction : nullification `memberId` des comptes puis delete) ; controller + routes `POST/PATCH/DELETE /api/members` ; repository + hooks `useCreateMember/useUpdateMember/useDeleteMember` ; tests service/where/routes
+- [x] 1.2 `ownerLabel(memberId, members)` dérivation pure + `OwnerBadge` (components/common, chip « prénom » ou « Foyer ») ; test rendu des deux cas
+- [x] 1.3 Vue `/household` : view/guard/content + formulaire (prénom, nom, rôle) sur form kit + `DeleteButton` ; lien « Vue foyer » depuis la page comptes ; AppHeader title `/household` ; tests content (liste, filtres, actions)
 
 ## 2. Badge qui-paie sur toutes les cards
 
-- [ ] 2.1 `OwnerBadge` sur cards comptes (à côté du nom), charges (ligne badges + détail), échéances du dashboard, provisions du dashboard ; test charges-content avec badge « Foyer » et badge membre
-- [ ] 2.2 Vérification : membre renommé → badge mis à jour partout ; compte sans membre → « Foyer »
+- [x] 2.1 `OwnerBadge` sur cards comptes (à côté du nom), charges (ligne badges + détail), échéances du dashboard, provisions du dashboard ; test charges-content avec badge « Foyer » et badge membre
+- [x] 2.2 Vérification : membre renommé → badge mis à jour partout ; compte sans membre → « Foyer »
 
 ## 3. Dashboard mensuel (curseur + swipe)
 

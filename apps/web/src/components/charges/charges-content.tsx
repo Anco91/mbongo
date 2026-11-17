@@ -25,6 +25,7 @@ import {
   DetailSheet,
   DetailRow,
   DeleteButton,
+  OwnerBadge,
 } from '@/components/common';
 import { formatAmount, formatDate } from '@/components/common/format';
 import { Button } from '@/components/ui/button';
@@ -181,6 +182,7 @@ export function ChargesContent(): JSX.Element {
                       <StatusBadge status={status} />
                     </div>
                     <div className="mt-1 flex items-center gap-2">
+                      <OwnerBadge memberId={account?.memberId ?? null} />
                       <TypeBadge type={charge.type} />
                       {account && <AccountChip name={account.name} />}
                     </div>
@@ -207,6 +209,7 @@ export function ChargesContent(): JSX.Element {
                 }
               >
                 <div className="flex items-center gap-2">
+                  <OwnerBadge memberId={account?.memberId ?? null} />
                   <TypeBadge type={charge.type} />
                   <StatusBadge status={status} />
                   {account && <AccountChip name={account.name} />}

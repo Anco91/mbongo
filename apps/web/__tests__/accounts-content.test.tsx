@@ -24,6 +24,7 @@ jest.mock('@/hooks/use-members', () => ({
 
 import { useAccounts } from '@/hooks/use-accounts';
 import { useTransactions } from '@/hooks/use-transactions';
+import { useMembers } from '@/hooks/use-members';
 
 const now = '2026-11-12T00:00:00.000Z';
 
@@ -70,6 +71,41 @@ const transactions = [
 
 beforeEach(() => {
   jest.clearAllMocks();
+});
+
+describe('AccountsContent (OwnerBadge qui-paie, M4)', () => {
+  it('badge prénom du membre propriétaire sur la card compte', () => {
+    (useAccounts as jest.Mock).mockReturnValue({
+      data: [account],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+    (useTransactions as jest.Mock).mockReturnValue({ data: [] });
+    (useMembers as jest.Mock).mockReturnValue({
+      data: [{ id: 'member-anco-0001', firstName: 'Anco', role: 'PRIMARY' }],
+    });
+
+    render(createElement(AccountsContent));
+
+    // Le prénom apparaît dans le filtre membre ET dans le badge qui-paie.
+    expect(screen.getAllByText('Anco').length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('badge Foyer pour un compte non attribué', () => {
+    (useAccounts as jest.Mock).mockReturnValue({
+      data: [{ ...account, memberId: null }],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+    (useTransactions as jest.Mock).mockReturnValue({ data: [] });
+    (useMembers as jest.Mock).mockReturnValue({ data: [] });
+
+    render(createElement(AccountsContent));
+
+    expect(screen.getByText('Foyer')).toBeTruthy();
+  });
 });
 
 describe('AccountsContent', () => {

@@ -22,6 +22,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { IconPlus } from '@/components/common/icons';
+import { OwnerBadge } from '@/components/common';
 
 const ACCOUNT_TYPE_LABELS: Record<string, string> = {
   CURRENT: 'Compte principal',
@@ -152,6 +153,7 @@ export function AccountsContent(): JSX.Element {
                       {account.bank ?? '—'} · {account.currency}
                     </p>
                   </div>
+                  <OwnerBadge memberId={account.memberId} />
                   <Badge
                     variant="outline"
                     className="text-[10px] text-slate-500"
@@ -225,6 +227,13 @@ export function AccountsContent(): JSX.Element {
         <Button variant="outline" size="lg" className="w-full">
           <IconPlus className="h-4 w-4" /> Nouveau compte
         </Button>
+      </Link>
+
+      <Link
+        href="/household"
+        className="block text-center text-xs font-medium text-slate-500 underline-offset-4 hover:text-slate-700 hover:underline"
+      >
+        Vue foyer — gérer les membres
       </Link>
     </div>
   );

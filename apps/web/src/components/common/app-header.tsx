@@ -24,6 +24,7 @@ const titles: Record<string, string> = {
   '/charges': 'Charges & échéancier',
   '/transfers': 'Transferts',
   '/accounts': 'Comptes',
+  '/household': 'Vue foyer',
   '/schedule': 'Échéancier',
 };
 
