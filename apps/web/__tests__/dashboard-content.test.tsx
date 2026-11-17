@@ -35,6 +35,10 @@ jest.mock('@/hooks/use-transfers', () => ({
   useTransfers: jest.fn(),
 }));
 
+jest.mock('@/hooks/use-members', () => ({
+  useMembers: jest.fn(() => ({ data: [] })),
+}));
+
 jest.mock('@/hooks/use-exchange-rate', () => ({
   useExchangeRate: jest.fn(),
 }));

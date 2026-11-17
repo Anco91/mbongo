@@ -13,15 +13,15 @@
 
 ## 3. Dashboard mensuel (curseur + swipe)
 
-- [ ] 3.1 Shared : `monthRange(iso)` pure + filtrage mensuel des inputs sankey/donut/échéances dans dashboard-content (`selectedMonth` défaut courant) ; `computeAlerts` reste asOf jour ; test monthRange + filtrage
-- [ ] 3.2 Curseur « ‹ nov. 2026 › » (précédent/suivant) au-dessus des charts + swipe horizontal (pointer events, seuil 60 px, zone charts) ; test curseur (mois affiché, navigation)
-- [ ] 3.3 Vérification : mois passé → échéances/flux de ce mois ; mois courant au premier chargement ; scroll vertical non capturé par le swipe
+- [x] 3.1 Shared : `monthRange(iso)` pure + filtrage mensuel des inputs sankey/donut/échéances dans dashboard-content (`selectedMonth` défaut courant) ; `computeAlerts` reste asOf jour ; test monthRange + filtrage
+- [x] 3.2 Curseur « ‹ nov. 2026 › » (précédent/suivant) au-dessus des charts + swipe horizontal (pointer events, seuil 60 px, zone charts) ; test curseur (mois affiché, navigation)
+- [x] 3.3 Vérification : mois passé → échéances/flux de ce mois ; mois courant au premier chargement ; scroll vertical non capturé par le swipe
 
 ## 4. Texte dans les graphes
 
-- [ ] 4.1 Sankey : `sankeyNodeTotals(data)` pure (total par nœud depuis les liens) + labels « nom · montant » toujours visibles (carte + plein écran), marges ajustées ; test totals
-- [ ] 4.2 Donut : total formaté au centre de l'anneau (`<text>` superposé) + `label` % custom sur les segments en plein écran ; légende retirée de la carte, conservée en plein écran ; test centre rendu
-- [ ] 4.3 Vérification : lisibilité en carte (390 px), contraste des labels sur les liens colorés
+- [x] 4.1 Sankey : `sankeyNodeTotals(data)` pure (total par nœud depuis les liens) + labels « nom · montant » toujours visibles (carte + plein écran), marges ajustées ; test totals
+- [x] 4.2 Donut : total formaté au centre de l'anneau (`<text>` superposé) + `label` % custom sur les segments en plein écran ; légende retirée de la carte, conservée en plein écran ; test centre rendu
+- [x] 4.3 Vérification : lisibilité en carte (390 px), contraste des labels sur les liens colorés
 
 ## 5. Texte légende + pagination PWA
 

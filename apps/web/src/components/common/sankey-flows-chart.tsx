@@ -14,7 +14,12 @@
 
 import { Sankey, Tooltip, ResponsiveContainer } from 'recharts';
 import type { SankeyNodeProps, SankeyLinkProps } from 'recharts';
-import type { SankeyData, SankeyLink, SankeyNode } from '@mbongo/shared';
+import {
+  sankeyNodeTotals,
+  type SankeyData,
+  type SankeyLink,
+  type SankeyNode,
+} from '@mbongo/shared';
 import { useCallback, useMemo, type JSX } from 'react';
 
 export type SankeyNodeType = 'income' | 'account' | 'expense';
@@ -56,10 +61,12 @@ export function sankeyNodeColor(type: SankeyNodeType): string {
 
 interface NodeRenderOptions {
   types: SankeyNodeType[];
+  totals: number[];
+  formatValue: (value: number) => string;
   showLabels: boolean;
 }
 
-/** Pure renderer: colored node rect + optional name label. */
+/** Pure renderer: colored node rect + always-on « nom · montant » label. */
 function renderSankeyNode(
   props: SankeyNodeProps,
   options: NodeRenderOptions
@@ -67,6 +74,7 @@ function renderSankeyNode(
   const { x, y, width, height, payload, index } = props;
   const type = options.types[index] ?? 'account';
   const fill = sankeyNodeColor(type);
+  const total = options.totals[index] ?? 0;
 
   return (
     <g>
@@ -79,7 +87,7 @@ function renderSankeyNode(
           textAnchor={type === 'income' ? 'start' : 'end'}
           className="fill-slate-500 text-[10px]"
         >
-          {payload.name}
+          {`${payload.name} · ${options.formatValue(total)}`}
         </text>
       )}
     </g>
@@ -122,14 +130,17 @@ interface SankeyFlowsChartProps {
   data: SankeyData;
   /** Sankey margins (card: tight; fullscreen: wider). */
   margin?: { top: number; right: number; bottom: number; left: number };
-  /** Node name labels (fullscreen only — the card is too small). */
+  /** Node labels « nom · montant » (M4 : toujours visibles, carte + plein écran). */
   showLabels?: boolean;
+  /** Formateur de montant (devise d'affichage, injecté par le dashboard). */
+  formatValue?: (value: number) => string;
 }
 
 export function SankeyFlowsChart({
   data,
-  margin = { top: 4, right: 70, bottom: 4, left: 4 },
-  showLabels = false,
+  margin = { top: 4, right: 110, bottom: 4, left: 4 },
+  showLabels = true,
+  formatValue = (value: number) => String(Math.round(value)),
 }: SankeyFlowsChartProps): JSX.Element {
   const types = useMemo(
     () => classifySankeyNodes(data.nodes, data.links),
@@ -144,9 +155,17 @@ export function SankeyFlowsChart({
     return map;
   }, [data, types]);
 
+  const totals = useMemo(() => sankeyNodeTotals(data), [data]);
+
   const node = useCallback(
-    (props: SankeyNodeProps) => renderSankeyNode(props, { types, showLabels }),
-    [types, showLabels]
+    (props: SankeyNodeProps) =>
+      renderSankeyNode(props, {
+        types,
+        totals,
+        formatValue,
+        showLabels,
+      }),
+    [types, totals, formatValue, showLabels]
   );
   const link = useCallback(
     (props: SankeyLinkProps) => renderSankeyLink(props, typesByName),
