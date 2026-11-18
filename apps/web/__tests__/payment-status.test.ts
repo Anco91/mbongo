@@ -109,8 +109,16 @@ describe('reconciliationCandidates', () => {
 
   it('keeps transactions within ±0.01 and ±7 days', () => {
     const candidates = reconciliationCandidates(payment, [
-      makeTransaction({ id: 'exact', amount: -312, date: '2026-12-27T00:00:00' }),
-      makeTransaction({ id: 'tolerated', amount: -312.01, date: '2027-01-04T00:00:00' }),
+      makeTransaction({
+        id: 'exact',
+        amount: -312,
+        date: '2026-12-27T00:00:00',
+      }),
+      makeTransaction({
+        id: 'tolerated',
+        amount: -312.01,
+        date: '2027-01-04T00:00:00',
+      }),
     ]);
     expect(candidates.map((t) => t.id)).toEqual(['exact', 'tolerated']);
   });

@@ -11,7 +11,6 @@ import { ChartFullscreen } from '@/components/common';
 import { SankeyFlowsChart } from '@/components/common/sankey-flows-chart';
 import {
   DonutCategoriesChart,
-  DonutLegend,
   type DonutDatum,
 } from '@/components/common/donut-categories-chart';
 import type { SankeyData } from '@mbongo/shared';
@@ -36,7 +35,9 @@ export function DashboardFullscreenCharts({
 }: DashboardFullscreenChartsProps): JSX.Element {
   return (
     <ChartFullscreen
-      title={chart === 'sankey' ? 'Flux du mois (Sankey)' : 'Dépenses par catégorie'}
+      title={
+        chart === 'sankey' ? 'Flux du mois (Sankey)' : 'Dépenses par catégorie'
+      }
       onClose={onClose}
     >
       {chart === 'sankey' ? (
@@ -49,14 +50,13 @@ export function DashboardFullscreenCharts({
           />
         </div>
       ) : (
-        <div className="flex h-full w-full flex-col items-center justify-center gap-4">
+        <div className="flex h-full w-full items-center justify-center">
           <DonutCategoriesChart
             data={donutData}
             formatValue={formatValue}
             size={360}
-            showPercent
+            showSegmentLabels
           />
-          <DonutLegend data={donutData} formatValue={formatValue} layout="wrap" />
         </div>
       )}
     </ChartFullscreen>

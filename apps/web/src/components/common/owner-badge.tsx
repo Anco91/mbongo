@@ -20,7 +20,7 @@ import { useMembers } from '@/hooks/use-members';
  */
 export function ownerLabel(
   memberId: string | null | undefined,
-  members: Pick<Member, 'id' | 'firstName'>[]
+  members: Array<Pick<Member, 'id' | 'firstName'>>
 ): string {
   if (!memberId) return 'Foyer';
   const member = members.find((m) => m.id === memberId);

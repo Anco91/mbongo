@@ -20,7 +20,9 @@ export const membersRepository: MemberHttp = {
   },
 
   async update(id: string, input: UpdateMemberInput): Promise<Member> {
-    const member = await request<Member>('PATCH', `/members/${id}`, { body: input });
+    const member = await request<Member>('PATCH', `/members/${id}`, {
+      body: input,
+    });
     return memberSchema.parse(member);
   },
 

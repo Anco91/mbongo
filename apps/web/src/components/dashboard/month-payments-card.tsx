@@ -8,11 +8,12 @@
 
 'use client';
 
-import { useState, type JSX } from 'react';
+import type { JSX } from 'react';
 import type { Account, Charge, Payment } from '@mbongo/shared';
 import { paymentDisplayStatus, paymentStatusLabel } from '@mbongo/shared';
 import {
   AccountChip,
+  ShowMoreList,
   DetailRow,
   DetailSheet,
   OwnerBadge,
@@ -36,91 +37,79 @@ export function MonthPaymentsCard({
   accountsById,
   now,
 }: MonthPaymentsCardProps): JSX.Element {
-  const [showAll, setShowAll] = useState(false);
-  const shown = showAll ? payments : payments.slice(0, 3);
-
   return (
     <div>
       <SectionTitle>Échéances du mois</SectionTitle>
       <Card>
         <CardContent className="divide-y divide-slate-100 pt-2">
-          {shown.length > 0 ? (
-            shown.map((p) => {
-              const charge = chargesById.get(p.chargeId);
-              const account = charge
-                ? accountsById.get(charge.accountId)
-                : undefined;
-              const status = paymentDisplayStatus(p, now);
-              const label = charge?.label ?? 'Échéance';
+          {payments.length > 0 ? (
+            <ShowMoreList
+              items={payments}
+              renderItem={(p) => {
+                const charge = chargesById.get(p.chargeId);
+                const account = charge
+                  ? accountsById.get(charge.accountId)
+                  : undefined;
+                const status = paymentDisplayStatus(p, now);
+                const label = charge?.label ?? 'Échéance';
 
-              return (
-                <DetailSheet
-                  key={p.id}
-                  title={label}
-                  trigger={
-                    <div className="flex items-center justify-between py-2.5 transition-colors hover:bg-slate-50 cursor-pointer">
-                      <div>
-                        <p className="text-sm font-medium text-slate-800">
-                          {label}
-                        </p>
-                        <div className="mt-1 flex items-center gap-1.5">
-                          <OwnerBadge memberId={account?.memberId ?? null} />
-                          {account && <AccountChip name={account.name} />}
-                          <span className="text-[11px] text-slate-400">
-                            {formatDate(p.dueDate)}
+                return (
+                  <DetailSheet
+                    key={p.id}
+                    title={label}
+                    trigger={
+                      <div className="flex items-center justify-between py-2.5 transition-colors hover:bg-slate-50 cursor-pointer">
+                        <div>
+                          <p className="text-sm font-medium text-slate-800">
+                            {label}
+                          </p>
+                          <div className="mt-1 flex items-center gap-1.5">
+                            <OwnerBadge memberId={account?.memberId ?? null} />
+                            {account && <AccountChip name={account.name} />}
+                            <span className="text-[11px] text-slate-400">
+                              {formatDate(p.dueDate)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-slate-900">
+                            {formatAmount(p.amount, p.currency)}
                           </span>
+                          <StatusBadge status={status} />
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-slate-900">
-                          {formatAmount(p.amount, p.currency)}
-                        </span>
-                        <StatusBadge status={status} />
-                      </div>
+                    }
+                  >
+                    <div className="flex items-center gap-2">
+                      <OwnerBadge memberId={account?.memberId ?? null} />
+                      <StatusBadge status={status} />
+                      {account && <AccountChip name={account.name} />}
                     </div>
-                  }
-                >
-                  <div className="flex items-center gap-2">
-                    <OwnerBadge memberId={account?.memberId ?? null} />
-                    <StatusBadge status={status} />
-                    {account && <AccountChip name={account.name} />}
-                  </div>
-                  <Separator />
-                  <DetailRow
-                    label="Montant"
-                    value={formatAmount(p.amount, p.currency)}
-                  />
-                  <DetailRow label="Échéance" value={formatDate(p.dueDate)} />
-                  <DetailRow
-                    label="Compte débité"
-                    value={account?.name ?? 'Compte inconnu'}
-                  />
-                  <DetailRow
-                    label="Statut"
-                    value={paymentStatusLabel(status)}
-                  />
-                  {charge?.category && (
-                    <DetailRow label="Catégorie" value={charge.category} />
-                  )}
-                </DetailSheet>
-              );
-            })
+                    <Separator />
+                    <DetailRow
+                      label="Montant"
+                      value={formatAmount(p.amount, p.currency)}
+                    />
+                    <DetailRow label="Échéance" value={formatDate(p.dueDate)} />
+                    <DetailRow
+                      label="Compte débité"
+                      value={account?.name ?? 'Compte inconnu'}
+                    />
+                    <DetailRow
+                      label="Statut"
+                      value={paymentStatusLabel(status)}
+                    />
+                    {charge?.category && (
+                      <DetailRow label="Catégorie" value={charge.category} />
+                    )}
+                  </DetailSheet>
+                );
+              }}
+            />
           ) : (
             <div className="py-4 text-center text-xs text-slate-400">
               Aucune échéance ce mois-ci
             </div>
-          )}
-
-          {payments.length > 3 && (
-            <button
-              type="button"
-              onClick={() => setShowAll((v) => !v)}
-              className="w-full py-2.5 text-xs font-medium text-emerald-700"
-            >
-              {showAll
-                ? 'Réduire la liste'
-                : `Afficher les ${payments.length - 3} autres échéances`}
-            </button>
           )}
         </CardContent>
       </Card>

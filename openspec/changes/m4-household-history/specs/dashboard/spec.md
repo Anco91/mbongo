@@ -18,6 +18,11 @@ L'UI du dashboard SHALL afficher les échéances du mois choisi (navigation mens
 - **WHEN** la liste se charge
 - **THEN** 3 échéances sont visibles et « afficher les autres » révèle le reste par paquets de 5
 
+#### Scenario: Liste tronquée
+
+- **GIVEN** plus de 3 échéances au mois
+- **THEN** les premières sont affichées et un bouton révèle les suivantes
+
 ### Requirement: Sankey des flux du mois
 
 L'UI du dashboard SHALL afficher le Sankey des flux du mois choisi, coloré par type (revenus, comptes, dépenses). Chaque nœud SHALL porter son nom ET son montant agrégé, en carte comme en plein écran — le graphe se lit sans survol.
@@ -36,7 +41,7 @@ L'UI du dashboard SHALL afficher le Sankey des flux du mois choisi, coloré par 
 
 ### Requirement: Donut des dépenses par catégorie
 
-L'UI du dashboard SHALL afficher le donut des dépenses du mois choisi avec le total au centre de l'anneau, et des pourcentages par segment dans l'anneau en plein écran. La légende des catégories reste disponible (plein écran pour la vue étendue).
+L'UI du dashboard SHALL afficher le donut des dépenses du mois choisi avec le total au centre de l'anneau. En plein écran, chaque segment SHALL porter son nom de catégorie ET son pourcentage posés sur le bandeau coloré, lisibles sans survol — pas de texte à côté du graphe (pas de légende séparée).
 
 #### Scenario: Total au centre
 
@@ -47,7 +52,13 @@ L'UI du dashboard SHALL afficher le donut des dépenses du mois choisi avec le t
 #### Scenario: Plein écran
 
 - **WHEN** l'utilisateur ouvre le donut en plein écran
-- **THEN** chaque segment porte son pourcentage dans l'anneau
+- **THEN** chaque segment porte son nom de catégorie et son pourcentage dans l'anneau, sans survol ni légende séparée
+
+#### Scenario: Répartition affichée
+
+- **GIVEN** des dépenses catégorisées sur le mois
+- **WHEN** le dashboard se charge
+- **THEN** chaque catégorie occupe une part proportionnelle du donut avec son montant
 
 ### Requirement: Sélecteur de devise d'affichage
 

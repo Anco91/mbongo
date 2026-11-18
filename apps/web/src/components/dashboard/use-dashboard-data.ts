@@ -20,8 +20,6 @@ import {
   type Account,
   type Charge,
   type Payment,
-  type Transaction,
-  type Transfer,
   type CategoryExpense,
   type SankeyData,
 } from '@mbongo/shared';
@@ -68,9 +66,7 @@ export function useDashboardData(selectedMonth: string): DashboardData {
   const balances = useMemo(() => {
     const map: Record<string, number> = {};
     for (const acc of accounts) {
-      const accTxs = (transactions as Transaction[]).filter(
-        (t) => t.accountId === acc.id
-      );
+      const accTxs = transactions.filter((t) => t.accountId === acc.id);
       map[acc.id] = computeBalance(acc, accTxs);
     }
     return map;

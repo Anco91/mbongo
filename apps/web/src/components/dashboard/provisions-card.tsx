@@ -12,6 +12,7 @@ import type { Account, Charge } from '@mbongo/shared';
 import { monthlyProvision } from '@mbongo/shared';
 import {
   AccountChip,
+  ShowMoreList,
   DetailRow,
   DetailSheet,
   OwnerBadge,
@@ -46,55 +47,60 @@ export function ProvisionsCard({
       <Card>
         <CardContent className="space-y-2 pt-4">
           {provisionedCharges.length > 0 ? (
-            provisionedCharges.map((c) => {
-              const account = accountsById.get(c.accountId);
-              const perMonth = c.amount / 12;
+            <ShowMoreList
+              items={provisionedCharges}
+              renderItem={(c) => {
+                const account = accountsById.get(c.accountId);
+                const perMonth = c.amount / 12;
 
-              return (
-                <DetailSheet
-                  key={c.id}
-                  title={c.label}
-                  trigger={
-                    <div className="flex items-center justify-between rounded-lg px-0 py-2 text-sm transition-colors cursor-pointer">
-                      <div>
-                        <p className="font-medium text-slate-800">{c.label}</p>
-                        <div className="mt-1 flex items-center gap-1.5">
-                          <OwnerBadge memberId={account?.memberId ?? null} />
-                          {account && <AccountChip name={account.name} />}
+                return (
+                  <DetailSheet
+                    key={c.id}
+                    title={c.label}
+                    trigger={
+                      <div className="flex items-center justify-between rounded-lg px-0 py-2 text-sm transition-colors cursor-pointer">
+                        <div>
+                          <p className="font-medium text-slate-800">
+                            {c.label}
+                          </p>
+                          <div className="mt-1 flex items-center gap-1.5">
+                            <OwnerBadge memberId={account?.memberId ?? null} />
+                            {account && <AccountChip name={account.name} />}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-slate-900">
+                            {formatAmount(perMonth, c.currency)} / mois
+                          </p>
+                          <p className="text-[11px] text-slate-400">
+                            {formatAmount(c.amount, c.currency)} / an
+                          </p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-slate-900">
-                          {formatAmount(perMonth, c.currency)} / mois
-                        </p>
-                        <p className="text-[11px] text-slate-400">
-                          {formatAmount(c.amount, c.currency)} / an
-                        </p>
-                      </div>
+                    }
+                  >
+                    <div className="flex items-center gap-2">
+                      <OwnerBadge memberId={account?.memberId ?? null} />
+                      <StatusBadge status="Provisionnée" />
+                      {account && <AccountChip name={account.name} />}
                     </div>
-                  }
-                >
-                  <div className="flex items-center gap-2">
-                    <OwnerBadge memberId={account?.memberId ?? null} />
-                    <StatusBadge status="Provisionnée" />
-                    {account && <AccountChip name={account.name} />}
-                  </div>
-                  <Separator />
-                  <DetailRow
-                    label="Total annuel"
-                    value={formatAmount(c.amount, c.currency)}
-                  />
-                  <DetailRow
-                    label="Lissage mensuel"
-                    value={`${formatAmount(perMonth, c.currency)} / mois`}
-                  />
-                  <DetailRow
-                    label="Compte débité"
-                    value={account?.name ?? 'Compte inconnu'}
-                  />
-                </DetailSheet>
-              );
-            })
+                    <Separator />
+                    <DetailRow
+                      label="Total annuel"
+                      value={formatAmount(c.amount, c.currency)}
+                    />
+                    <DetailRow
+                      label="Lissage mensuel"
+                      value={`${formatAmount(perMonth, c.currency)} / mois`}
+                    />
+                    <DetailRow
+                      label="Compte débité"
+                      value={account?.name ?? 'Compte inconnu'}
+                    />
+                  </DetailSheet>
+                );
+              }}
+            />
           ) : (
             <div className="py-2 text-center text-xs text-slate-400">
               Aucune charge provisionnée

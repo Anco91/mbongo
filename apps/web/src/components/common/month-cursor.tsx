@@ -9,10 +9,7 @@
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  IconChevronLeft,
-  IconChevronRight,
-} from '@/components/common/icons';
+import { IconChevronLeft, IconChevronRight } from '@/components/common/icons';
 import { monthLabel, shiftMonthKey } from '@/lib/month-navigation';
 import { JSX } from 'react';
 

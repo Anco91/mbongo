@@ -24,17 +24,13 @@ import {
   DashboardFullscreenCharts,
   type FullscreenChart,
 } from './dashboard-fullscreen-charts';
-import {
-  currentMonthKey,
-  shiftMonthKey,
-} from '@/lib/month-navigation';
+import { currentMonthKey, shiftMonthKey } from '@/lib/month-navigation';
 import { useDashboardData } from './use-dashboard-data';
 
 export function DashboardContent(): JSX.Element {
   const [mounted, setMounted] = useState(false);
-  const [fullscreenChart, setFullscreenChart] = useState<FullscreenChart | null>(
-    null
-  );
+  const [fullscreenChart, setFullscreenChart] =
+    useState<FullscreenChart | null>(null);
   // Mois consulté (M4, design D3) : curseur « ‹ mois › » + swipe. Le
   // défaut est le mois courant ; le patrimoine et les alertes restent
   // l'état du jour, quel que soit le mois affiché.

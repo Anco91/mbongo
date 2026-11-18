@@ -11,6 +11,7 @@
 'use client';
 
 import { JSX, useState } from 'react';
+import { ShowMoreList } from '@/components/common';
 import Link from 'next/link';
 import { useAccounts } from '@/hooks/use-accounts';
 import { useTransactions } from '@/hooks/use-transactions';
@@ -116,101 +117,104 @@ export function AccountsContent(): JSX.Element {
         </div>
       )}
 
-      {activeAccounts.map((account) => {
-        const accountTransactions = transactions.filter(
-          (transaction) => transaction.accountId === account.id
-        );
-        const balance = computeBalance(account, accountTransactions);
-        // M2 (spec deferred-card) : encours carte calculé à la volée,
-        // jamais stocké. Affiché pour toute carte (crédit ou différé).
-        const isCard =
-          account.accountType === 'CREDIT_CARD' || account.deferredCard;
-        const billing = isCard
-          ? cardBilling(account, accountTransactions, new Date())
-          : null;
-        const settlement = billing
-          ? activeAccounts.find((c) => c.id === billing.settlementAccountId)
-          : null;
-        const savingsProgress =
-          account.accountType === 'SAVINGS' && account.currency === 'EUR'
-            ? Math.min(100, (account.openingBalance / LIVRET_A_CEILING) * 100)
+      <ShowMoreList
+        items={activeAccounts}
+        renderItem={(account) => {
+          const accountTransactions = transactions.filter(
+            (transaction) => transaction.accountId === account.id
+          );
+          const balance = computeBalance(account, accountTransactions);
+          // M2 (spec deferred-card) : encours carte calculé à la volée,
+          // jamais stocké. Affiché pour toute carte (crédit ou différé).
+          const isCard =
+            account.accountType === 'CREDIT_CARD' || account.deferredCard;
+          const billing = isCard
+            ? cardBilling(account, accountTransactions, new Date())
             : null;
+          const settlement = billing
+            ? activeAccounts.find((c) => c.id === billing.settlementAccountId)
+            : null;
+          const savingsProgress =
+            account.accountType === 'SAVINGS' && account.currency === 'EUR'
+              ? Math.min(100, (account.openingBalance / LIVRET_A_CEILING) * 100)
+              : null;
 
-        return (
-          <Link
-            key={account.id}
-            href={`/accounts/${account.id}/edit`}
-            className="block"
-          >
-            <Card className="cursor-pointer border-slate-200 transition-colors hover:border-slate-300">
-              <CardContent className="pt-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-800">
-                      {account.name}
-                    </p>
-                    <p className="text-[11px] uppercase tracking-wide text-slate-400">
-                      {account.bank ?? '—'} · {account.currency}
-                    </p>
+          return (
+            <Link
+              key={account.id}
+              href={`/accounts/${account.id}/edit`}
+              className="block"
+            >
+              <Card className="cursor-pointer border-slate-200 transition-colors hover:border-slate-300">
+                <CardContent className="pt-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">
+                        {account.name}
+                      </p>
+                      <p className="text-[11px] uppercase tracking-wide text-slate-400">
+                        {account.bank ?? '—'} · {account.currency}
+                      </p>
+                    </div>
+                    <OwnerBadge memberId={account.memberId} />
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] text-slate-500"
+                    >
+                      {ACCOUNT_TYPE_LABELS[account.accountType] ??
+                        account.accountType}
+                    </Badge>
                   </div>
-                  <OwnerBadge memberId={account.memberId} />
-                  <Badge
-                    variant="outline"
-                    className="text-[10px] text-slate-500"
+                  <p
+                    className={`mt-2 text-lg font-semibold ${
+                      balance < 0 ? 'text-red-600' : 'text-slate-900'
+                    }`}
                   >
-                    {ACCOUNT_TYPE_LABELS[account.accountType] ??
-                      account.accountType}
-                  </Badge>
-                </div>
-                <p
-                  className={`mt-2 text-lg font-semibold ${
-                    balance < 0 ? 'text-red-600' : 'text-slate-900'
-                  }`}
-                >
-                  {formatAmount(balance, account.currency)}
-                </p>
-                {savingsProgress !== null && (
-                  <div className="mt-2 flex items-center gap-2">
-                    <Progress value={savingsProgress} className="h-1.5" />
-                    <span className="text-[11px] text-slate-500">
-                      {Math.round(savingsProgress)} %
-                    </span>
-                  </div>
-                )}
-                {account.overdraftLimit > 0 && (
-                  <p className="mt-1 text-xs text-slate-500">
-                    Découvert autorisé :{' '}
-                    {formatAmount(account.overdraftLimit, account.currency)}
+                    {formatAmount(balance, account.currency)}
                   </p>
-                )}
-                {billing && billing.encours > 0 && (
-                  <p className="mt-1 text-xs text-amber-700">
-                    Encours carte :{' '}
-                    {formatAmount(billing.encours, account.currency)}
-                    {billing.nextBillingDate && (
-                      <>
-                        {' '}
-                        — facturation le{' '}
-                        {new Intl.DateTimeFormat('fr-CH').format(
-                          billing.nextBillingDate
-                        )}
-                      </>
-                    )}
-                    {settlement && <> — prélèvement sur {settlement.name}</>}
-                  </p>
-                )}
-                {account.deferredCard && (
-                  <p className="mt-1 text-xs text-slate-500">
-                    Carte à débit différé : saisissez vos achats à leur date
-                    d&apos;achat. Ne saisissez jamais le prélèvement groupé de
-                    fin de mois — anti-double-compte (M2).
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          </Link>
-        );
-      })}
+                  {savingsProgress !== null && (
+                    <div className="mt-2 flex items-center gap-2">
+                      <Progress value={savingsProgress} className="h-1.5" />
+                      <span className="text-[11px] text-slate-500">
+                        {Math.round(savingsProgress)} %
+                      </span>
+                    </div>
+                  )}
+                  {account.overdraftLimit > 0 && (
+                    <p className="mt-1 text-xs text-slate-500">
+                      Découvert autorisé :{' '}
+                      {formatAmount(account.overdraftLimit, account.currency)}
+                    </p>
+                  )}
+                  {billing && billing.encours > 0 && (
+                    <p className="mt-1 text-xs text-amber-700">
+                      Encours carte :{' '}
+                      {formatAmount(billing.encours, account.currency)}
+                      {billing.nextBillingDate && (
+                        <>
+                          {' '}
+                          — facturation le{' '}
+                          {new Intl.DateTimeFormat('fr-CH').format(
+                            billing.nextBillingDate
+                          )}
+                        </>
+                      )}
+                      {settlement && <> — prélèvement sur {settlement.name}</>}
+                    </p>
+                  )}
+                  {account.deferredCard && (
+                    <p className="mt-1 text-xs text-slate-500">
+                      Carte à débit différé : saisissez vos achats à leur date
+                      d&apos;achat. Ne saisissez jamais le prélèvement groupé de
+                      fin de mois — anti-double-compte (M2).
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </Link>
+          );
+        }}
+      />
 
       {activeAccounts.length === 0 && (
         <div className="rounded-lg border border-slate-200 p-8 text-center">

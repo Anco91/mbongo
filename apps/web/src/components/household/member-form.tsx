@@ -20,7 +20,12 @@ import {
   type Member,
 } from '@mbongo/shared';
 import { useCreateMember, useUpdateMember } from '@/hooks/use-members';
-import { Form, FormSection, TextInput, SelectInput } from '@/components/common/form-kit';
+import {
+  Form,
+  FormSection,
+  TextInput,
+  SelectInput,
+} from '@/components/common/form-kit';
 import { Button } from '@/components/ui/button';
 import { JSX } from 'react';
 
@@ -81,11 +86,7 @@ export function MemberForm({
   return (
     <Form form={form} onSubmit={onSubmit}>
       <FormSection title="Identité">
-        <TextInput
-          name="firstName"
-          label="Prénom"
-          placeholder="Ex. Anco"
-        />
+        <TextInput name="firstName" label="Prénom" placeholder="Ex. Anco" />
         <TextInput
           name="lastName"
           label="Nom (optionnel)"
@@ -93,7 +94,11 @@ export function MemberForm({
         />
         <SelectInput name="role" label="Rôle" options={ROLE_OPTIONS} />
       </FormSection>
-      <Button type="submit" className="w-full" disabled={isCreating || isUpdating}>
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={isCreating || isUpdating}
+      >
         {isEdit ? 'Enregistrer' : 'Créer le membre'}
       </Button>
       {(isCreating || isUpdating) && (

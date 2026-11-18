@@ -254,11 +254,11 @@ describe('DashboardContent', () => {
     );
 
     expect(screen.getByText('Échéances du mois')).toBeTruthy();
-    const toggleBtn = screen.getByText(/Afficher les 1 autres échéances/i);
+    const toggleBtn = screen.getByText('Afficher les 1 autres');
     expect(toggleBtn).toBeTruthy();
 
     fireEvent.click(toggleBtn);
-    expect(screen.getByText(/Réduire la liste/i)).toBeTruthy();
+    expect(screen.getByText('Réduire')).toBeTruthy();
   });
 
   it('renders section titles for Sankey and Donut', () => {

@@ -7,10 +7,7 @@
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { HouseholdContent } from '@/components/household/household-content';
-import {
-  useMembers,
-  useDeleteMember,
-} from '@/hooks/use-members';
+import { useMembers, useDeleteMember } from '@/hooks/use-members';
 import type { Member } from '@mbongo/shared';
 
 jest.mock('@/hooks/use-members', () => ({

@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
+import { createMemberSchema, updateMemberSchema } from '@mbongo/shared';
 import {
-  createMemberSchema,
-  updateMemberSchema,
-} from '@mbongo/shared';
-import { parseBody, toErrorResponse, toSuccessResponse, toCreatedResponse, toNoContentResponse } from '@/server/common/http';
+  parseBody,
+  toErrorResponse,
+  toSuccessResponse,
+  toCreatedResponse,
+  toNoContentResponse,
+} from '@/server/common/http';
 import { MemberService, memberService } from './member.service';
 
 export class MembersController {

@@ -2,11 +2,7 @@ import 'server-only';
 import { prisma } from '@/server/db';
 import { createWhereTranslator } from '@/server/common/where-translator';
 import { NotFoundError } from '@/server/common/http';
-import {
-  Member,
-  CreateMemberInput,
-  UpdateMemberInput,
-} from '@mbongo/shared';
+import { Member, CreateMemberInput, UpdateMemberInput } from '@mbongo/shared';
 import { Prisma } from '@prisma/client';
 
 const memberWhereTranslator = createWhereTranslator<Prisma.MemberWhereInput>({

@@ -25,14 +25,14 @@
 
 ## 5. Texte légende + pagination PWA
 
-- [ ] 5.1 `chargeSchema` + `note` optionnelle ; Prisma migration `charges.note` nullable ; textarea dans charge-create/edit-form ; test schema
-- [ ] 5.2 `chargeCaption(charge, account)` pure (note si présente sinon « type · catégorie · fréquence sur compte ») affichée sous le montant des cards charges ; test des deux cas
-- [ ] 5.3 `ShowMoreList` générique (components/common) : items, renderItem, initial 3, step 5, labels « afficher les n autres » / « réduire » ; refactor transfers-content dessus ; test (12 items → paquets, 2 items → pas de bouton)
-- [ ] 5.4 Application : accounts-content, charges-content (après filtres, reset au changement de filtre), échéances du dashboard (remplace le toggle), provisions du dashboard (total toujours visible) ; tests par vue
-- [ ] 5.5 AppHeader : sélecteur EUR/CHF rendu uniquement sur `/` ; test pathname
-- [ ] 5.6 Amendement delta m4-ui-fixes (specs/dashboard : sélecteur dashboard-only) + `openspec validate` avant archive
+- [x] 5.1 (abandonné après review : la « légende » ne concerne que les graphes — champ `note` retiré du modèle, des formulaires et des specs)
+- [x] 5.2 Donut : catégories + % posés sur les segments dans l'anneau (plein écran, sans survol), légende retirée de la carte et du plein écran ; test renderer pur
+- [x] 5.3 `ShowMoreList` générique (components/common) : items, renderItem, initial 3, step 5, labels « afficher les n autres » / « réduire » ; refactor transfers-content dessus ; test (12 items → paquets, 2 items → pas de bouton)
+- [x] 5.4 Application : accounts-content, charges-content (après filtres, reset au changement de filtre), échéances du dashboard (remplace le toggle), provisions du dashboard (total toujours visible) ; tests par vue
+- [x] 5.5 AppHeader : sélecteur EUR/CHF rendu uniquement sur `/` ; test pathname
+- [x] 5.6 Amendement delta m4-ui-fixes (specs/dashboard : sélecteur dashboard-only) + `openspec validate` avant archive
 
 ## 6. Vérification globale
 
-- [ ] 6.1 `npx tsc --noEmit` + lint 0 erreur + suite complète au vert
-- [ ] 6.2 `npm run build` au vert ; smoke : /household CRUD, badges qui-paie, swipe mensuel, texte donut/sankey, pagination comptes/charges/échéances/provisions, switch masqué hors dashboard
+- [x] 6.1 `npx tsc --noEmit` + lint 0 erreur + suite complète au vert
+- [x] 6.2 `npm run build` au vert ; smoke : /household CRUD, badges qui-paie, swipe mensuel, texte donut/sankey, pagination comptes/charges/échéances/provisions, switch masqué hors dashboard

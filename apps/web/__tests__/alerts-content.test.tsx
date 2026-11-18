@@ -18,10 +18,7 @@ jest.mock('@/hooks/use-alerts', () => ({
   alertFingerprint: jest.fn((a: { id: string }) => a.id),
 }));
 
-import {
-  useActiveAlerts,
-  useAlertsRead,
-} from '@/hooks/use-alerts';
+import { useActiveAlerts, useAlertsRead } from '@/hooks/use-alerts';
 
 const markAllRead = jest.fn();
 

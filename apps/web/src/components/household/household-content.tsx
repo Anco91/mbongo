@@ -29,8 +29,6 @@ export function HouseholdContent(): JSX.Element {
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const editing = members.find((m) => m.id === editingId);
-
   return (
     <div className="space-y-3">
       {creating && (

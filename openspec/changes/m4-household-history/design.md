@@ -24,13 +24,13 @@ Navigation : curseur « ‹ nov. 2026 › » au-dessus des charts + swipe (point
 
 `SankeyFlowsChart` : labels actifs par défaut (`showLabels` true). Montant par nœud : total calculé des liens (entrant+sortant, max des deux pour éviter double compte, round2) — pure `sankeyNodeTotals(data)`. Label : `nom · montant` sous/à côté du nœud, mise en page : nom au-dessus du montant ? Trop dense en carte → `nom · 3 000 €` une ligne. Marges ajustées (right 90).
 
-### D5 — Donut : total au centre + % dans l'anneau
+### D5 — Donut : total au centre + catégories/% dans l'anneau
 
-`DonutCategoriesChart` : texte absolu au centre via un `<text>` SVG superposé (total formaté par `formatValue`, ligne 1 « Total », ligne 2 montant). Segments : recharts `Pie` `label` custom (pourcentage, fill slate, `labelLine: false`) activé en plein écran ; en carte (112 px) les segments restent sobres, le centre porte le total. Légende : retirée de la carte (le total + % suffisent), conservée en plein écran — répond « pas du texte à côté ».
+`DonutCategoriesChart` : total formaté au centre via un `<text>` SVG (devise d'affichage, `showCenterTotal` par défaut). Plein écran (`showSegmentLabels`) : chaque segment porte « nom · % » en blanc posé sur le bandeau coloré (recharts `Pie` `label` custom, `labelLine: false`, sans survol). Légende retirée de la carte ET du plein écran — « pas du texte à côté » (review : la légende ne concerne QUE les graphes).
 
-### D6 — Charges : `note` optionnelle + légende dérivée
+### D6 — (abandonné, review)
 
-`chargeSchema` ajoute `note` (string optionnelle) + colonne Prisma nullable + textarea dans les deux formulaires (form kit). Affichage card : `note` si présente, sinon légende dérivée pure `chargeCaption(charge, account)` : `{TypeBadge label} · {catégorie} · prélèvement {fréquence|mensuel} sur {compte}` (function pure, testable, dans le composant charges). Installment : légende ajoute le restant dû déjà affiché.
+Champ `note` sur Charge : **abandonné** — la demande « texte légende » ne concernait que les graphes (D5). Modèle Charge inchangé ; les cards de charges gagnent le badge « qui-paie » et la pagination (D7).
 
 ### D7 — `ShowMoreList` réutilisable (pagination PWA)
 

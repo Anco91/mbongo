@@ -15,6 +15,7 @@ export { DetailRow } from '@/components/common/detail-row';
 export { DeleteButton } from '@/components/common/delete-button';
 export { ChartFullscreen } from '@/components/common/chart-fullscreen';
 export { TabNav } from '@/components/common/tab-nav';
+export { ShowMoreList } from '@/components/common/show-more-list';
 export { MonthCursor } from '@/components/common/month-cursor';
 export { SwipeZone } from '@/components/common/swipe-zone';
 export { AppHeader } from '@/components/common/app-header';

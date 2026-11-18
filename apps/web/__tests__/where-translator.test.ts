@@ -7,7 +7,10 @@
  *
  * @module Tests/Common/WhereTranslator
  */
-import { createWhereTranslator, type FieldMap } from '@/server/common/where-translator';
+import {
+  createWhereTranslator,
+  type FieldMap,
+} from '@/server/common/where-translator';
 
 type FakeWhere = Record<string, unknown>;
 
@@ -67,9 +70,9 @@ describe('createWhereTranslator', () => {
       dateTo: { ops: ['lte'], target: 'date' },
     });
 
-    expect(
-      translate({ dateFrom: '2026-11-01', dateTo: '2026-11-30' })
-    ).toEqual({ date: { gte: '2026-11-01', lte: '2026-11-30' } });
+    expect(translate({ dateFrom: '2026-11-01', dateTo: '2026-11-30' })).toEqual(
+      { date: { gte: '2026-11-01', lte: '2026-11-30' } }
+    );
   });
 
   it('applies the optional value transform', () => {

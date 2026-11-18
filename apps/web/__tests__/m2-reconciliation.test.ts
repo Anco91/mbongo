@@ -113,7 +113,12 @@ describe('PaymentService.reconcile (M2 spec payment-schedule)', () => {
 
   it('reconciles a payment already PAID by manual check (link + paidAt refresh)', async () => {
     mockedPaymentFindUnique
-      .mockResolvedValueOnce(paymentRow({ status: 'PAID', paidAt: new Date('2026-11-20T00:00:00.000Z') }))
+      .mockResolvedValueOnce(
+        paymentRow({
+          status: 'PAID',
+          paidAt: new Date('2026-11-20T00:00:00.000Z'),
+        })
+      )
       .mockResolvedValueOnce(null);
     mockedTransactionFindUnique.mockResolvedValue({ id: 'txn-1' });
     mockedPaymentUpdate.mockResolvedValue(
@@ -152,9 +157,9 @@ describe('PaymentService.unlink (M2 spec payment-schedule)', () => {
   it('rejects unlinking a payment with no reconciliation (409)', async () => {
     mockedPaymentFindUnique.mockResolvedValue(paymentRow());
 
-    await expect(new PaymentService().unlink('payment-1')).rejects.toMatchObject(
-      { status: 409 } as Partial<HttpError>
-    );
+    await expect(
+      new PaymentService().unlink('payment-1')
+    ).rejects.toMatchObject({ status: 409 } as Partial<HttpError>);
   });
 });
 
@@ -189,9 +194,9 @@ describe('TransactionService.remove — auto-unlink (M2 spec payment-schedule)',
       transferId: 'transfer-1',
     });
 
-    await expect(new TransactionService().remove('txn-1')).rejects.toMatchObject(
-      { status: 409 } as Partial<HttpError>
-    );
+    await expect(
+      new TransactionService().remove('txn-1')
+    ).rejects.toMatchObject({ status: 409 } as Partial<HttpError>);
 
     expect(mockedPaymentUpdateMany).not.toHaveBeenCalled();
     expect(mockedTransactionDelete).not.toHaveBeenCalled();

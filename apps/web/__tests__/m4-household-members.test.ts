@@ -25,9 +25,7 @@ jest.mock('@/server/db', () => ({
 import { prisma } from '@/server/db';
 import { MemberService } from '@/server/members/member.service';
 import { membersController } from '@/server/members/members.controller';
-import {
-  POST as postMembers,
-} from '@/app/api/members/route';
+import { POST as postMembers } from '@/app/api/members/route';
 import {
   PATCH as patchMember,
   DELETE as deleteMember,
@@ -100,9 +98,12 @@ describe('member schemas (lastName optionnel)', () => {
 
   it('createMemberSchema exige firstName, lastName optionnel', () => {
     expect(
-      createMemberSchema.safeParse({ firstName: 'Anco', role: 'PRIMARY' }).success
+      createMemberSchema.safeParse({ firstName: 'Anco', role: 'PRIMARY' })
+        .success
     ).toBe(true);
-    expect(createMemberSchema.safeParse({ role: 'PRIMARY' }).success).toBe(false);
+    expect(createMemberSchema.safeParse({ role: 'PRIMARY' }).success).toBe(
+      false
+    );
   });
 
   it('updateMemberSchema : tous les champs optionnels', () => {
@@ -115,9 +116,7 @@ describe('member schemas (lastName optionnel)', () => {
 
 describe('MemberService CRUD', () => {
   it('create persiste firstName, lastName nullable et role', async () => {
-    mockedMemberCreate.mockResolvedValue(
-      memberRow({ lastName: 'Dupont' })
-    );
+    mockedMemberCreate.mockResolvedValue(memberRow({ lastName: 'Dupont' }));
     const service = new MemberService();
     const member = await service.create({
       firstName: 'Anco',
@@ -181,7 +180,9 @@ describe('MemberService CRUD', () => {
       where: { memberId: 'member-1' },
       data: { memberId: null },
     });
-    expect(mockedMemberDelete).toHaveBeenCalledWith({ where: { id: 'member-1' } });
+    expect(mockedMemberDelete).toHaveBeenCalledWith({
+      where: { id: 'member-1' },
+    });
   });
 
   it('remove d’un membre inconnu → NotFoundError', async () => {

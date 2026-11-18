@@ -71,7 +71,11 @@ describe('monthRange / isInMonth (dérivation pure)', () => {
 
 const renderDashboard = (): void => {
   render(
-    createElement(DisplayCurrencyProvider, null, createElement(DashboardContent))
+    createElement(
+      DisplayCurrencyProvider,
+      null,
+      createElement(DashboardContent)
+    )
   );
 };
 

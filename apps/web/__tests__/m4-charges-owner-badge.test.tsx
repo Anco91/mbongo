@@ -53,11 +53,10 @@ const charge = (overrides: Partial<Charge> = {}): Charge =>
     installments: null,
     provisioned: false,
     accountId: 'account-ubs',
-    note: null,
     createdAt: now,
     updatedAt: now,
     ...overrides,
-  } as Charge);
+  }) as Charge;
 
 beforeEach(() => {
   jest.clearAllMocks();
