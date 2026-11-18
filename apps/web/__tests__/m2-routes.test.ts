@@ -61,7 +61,9 @@ describe('POST /api/payments/{id}/reconcile', () => {
     (prisma.payment.findUnique as jest.Mock)
       .mockResolvedValueOnce(paymentRow())
       .mockResolvedValueOnce(null);
-    (prisma.transaction.findUnique as jest.Mock).mockResolvedValue({ id: 'txn-1' });
+    (prisma.transaction.findUnique as jest.Mock).mockResolvedValue({
+      id: 'txn-1',
+    });
     (prisma.payment.update as jest.Mock).mockResolvedValue(
       paymentRow({ status: 'PAID', transactionId: 'txn-1', paidAt: new Date() })
     );
@@ -92,7 +94,9 @@ describe('POST /api/payments/{id}/reconcile', () => {
     (prisma.payment.findUnique as jest.Mock)
       .mockResolvedValueOnce(paymentRow())
       .mockResolvedValueOnce(paymentRow({ id: 'payment-other' }));
-    (prisma.transaction.findUnique as jest.Mock).mockResolvedValue({ id: 'txn-1' });
+    (prisma.transaction.findUnique as jest.Mock).mockResolvedValue({
+      id: 'txn-1',
+    });
 
     const response = await postReconcile(
       jsonRequest({ transactionId: 'txn-1' }),

@@ -26,13 +26,59 @@ interface DonutCategoriesChartProps {
   formatValue: (value: number) => string;
   /** Square size in px (112 card · 360 fullscreen). */
   size?: number;
+  /** Total au centre de l'anneau (M4, design D5 — défaut : oui). */
+  showCenterTotal?: boolean;
+  /** Nom de catégorie + % posés sur les segments (dans l'anneau, sans survol). */
+  showSegmentLabels?: boolean;
+}
+
+/** Label de segment pur : « catégorie + % » posé sur le bandeau coloré (M4 : dans l'anneau, sans survol). */
+export function donutSegmentLabel(props: {
+  cx?: number;
+  cy?: number;
+  midAngle?: number;
+  innerRadius?: number;
+  outerRadius?: number;
+  percent?: number;
+  name?: string;
+}): JSX.Element {
+  const { cx, cy, midAngle, innerRadius, outerRadius, percent, name } = props;
+  if (!percent || percent <= 0) return <g />;
+  const rad = ((midAngle ?? 0) - 90) * (Math.PI / 180);
+  // Centre du bandeau : entre le bord interne et externe de l'anneau.
+  const radius = ((innerRadius ?? 0) + (outerRadius ?? 0)) / 2;
+  const x = (cx ?? 0) + radius * Math.cos(rad);
+  const y = (cy ?? 0) + radius * Math.sin(rad);
+  return (
+    <text
+      x={x}
+      y={y}
+      textAnchor="middle"
+      dominantBaseline="central"
+      className="fill-white text-[10px] font-semibold"
+      style={{ pointerEvents: 'none' }}
+    >
+      <tspan x={x} dy="-0.25em">
+        {name}
+      </tspan>
+      <tspan x={x} dy="1.2em">
+        {`${Math.round(percent * 100)} %`}
+      </tspan>
+    </text>
+  );
 }
 
 export function DonutCategoriesChart({
   data,
   formatValue,
   size = 112,
+  showCenterTotal = true,
+  showSegmentLabels = false,
 }: DonutCategoriesChartProps): JSX.Element {
+  const total = data.reduce((sum, d) => sum + d.value, 0);
+  const centerFont = size >= 200 ? 'text-lg' : 'text-[11px]';
+  const centerLabelFont = size >= 200 ? 'text-[11px]' : 'text-[8px]';
+
   return (
     <div style={{ width: size, height: size }} className="shrink-0">
       <ResponsiveContainer width="100%" height="100%">
@@ -44,11 +90,35 @@ export function DonutCategoriesChart({
             outerRadius="90%"
             paddingAngle={2}
             stroke="none"
+            label={showSegmentLabels ? donutSegmentLabel : undefined}
+            labelLine={false}
           >
             {data.map((d) => (
               <Cell key={d.name} fill={d.color} />
             ))}
           </Pie>
+          {showCenterTotal && total > 0 && (
+            <text
+              x="50%"
+              y="46%"
+              textAnchor="middle"
+              dominantBaseline="central"
+              className={`fill-slate-900 ${centerFont} font-semibold`}
+            >
+              {formatValue(total)}
+            </text>
+          )}
+          {showCenterTotal && total > 0 && (
+            <text
+              x="50%"
+              y="60%"
+              textAnchor="middle"
+              dominantBaseline="central"
+              className={`fill-slate-400 ${centerLabelFont}`}
+            >
+              Total
+            </text>
+          )}
           <Tooltip formatter={(value) => formatValue(Number(value))} />
         </PieChart>
       </ResponsiveContainer>

@@ -16,3 +16,10 @@ import { membersController } from '@/server/members/members.controller';
  */
 export const GET = (request: Request): Promise<NextResponse> =>
   membersController.find(request);
+
+/**
+ * POST /api/members
+ * Create a household member
+ */
+export const POST = (request: Request): Promise<NextResponse> =>
+  membersController.create(request);

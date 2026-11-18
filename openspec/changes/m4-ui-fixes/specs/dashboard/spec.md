@@ -45,7 +45,7 @@ L'UI du dashboard SHALL afficher le diagramme de Sankey des flux du mois : reven
 
 ### Requirement: Sélecteur de devise d'affichage
 
-Le sélecteur EUR/CHF du header SHALL piloter la devise d'affichage de toutes les vues principales (dashboard, charges, transferts, comptes) via un contexte partagé : la sélection est conservée pendant la navigation et au rechargement de la session. La sélection reformate l'affichage (conversion des montants au taux courant) ; les données enregistrées restent dans leur devise native.
+Le sélecteur EUR/CHF du header SHALL piloter la devise d'affichage du dashboard uniquement (revue M4 : il ne sert qu'à l'affichage consolidé et aux charts) via un contexte partagé : la sélection est conservée pendant la navigation et au rechargement de la session. La sélection reformate l'affichage (conversion des montants au taux courant) ; les données enregistrées restent dans leur devise native. Les autres vues (charges, transferts, comptes) SHALL masquer le sélecteur.
 
 #### Scenario: Changement de devise
 

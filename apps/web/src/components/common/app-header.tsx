@@ -24,6 +24,7 @@ const titles: Record<string, string> = {
   '/charges': 'Charges & échéancier',
   '/transfers': 'Transferts',
   '/accounts': 'Comptes',
+  '/household': 'Vue foyer',
   '/schedule': 'Échéancier',
 };
 
@@ -105,22 +106,25 @@ export function AppHeader(): JSX.Element {
             </span>
           )}
         </Link>
-        <div className="flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">
-          {(['EUR', 'CHF'] as const).map((c) => (
-            <button
-              key={c}
-              type="button"
-              onClick={() => setDisplayCurrency(c)}
-              className={
-                displayCurrency === c
-                  ? 'rounded-full bg-white px-1.5 py-0.5 shadow-sm'
-                  : 'px-1 py-0.5'
-              }
-            >
-              {c}
-            </button>
-          ))}
-        </div>
+        {/* Sélecteur dashboard-only (revue M4) : il ne sert qu'à l'affichage consolidé. */}
+        {pathname === '/' && (
+          <div className="flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">
+            {(['EUR', 'CHF'] as const).map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setDisplayCurrency(c)}
+                className={
+                  displayCurrency === c
+                    ? 'rounded-full bg-white px-1.5 py-0.5 shadow-sm'
+                    : 'px-1 py-0.5'
+                }
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

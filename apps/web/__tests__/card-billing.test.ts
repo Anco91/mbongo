@@ -101,17 +101,21 @@ describe('cardBilling — carte de crédit (UBS)', () => {
 
   it('moves the billing day to the next month when it has passed', () => {
     const lateToday = new Date('2026-11-29T12:00:00');
-    const transactions = [makeTransaction({ date: '2026-11-25T00:00:00.000Z', amount: -100 })];
+    const transactions = [
+      makeTransaction({ date: '2026-11-25T00:00:00.000Z', amount: -100 }),
+    ];
 
-    expect(cardBilling(ubsCard, transactions, lateToday).nextBillingDate).toEqual(
-      new Date('2026-12-28T00:00:00')
-    );
+    expect(
+      cardBilling(ubsCard, transactions, lateToday).nextBillingDate
+    ).toEqual(new Date('2026-12-28T00:00:00'));
   });
 
   it('clamps the billing day to the length of the target month (31 → 28)', () => {
     const card31 = makeAccount({ billingDay: 31 });
     const febToday = new Date('2026-02-20T12:00:00');
-    const transactions = [makeTransaction({ date: '2026-02-05T00:00:00.000Z', amount: -10 })];
+    const transactions = [
+      makeTransaction({ date: '2026-02-05T00:00:00.000Z', amount: -10 }),
+    ];
 
     expect(cardBilling(card31, transactions, febToday).nextBillingDate).toEqual(
       new Date('2026-02-28T00:00:00')
@@ -122,16 +126,18 @@ describe('cardBilling — carte de crédit (UBS)', () => {
     const orphanCard = makeAccount({ linkedAccountId: null });
     const transactions = [makeTransaction({ amount: -20 })];
 
-    expect(cardBilling(orphanCard, transactions, TODAY).settlementAccountId).toBe(
-      'card-ubs-0001'
-    );
+    expect(
+      cardBilling(orphanCard, transactions, TODAY).settlementAccountId
+    ).toBe('card-ubs-0001');
   });
 
   it('returns null nextBillingDate when the card has no billing day', () => {
     const noBillingDay = makeAccount({ billingDay: null });
     const transactions = [makeTransaction({ amount: -20 })];
 
-    expect(cardBilling(noBillingDay, transactions, TODAY).nextBillingDate).toBeNull();
+    expect(
+      cardBilling(noBillingDay, transactions, TODAY).nextBillingDate
+    ).toBeNull();
   });
 });
 
@@ -149,23 +155,45 @@ describe('cardBilling — débit différé (BNP)', () => {
 
   it('limits the cycle to the current calendar month and settles on itself', () => {
     const transactions = [
-      makeTransaction({ accountId: 'joint-bnp-0001', date: '2026-10-20T00:00:00.000Z', amount: -999 }),
-      makeTransaction({ accountId: 'joint-bnp-0001', date: '2026-11-03T00:00:00.000Z', amount: -150 }),
-      makeTransaction({ accountId: 'joint-bnp-0001', date: '2026-11-14T00:00:00.000Z', amount: -270.5 }),
+      makeTransaction({
+        accountId: 'joint-bnp-0001',
+        date: '2026-10-20T00:00:00.000Z',
+        amount: -999,
+      }),
+      makeTransaction({
+        accountId: 'joint-bnp-0001',
+        date: '2026-11-03T00:00:00.000Z',
+        amount: -150,
+      }),
+      makeTransaction({
+        accountId: 'joint-bnp-0001',
+        date: '2026-11-14T00:00:00.000Z',
+        amount: -270.5,
+      }),
     ];
 
     const billing = cardBilling(bnpJoint, transactions, TODAY);
 
     expect(billing.encours).toBe(420.5);
-    expect(billing.nextBillingDate).toEqual(new Date('2026-11-30T23:59:59.999'));
+    expect(billing.nextBillingDate).toEqual(
+      new Date('2026-11-30T23:59:59.999')
+    );
     expect(billing.settlementAccountId).toBe('joint-bnp-0001');
   });
 
   it('resets the cycle at the start of a new month without any settlement transaction', () => {
     const december = new Date('2026-12-02T12:00:00');
     const transactions = [
-      makeTransaction({ accountId: 'joint-bnp-0001', date: '2026-11-10T00:00:00.000Z', amount: -420 }),
-      makeTransaction({ accountId: 'joint-bnp-0001', date: '2026-12-01T00:00:00.000Z', amount: -60 }),
+      makeTransaction({
+        accountId: 'joint-bnp-0001',
+        date: '2026-11-10T00:00:00.000Z',
+        amount: -420,
+      }),
+      makeTransaction({
+        accountId: 'joint-bnp-0001',
+        date: '2026-12-01T00:00:00.000Z',
+        amount: -60,
+      }),
     ];
 
     const billing = cardBilling(bnpJoint, transactions, december);
@@ -174,7 +202,11 @@ describe('cardBilling — débit différé (BNP)', () => {
 
   it('returns a zero encours with no purchase in the month', () => {
     const transactions = [
-      makeTransaction({ accountId: 'joint-bnp-0001', date: '2026-10-20T00:00:00.000Z', amount: -999 }),
+      makeTransaction({
+        accountId: 'joint-bnp-0001',
+        date: '2026-10-20T00:00:00.000Z',
+        amount: -999,
+      }),
     ];
 
     expect(cardBilling(bnpJoint, transactions, TODAY).encours).toBe(0);

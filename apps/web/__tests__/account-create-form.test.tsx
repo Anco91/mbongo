@@ -20,10 +20,7 @@ jest.mock('@/hooks/use-members', () => ({
   useMembers: jest.fn(),
 }));
 
-import {
-  useAccounts,
-  useCreateAccount,
-} from '@/hooks/use-accounts';
+import { useAccounts, useCreateAccount } from '@/hooks/use-accounts';
 import { useMembers } from '@/hooks/use-members';
 
 const mockMutate = jest.fn();

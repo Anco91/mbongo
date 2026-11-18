@@ -20,10 +20,7 @@ jest.mock('@/hooks/use-accounts', () => ({
   useAccounts: jest.fn(),
 }));
 
-import {
-  useTransfers,
-  useCompleteTransfer,
-} from '@/hooks/use-transfers';
+import { useTransfers, useCompleteTransfer } from '@/hooks/use-transfers';
 import { useAccounts } from '@/hooks/use-accounts';
 
 const now = '2026-11-12T00:00:00.000Z';
@@ -81,16 +78,16 @@ describe('Transfers pagination', () => {
     render(createElement(TransfersContent));
 
     expect(screen.getAllByText(/UBS Courant → BNP Perso/).length).toBe(3);
-    expect(screen.getByText('Afficher les 9 autres transferts')).toBeTruthy();
+    expect(screen.getByText('Afficher les 9 autres')).toBeTruthy();
 
     fireEvent.click(
-      screen.getByRole('button', { name: 'Afficher les 9 autres transferts' })
+      screen.getByRole('button', { name: 'Afficher les 9 autres' })
     );
     expect(screen.getAllByText(/UBS Courant → BNP Perso/).length).toBe(8);
-    expect(screen.getByText('Afficher les 4 autres transferts')).toBeTruthy();
+    expect(screen.getByText('Afficher les 4 autres')).toBeTruthy();
 
     fireEvent.click(
-      screen.getByRole('button', { name: 'Afficher les 4 autres transferts' })
+      screen.getByRole('button', { name: 'Afficher les 4 autres' })
     );
     // Tout visible, plus de bouton, ordre inchangé, rien perdu.
     expect(screen.getAllByText(/UBS Courant → BNP Perso/).length).toBe(12);

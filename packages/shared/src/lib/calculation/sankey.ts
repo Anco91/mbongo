@@ -36,6 +36,22 @@ function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
+/**
+ * Total EUR consolidé de chaque nœud, dérivé des liens (M4, design D4) :
+ * max(liens entrants, liens sortants) — le max évite de double-compter
+ * les nœuds intermédiaires (comptes) traversés par le même flux.
+ * Retourne un tableau indexé comme data.nodes.
+ */
+export function sankeyNodeTotals(data: SankeyData): number[] {
+  const incoming = new Array<number>(data.nodes.length).fill(0);
+  const outgoing = new Array<number>(data.nodes.length).fill(0);
+  for (const link of data.links) {
+    outgoing[link.source] += link.value;
+    incoming[link.target] += link.value;
+  }
+  return data.nodes.map((_, i) => round2(Math.max(incoming[i], outgoing[i])));
+}
+
 export function computeSankeyFlows(params: {
   accounts: Account[];
   transactions: Transaction[];

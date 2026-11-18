@@ -62,7 +62,10 @@ describe('resolveRate (consolidated.ts)', () => {
   });
 
   it('falls back when the live rate is invalid (0)', () => {
-    const resolved = resolveRate({ rate: 0, rateDate: '2026-11-16' }, transfers);
+    const resolved = resolveRate(
+      { rate: 0, rateDate: '2026-11-16' },
+      transfers
+    );
     expect(resolved).toEqual({
       rate: 0.95,
       rateDate: '2026-11-02T00:00:00.000Z',
@@ -76,7 +79,11 @@ describe('resolveRate (consolidated.ts)', () => {
 });
 
 describe('classifySankeyNodes (sankey-flows-chart palette)', () => {
-  const nodes = [{ name: 'Salaire' }, { name: 'UBS Courant' }, { name: 'Logement' }];
+  const nodes = [
+    { name: 'Salaire' },
+    { name: 'UBS Courant' },
+    { name: 'Logement' },
+  ];
 
   it('classifies nodes by degree: income / account / expense', () => {
     const links = [
@@ -91,16 +98,17 @@ describe('classifySankeyNodes (sankey-flows-chart palette)', () => {
   });
 
   it('keeps a distinct color per node type (readable palette)', () => {
-    expect(new Set([
-      sankeyNodeColor('income'),
-      sankeyNodeColor('account'),
-      sankeyNodeColor('expense'),
-    ]).size).toBe(3);
+    expect(
+      new Set([
+        sankeyNodeColor('income'),
+        sankeyNodeColor('account'),
+        sankeyNodeColor('expense'),
+      ]).size
+    ).toBe(3);
   });
 });
 
 describe('PAYMENT_STATUS_LABELS (payment-status.ts)', () => {
-
   it('maps every display code to a French label', () => {
     expect(PAYMENT_STATUS_LABELS).toEqual({
       UPCOMING: 'À venir',

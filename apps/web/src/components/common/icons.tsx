@@ -19,6 +19,7 @@ export {
   ArrowRight as IconArrowRight,
   Maximize2 as IconArrowsExpand,
   ChevronLeft as IconChevronLeft,
+  ChevronRight as IconChevronRight,
   Trash2 as IconTrash,
   AlertTriangle as IconTriangleAlert,
   Bell as IconBell,

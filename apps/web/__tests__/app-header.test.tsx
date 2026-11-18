@@ -15,7 +15,7 @@ import { DisplayCurrencyProvider } from '@/components/providers/display-currency
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: jest.fn(), back: jest.fn() }),
-  usePathname: () => '/',
+  usePathname: jest.fn(() => '/'),
 }));
 
 jest.mock('@/hooks/use-exchange-rate', () => ({
@@ -34,14 +34,11 @@ jest.mock('@/hooks/use-alerts', () => ({
 }));
 
 import { useActiveAlerts, useAlertsRead } from '@/hooks/use-alerts';
+import { usePathname } from 'next/navigation';
 
 const renderHeader = (): void => {
   render(
-    createElement(
-      DisplayCurrencyProvider,
-      null,
-      createElement(AppHeader)
-    )
+    createElement(DisplayCurrencyProvider, null, createElement(AppHeader))
   );
 };
 
@@ -60,9 +57,7 @@ describe('AppHeader', () => {
     renderHeader();
 
     expect(screen.getByText('3')).toBeTruthy();
-    expect(
-      screen.getByLabelText('Alertes (3 non lues)')
-    ).toBeTruthy();
+    expect(screen.getByLabelText('Alertes (3 non lues)')).toBeTruthy();
   });
 
   it('hides the badge when all alerts are read', () => {
@@ -82,6 +77,7 @@ describe('AppHeader', () => {
   });
 
   it('renders the shared display-currency selector', () => {
+    (usePathname as jest.Mock).mockReturnValue('/');
     (useActiveAlerts as jest.Mock).mockReturnValue([]);
     (useAlertsRead as jest.Mock).mockReturnValue({
       readIds: new Set<string>(),
@@ -92,5 +88,20 @@ describe('AppHeader', () => {
 
     expect(screen.getByText('EUR')).toBeTruthy();
     expect(screen.getByText('CHF')).toBeTruthy();
+  });
+
+  it('masque le sélecteur hors dashboard (revue M4)', () => {
+    (usePathname as jest.Mock).mockReturnValue('/charges');
+    (useActiveAlerts as jest.Mock).mockReturnValue([]);
+    (useAlertsRead as jest.Mock).mockReturnValue({
+      readIds: new Set<string>(),
+      markAllRead: jest.fn(),
+    });
+
+    renderHeader();
+
+    expect(screen.queryByText('EUR')).toBeNull();
+    expect(screen.queryByText('CHF')).toBeNull();
+    expect(screen.getByText('Charges & échéancier')).toBeTruthy();
   });
 });

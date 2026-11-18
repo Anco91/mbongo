@@ -7,7 +7,13 @@
  * @module Tests/M4/UiFixesComponents
  */
 
-import { render, screen, renderHook, act, fireEvent } from '@testing-library/react';
+import {
+  render,
+  screen,
+  renderHook,
+  act,
+  fireEvent,
+} from '@testing-library/react';
 import { createElement } from 'react';
 import { StatusBadge } from '@/components/common/status-badge';
 import {
@@ -87,9 +93,9 @@ describe('useAlertsRead', () => {
     act(() => {
       result.current.markAllRead(['due-soon-p1|500|2026-11-20']);
     });
-    expect(
-      result.current.readIds.has('overdraft-exceeded-a1|-700|')
-    ).toBe(false);
+    expect(result.current.readIds.has('overdraft-exceeded-a1|-700|')).toBe(
+      false
+    );
   });
 });
 
@@ -118,9 +124,7 @@ describe('DisplayCurrencyProvider', () => {
       ctx = useDisplayCurrency();
       return createElement('span');
     };
-    render(
-      createElement(DisplayCurrencyProvider, null, createElement(Probe))
-    );
+    render(createElement(DisplayCurrencyProvider, null, createElement(Probe)));
 
     expect(ctx!.displayCurrency).toBe('EUR');
 
@@ -141,9 +145,7 @@ describe('DisplayCurrencyProvider', () => {
       ctx = useDisplayCurrency();
       return createElement('span');
     };
-    render(
-      createElement(DisplayCurrencyProvider, null, createElement(Probe))
-    );
+    render(createElement(DisplayCurrencyProvider, null, createElement(Probe)));
 
     expect(ctx!.displayCurrency).toBe('CHF');
   });
