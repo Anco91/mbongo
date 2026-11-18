@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Mbongo">
+  <rect width="512" height="512" fill="#059669"/>
+  <path d="M170 344V206q0-20 20-20h32q15 0 22 12l22 42 22-42q7-12 22-12h32q20 0 20 20v138h-40V238l-28 54h-36l-28-54v106z" fill="#ffffff"/>
+  <circle cx="256" cy="376" r="14" fill="#fbbf24"/>
+</svg>

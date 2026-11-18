@@ -12,7 +12,7 @@ import { SectionTitle, ExpandButton } from '@/components/common';
 import {
   DonutCategoriesChart,
   type DonutDatum,
-} from '@/components/common/donut-categories-chart';
+} from '@/components/charts/donut-categories-chart';
 import { formatAmount } from '@/components/common/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useDisplayCurrency } from '@/components/providers/display-currency-provider';

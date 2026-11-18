@@ -7,12 +7,12 @@
 
 'use client';
 
-import { ChartFullscreen } from '@/components/common';
-import { SankeyFlowsChart } from '@/components/common/sankey-flows-chart';
+import { ChartFullscreen } from '@/components/charts';
+import { SankeyFlowsChart } from '@/components/charts/sankey-flows-chart';
 import {
   DonutCategoriesChart,
   type DonutDatum,
-} from '@/components/common/donut-categories-chart';
+} from '@/components/charts/donut-categories-chart';
 import type { SankeyData } from '@mbongo/shared';
 import { JSX } from 'react';
 

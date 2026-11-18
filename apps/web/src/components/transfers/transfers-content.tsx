@@ -18,6 +18,7 @@ import { useAccounts } from '@/hooks/use-accounts';
 import { counterValue, effectiveRate, transferFees } from '@mbongo/shared';
 import { formatAmount, formatDate } from '@/components/common/format';
 import { ShowMoreList, StatusBadge } from '@/components/common';
+import { LoadingState, ErrorPanel } from '@/components/common/async-state';
 import { Form, TextInput, AmountInput } from '@/components/common/form-kit';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
@@ -29,30 +30,18 @@ export function TransfersContent(): JSX.Element {
   const { data: accounts = [] } = useAccounts();
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-[200px] items-center justify-center">
-        <span>Chargement des transferts…</span>
-      </div>
-    );
+    return <LoadingState label="Chargement des transferts…" />;
   }
 
   if (error) {
     return (
-      <div className="rounded-lg border border-red-300 bg-red-50 p-4">
-        <h3 className="mb-2 font-semibold text-red-700">
-          Erreur lors du chargement
-        </h3>
-        <p className="mb-3 text-sm text-red-600">{error.message}</p>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            void refetch();
-          }}
-        >
-          Réessayer
-        </Button>
-      </div>
+      <ErrorPanel
+        title="Erreur lors du chargement des transferts"
+        message={error.message}
+        onRetry={() => {
+          void refetch();
+        }}
+      />
     );
   }
 

@@ -11,29 +11,27 @@
  *   possible afterwards ;
  * - unlink (dérapprochement) back to PENDING.
  *
+ * Actions live in `payment-actions`, candidates in `payment-schedule`
+ * (design D5).
+ *
  * @module Components/Schedule/PaymentDetailContent
  */
 
 'use client';
 
-import {
-  usePayment,
-  useReconcilePayment,
-  useTransactions,
-  useUnlinkPayment,
-  useUpdatePayment,
-} from '@/hooks/use-schedule';
+import { usePayment, useTransactions } from '@/hooks/use-schedule';
 import { useCharge } from '@/hooks/use-charges';
 import { useAccount } from '@/hooks/use-accounts';
-import { paymentDisplayStatus, reconciliationCandidates } from '@mbongo/shared';
+import { paymentDisplayStatus } from '@mbongo/shared';
 import { addDays, parseISO } from 'date-fns';
-import Link from 'next/link';
-import { JSX, useMemo } from 'react';
+import { JSX } from 'react';
 import { formatAmount, formatDate } from '@/components/common/format';
 import { StatusBadge } from '@/components/common';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { LoadingState, ErrorPanel } from '@/components/common/async-state';
 import { Separator } from '@/components/ui/separator';
+import { Card, CardContent } from '@/components/ui/card';
+import { PaymentActions } from '@/components/schedule/payment-actions';
+import { PaymentSchedule } from '@/components/schedule/payment-schedule';
 
 const STATUS_LABELS: Record<string, string> = {
   UPCOMING: 'À venir',
@@ -48,45 +46,27 @@ export function PaymentDetailContent({
 }: {
   paymentId: string;
 }): JSX.Element {
-  const { data: payment, isLoading, error } = usePayment(paymentId);
+  const { data: payment, isLoading, error, refetch } = usePayment(paymentId);
   const { data: charge } = useCharge(payment?.chargeId ?? '');
   const accountId = charge?.accountId ?? '';
   const { data: account } = useAccount(accountId);
   const { data: transactions = [] } = useTransactions(
     payment ? transactionQuery(accountId, payment.dueDate) : {}
   );
-  const reconcile = useReconcilePayment();
-  const unlink = useUnlinkPayment();
-  const updatePayment = useUpdatePayment();
-
-  const candidates = useMemo(() => {
-    if (!payment || payment.transactionId) return [];
-    return reconciliationCandidates(payment, transactions);
-  }, [payment, transactions]);
 
   if (isLoading) {
-    return (
-      <div className="p-4">
-        <span>Chargement de l&apos;échéance…</span>
-      </div>
-    );
+    return <LoadingState label="Chargement de l'échéance…" />;
   }
 
   if (Boolean(error) || !payment) {
     return (
-      <div className="rounded-lg border border-red-300 bg-red-50 p-4">
-        <h3 className="mb-2 font-semibold text-red-700">
-          Erreur lors du chargement de l&apos;échéance
-        </h3>
-        <p className="mb-3 text-sm text-red-600">
-          {error?.message ?? 'Inconnue'}
-        </p>
-        <Link href="/schedule" className="inline-block">
-          <Button variant="outline" size="sm">
-            Retour à l&apos;échéancier
-          </Button>
-        </Link>
-      </div>
+      <ErrorPanel
+        title="Erreur lors du chargement de l'échéance"
+        message={error?.message ?? 'Inconnue'}
+        onRetry={() => {
+          void refetch();
+        }}
+      />
     );
   }
 
@@ -96,6 +76,7 @@ export function PaymentDetailContent({
     : undefined;
   // Une échéance PAID sans transaction (coche manuelle) reste rapprochable.
   const canReconcile = status !== 'CANCELLED' && status !== 'FAILED';
+  const currency = account?.currency ?? payment.currency;
 
   return (
     <div className="space-y-4">
@@ -119,120 +100,23 @@ export function PaymentDetailContent({
 
           <Separator className="my-3" />
 
-          {linked ? (
-            <div className="space-y-2">
-              <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-3">
-                <p className="text-sm text-emerald-800">
-                  Rapprochée de la transaction du {formatDate(linked.date)} (
-                  {formatAmount(
-                    linked.amount,
-                    account?.currency ?? payment.currency
-                  )}
-                  )
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full"
-                onClick={() => unlink.mutate(payment.id)}
-                disabled={unlink.isPending}
-              >
-                {unlink.isPending ? 'Dérapprochement…' : 'Dérapprocher'}
-              </Button>
-              {unlink.error && <ErrorLine message={unlink.error.message} />}
-            </div>
-          ) : (
-            <>
-              {status !== 'PAID' && (
-                <Button
-                  size="sm"
-                  className="w-full"
-                  onClick={() =>
-                    updatePayment.mutate({
-                      id: payment.id,
-                      input: {
-                        status: 'PAID',
-                        paidAt: new Date().toISOString(),
-                      },
-                    })
-                  }
-                  disabled={updatePayment.isPending}
-                >
-                  {updatePayment.isPending
-                    ? 'Enregistrement…'
-                    : 'Marquer payée sans transaction'}
-                </Button>
-              )}
-              {updatePayment.error && (
-                <ErrorLine message={updatePayment.error.message} />
-              )}
-            </>
-          )}
+          <PaymentActions
+            payment={payment}
+            linked={linked}
+            currency={currency}
+            isPaid={status === 'PAID'}
+          />
         </CardContent>
       </Card>
 
       {canReconcile && (
-        <div className="space-y-2">
-          <h2 className="text-sm font-semibold text-slate-800">
-            Transactions candidates
-          </h2>
-          <p className="text-xs text-slate-500">
-            Même compte, montant à ± 0,01, date à ± 7 jours — sélection manuelle
-            uniquement.
-          </p>
-          {candidates.length === 0 ? (
-            <p className="text-sm text-slate-500">
-              Aucune candidate — saisissez la transaction puis revenez ici.
-            </p>
-          ) : (
-            <Card>
-              <CardContent className="divide-y divide-slate-100 pt-2">
-                {candidates.map((transaction) => (
-                  <div
-                    key={transaction.id}
-                    className="flex items-center justify-between gap-3 py-3"
-                  >
-                    <span className="text-sm text-slate-800">
-                      {formatDate(transaction.date)} —{' '}
-                      {formatAmount(
-                        transaction.amount,
-                        account?.currency ?? payment.currency
-                      )}
-                    </span>
-                    <Button
-                      size="sm"
-                      onClick={() =>
-                        reconcile.mutate({
-                          id: payment.id,
-                          transactionId: transaction.id,
-                        })
-                      }
-                      disabled={reconcile.isPending}
-                    >
-                      Rapprocher
-                    </Button>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
-          {reconcile.error && <ErrorLine message={reconcile.error.message} />}
-        </div>
+        <PaymentSchedule
+          payment={payment}
+          transactions={transactions}
+          currency={currency}
+        />
       )}
     </div>
-  );
-}
-
-// ============================================================================
-// Sub-components
-// ============================================================================
-
-function ErrorLine({ message }: { message: string }): JSX.Element {
-  return (
-    <p className="text-sm text-red-600" role="alert">
-      {message}
-    </p>
   );
 }
 

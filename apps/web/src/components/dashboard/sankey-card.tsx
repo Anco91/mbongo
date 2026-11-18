@@ -8,7 +8,7 @@
 'use client';
 
 import { SectionTitle, ExpandButton } from '@/components/common';
-import { SankeyFlowsChart } from '@/components/common/sankey-flows-chart';
+import { SankeyFlowsChart } from '@/components/charts/sankey-flows-chart';
 import type { SankeyData } from '@mbongo/shared';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { JSX } from 'react';
