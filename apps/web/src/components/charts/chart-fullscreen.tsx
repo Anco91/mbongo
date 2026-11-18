@@ -28,7 +28,7 @@ export function ChartFullscreen({
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-white">
-      <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+      <div className="flex items-center justify-between border-b border-slate-100 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))]">
         <div>
           <p className="text-[11px] uppercase tracking-wider text-slate-400">
             Plein écran
@@ -111,7 +111,7 @@ export function ChartFullscreen({
         </div>
       </div>
 
-      <p className="border-t border-slate-100 px-4 py-2 text-center text-[11px] text-slate-400">
+      <p className="border-t border-slate-100 px-4 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] text-center text-[11px] text-slate-400">
         Glisser pour naviguer · boutons ou molette pour zoomer
       </p>
     </div>

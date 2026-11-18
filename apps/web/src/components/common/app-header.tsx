@@ -17,22 +17,8 @@ import {
   useAlertsRead,
   alertFingerprint,
 } from '@/hooks/use-alerts';
+import { routeChrome } from '@/lib/routes';
 import { JSX } from 'react';
-
-const titles: Record<string, string> = {
-  '/': 'Tableau de bord',
-  '/charges': 'Charges & échéancier',
-  '/transfers': 'Transferts',
-  '/accounts': 'Comptes',
-  '/household': 'Vue foyer',
-  '/schedule': 'Échéancier',
-};
-
-const subTitles: Record<string, string> = {
-  '/charges/new': 'Nouvelle charge',
-  '/accounts/new': 'Nouveau compte',
-  '/transfers/new': 'Nouveau transfert',
-};
 
 function currentMonthLabel(): string {
   return new Intl.DateTimeFormat('fr-FR', {
@@ -54,12 +40,11 @@ export function AppHeader(): JSX.Element {
     (a) => !readIds.has(alertFingerprint(a))
   ).length;
 
-  const subTitle = subTitles[pathname];
-  const isScheduleDetail = /^\/schedule\/[^/]+$/.test(pathname);
+  const chrome = routeChrome(pathname);
 
-  if (subTitle || isScheduleDetail) {
+  if (chrome.isSubView) {
     return (
-      <div className="flex items-center gap-3 border-b border-slate-100 bg-white px-4 py-3">
+      <div className="flex shrink-0 items-center gap-3 border-b border-slate-100 bg-white px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))]">
         <button
           type="button"
           onClick={() => router.back()}
@@ -70,21 +55,20 @@ export function AppHeader(): JSX.Element {
         </button>
         <div>
           <p className="text-[11px] uppercase tracking-wider text-slate-400">
-            Création
+            {chrome.eyebrow}
           </p>
           <h1 className="text-lg font-semibold tracking-tight text-slate-900">
-            {subTitle ?? "Détail de l'échéance"}
+            {chrome.title}
           </h1>
         </div>
       </div>
     );
   }
 
-  const title =
-    titles[pathname] ?? titles[`/${pathname.split('/')[1]}`] ?? 'Mbongo';
+  const { title } = chrome;
 
   return (
-    <div className="flex items-center justify-between border-b border-slate-100 bg-white px-5 py-3">
+    <div className="flex shrink-0 items-center justify-between border-b border-slate-100 bg-white px-5 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))]">
       <div>
         <p className="text-[11px] uppercase tracking-wider text-slate-400">
           {currentMonthLabel()}

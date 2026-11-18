@@ -1,6 +1,7 @@
 /**
  * Tab Navigation — bottom navigation with 4 tabs, per the maquette.
- * Hidden while a form sub-view (…/new) or a detail sub-view is open.
+ * Hidden while a create/edit/detail sub-view covers the screen
+ * (`routeChrome`, design D4).
  *
  * @module Components/Common/TabNav
  */
@@ -15,6 +16,7 @@ import {
   IconCalendar,
   IconChartPie,
 } from '@/components/common/icons';
+import { routeChrome } from '@/lib/routes';
 import { JSX } from 'react';
 
 const tabs = [
@@ -24,14 +26,9 @@ const tabs = [
   { href: '/accounts', label: 'Comptes', icon: IconBankStatement },
 ] as const;
 
-/** True when a form or detail sub-view covers the screen (nav hidden). */
-function isSubView(pathname: string): boolean {
-  return pathname.endsWith('/new') || /^\/schedule\/[^/]+$/.test(pathname);
-}
-
 export function TabNav(): JSX.Element | null {
   const pathname = usePathname();
-  if (isSubView(pathname)) return null;
+  if (routeChrome(pathname).isSubView) return null;
 
   const isActive = (href: string): boolean =>
     href === '/'
@@ -39,7 +36,7 @@ export function TabNav(): JSX.Element | null {
       : pathname === href || pathname.startsWith(`${href}/`);
 
   return (
-    <nav className="flex border-t border-slate-100 bg-white px-2 pb-3 pt-1.5">
+    <nav className="flex shrink-0 border-t border-slate-100 bg-white px-2 pt-1.5 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
       {tabs.map((tab) => {
         const Icon = tab.icon;
         return (

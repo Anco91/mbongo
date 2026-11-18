@@ -7,21 +7,21 @@
  * @module App/Layout
  */
 
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { QueryProvider } from '@/components/providers/query-provider';
 import { DisplayCurrencyProvider } from '@/components/providers/display-currency-provider';
-import { AppHeader } from '@/components/common/app-header';
-import { TabNav } from '@/components/common/tab-nav';
+import { ServiceWorkerRegister } from '@/components/providers/service-worker-register';
+import { AppShell } from '@/components/common/app-shell';
+import { APP_METADATA, APP_VIEWPORT } from '@/lib/pwa';
 import { JSX } from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
 
-export const metadata: Metadata = {
-  title: 'Mbongo - Financial Management',
-  description: 'Manage your financial charges and payments with Mbongo',
-};
+export const metadata: Metadata = APP_METADATA;
+
+export const viewport: Viewport = APP_VIEWPORT;
 
 /**
  * Root Layout Component
@@ -41,19 +41,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>): JSX.Element {
   return (
-    <html lang="en">
+    <html lang="fr">
       <body className={inter.className}>
+        <ServiceWorkerRegister />
         <QueryProvider>
           <DisplayCurrencyProvider>
-            <div className="flex min-h-screen justify-center bg-slate-100">
-              <div className="flex w-full max-w-[390px] flex-col bg-white">
-                <AppHeader />
-                <main className="flex-1 overflow-y-auto bg-slate-50 p-4 pb-8">
-                  {children}
-                </main>
-                <TabNav />
-              </div>
-            </div>
+            <AppShell>{children}</AppShell>
           </DisplayCurrencyProvider>
         </QueryProvider>
       </body>

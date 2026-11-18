@@ -17,7 +17,7 @@ import {
 import {
   classifySankeyNodes,
   sankeyNodeColor,
-} from '@/components/common/sankey-flows-chart';
+} from '@/components/charts/sankey-flows-chart';
 
 describe('resolveRate (consolidated.ts)', () => {
   const transfers: Transfer[] = [

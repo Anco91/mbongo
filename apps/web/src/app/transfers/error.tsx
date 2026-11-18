@@ -3,12 +3,14 @@
 /**
  * Transfers Error Boundary
  *
- * Declarative plumbing: any failure inside the transfers segment renders here.
+ * Declarative plumbing: any failure inside the transfers segment renders
+ * here, inside the app shell.
  *
- * @module App/Dashboard/Transfers/Error
+ * @module App/Transfers/Error
  */
 
 import { JSX } from 'react';
+import { RouteError } from '@/components/common/route-error';
 
 export default function TransfersError({
   error,
@@ -18,17 +20,10 @@ export default function TransfersError({
   reset: () => void;
 }): JSX.Element {
   return (
-    <div className="p-4 border border-red-300 rounded-lg bg-red-50">
-      <h3 className="font-semibold text-red-700 mb-2">
-        Erreur lors du chargement des transferts
-      </h3>
-      <p className="text-red-600 mb-4">{error.message}</p>
-      <button
-        onClick={reset}
-        className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-      >
-        Réessayer
-      </button>
-    </div>
+    <RouteError
+      title="Erreur lors du chargement des transferts"
+      error={error}
+      reset={reset}
+    />
   );
 }

@@ -14,7 +14,7 @@ import {
   DonutCategoriesChart,
   donutSegmentLabel,
   type DonutDatum,
-} from '@/components/common/donut-categories-chart';
+} from '@/components/charts/donut-categories-chart';
 
 describe('sankeyNodeTotals (dérivation pure)', () => {
   it('max(entrants, sortants) par nœud, arrondi 2 décimales', () => {

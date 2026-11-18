@@ -43,6 +43,13 @@
   outline-offset: 2px;
 }
 
+/* Shell: exactly the visible viewport height; no page-level scroll or bounce. */
+html,
+body {
+  height: 100%;
+  overscroll-behavior-y: none;
+}
+
 /* Base body styles */
 body {
   color: rgb(var(--foreground-rgb));

@@ -261,9 +261,11 @@ describe('AccountsContent — error and loading states', () => {
 
     render(createElement(AccountsContent));
 
-    expect(screen.getByText('Error loading accounts')).toBeTruthy();
+    expect(
+      screen.getByText('Erreur lors du chargement des comptes')
+    ).toBeTruthy();
     expect(screen.getByText('Network down')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Retry' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Réessayer' })).toBeTruthy();
   });
 
   it('retries loading accounts when the retry button is clicked', () => {
@@ -277,7 +279,7 @@ describe('AccountsContent — error and loading states', () => {
     (useTransactions as jest.Mock).mockReturnValue({ data: [] });
 
     render(createElement(AccountsContent));
-    fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Réessayer' }));
 
     expect(refetch).toHaveBeenCalled();
   });
@@ -293,7 +295,7 @@ describe('AccountsContent — error and loading states', () => {
 
     render(createElement(AccountsContent));
 
-    expect(screen.getByText('Loading accounts...')).toBeTruthy();
+    expect(screen.getByText('Chargement des comptes…')).toBeTruthy();
   });
 
   it('shows the empty state with a create link', () => {
@@ -307,6 +309,6 @@ describe('AccountsContent — error and loading states', () => {
 
     render(createElement(AccountsContent));
 
-    expect(screen.getByText('No accounts yet')).toBeTruthy();
+    expect(screen.getByText('Aucun compte')).toBeTruthy();
   });
 });
