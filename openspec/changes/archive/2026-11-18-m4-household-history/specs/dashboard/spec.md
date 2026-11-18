@@ -64,13 +64,19 @@ L'UI du dashboard SHALL afficher le donut des dépenses du mois choisi avec le t
 
 Le sélecteur EUR/CHF du header SHALL être visible uniquement sur le dashboard (`/`) : il pilote l'affichage consolidé et les charts du dashboard, avec la sélection conservée pendant la navigation et au rechargement. Les autres vues SHALL le masquer (il n'y reformate rien).
 
-#### Scenario: Bascule depuis le dashboard
+#### Scenario: Changement de devise
 
 - **GIVEN** le dashboard affiché en EUR
-- **WHEN** l'utilisateur bascule sur CHF
+- **WHEN** l'utilisateur bascule sur CHF dans le header
 - **THEN** patrimoine consolidé et charts s'affichent en CHF sans rechargement
 
-#### Scenario: Masqué ailleurs
+#### Scenario: Persistance de la sélection
+
+- **GIVEN** la devise CHF sélectionnée
+- **WHEN** l'utilisateur navigue vers une autre vue ou recharge l'app
+- **THEN** la devise CHF reste sélectionnée
+
+#### Scenario: Masqué hors dashboard
 
 - **GIVEN** l'utilisateur navigue vers /charges, /transfers ou /accounts
 - **WHEN** le header s'affiche
