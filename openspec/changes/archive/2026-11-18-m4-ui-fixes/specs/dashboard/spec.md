@@ -58,3 +58,9 @@ Le sélecteur EUR/CHF du header SHALL piloter la devise d'affichage du dashboard
 - **GIVEN** la devise CHF sélectionnée
 - **WHEN** l'utilisateur navigue vers une autre vue ou recharge l'app
 - **THEN** la devise CHF reste sélectionnée
+
+#### Scenario: Masqué hors dashboard
+
+- **GIVEN** la vue charges, transferts ou comptes
+- **WHEN** le header s'affiche
+- **THEN** le sélecteur EUR/CHF n'est pas rendu
