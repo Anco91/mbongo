@@ -19,6 +19,10 @@ jest.mock('@/hooks/use-accounts', () => ({
   useAccounts: jest.fn(),
 }));
 
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: jest.fn() }),
+}));
+
 import { useCreateTransfer } from '@/hooks/use-transfers';
 import { useAccounts } from '@/hooks/use-accounts';
 
@@ -139,7 +143,7 @@ describe('TransferCreateForm', () => {
 
     expect(screen.getByText(/Transfert enregistré \(estimé\)/)).toBeTruthy();
     expect(
-      screen.getByRole('link', { name: 'Retour aux transferts' })
+      screen.getByRole('button', { name: 'Retour aux transferts' })
     ).toBeTruthy();
   });
 

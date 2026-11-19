@@ -63,14 +63,14 @@ Le code est en kebab-case partout ; `CONVENTIONS.md` affirme le contraire (`Pasc
 ```tsx
 <FormActions
   submitLabel="Créer la charge"
-  pendingLabel="Création…"
   isPending={isCreating}
+  error={error?.message}
   onCancel={...}          // optionnel
   destructive={...}       // optionnel : slot DeleteButton
 />
 ```
 
-Rendu fixe : bouton principal `size="lg"` pleine largeur, annulation `outline` pleine largeur, séparateur puis zone destructive. L'indicateur d'attente est un `Loader2` en rotation à largeur fixe, le libellé principal reste affiché ; le bouton est désactivé. `FormError` remplace les `<p className="text-red-600">` locaux ; `FormSuccess` remplace les écrans de succès dupliqués.
+Rendu fixe : bouton principal `size="lg"` pleine largeur, annulation `outline` pleine largeur, séparateur puis zone destructive. L'indicateur d'attente est un `Loader2` en rotation à largeur fixe, le libellé principal reste affiché ; le bouton est désactivé et porte `aria-busy`. `FormError` remplace les `<p className="text-red-600">` locaux ; `FormSuccess` remplace les écrans de succès dupliqués.
 
 Alternatives rejetées : un composant `SubmitButton` seul — ne règle pas la position ni la zone destructive ; un wrapper `StandardForm` qui possède le `useForm` — cache le resolver et les defaults au parent, contraire au kit actuel.
 

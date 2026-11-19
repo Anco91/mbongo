@@ -23,8 +23,7 @@ interface ChargeDetailProps {
   remaining: number | null;
   next: Payment | null;
   payments: Payment[];
-  isDeleting: boolean;
-  onDelete: (id: string) => void;
+  onDelete: (id: string) => Promise<unknown>;
 }
 
 export function ChargeDetail({
@@ -34,7 +33,6 @@ export function ChargeDetail({
   remaining,
   next,
   payments,
-  isDeleting,
   onDelete,
 }: ChargeDetailProps): JSX.Element {
   return (
@@ -91,9 +89,8 @@ export function ChargeDetail({
         <DeleteButton
           label="Supprimer la charge"
           message={`Supprimer « ${charge.label} » ? Les récurrences seront arrêtées et l'historique des paiements conservé.`}
-          onDone={() => onDelete(charge.id)}
+          onConfirmed={() => onDelete(charge.id)}
         />
-        {isDeleting && <p className="text-xs text-slate-400">Suppression…</p>}
       </div>
     </>
   );

@@ -18,6 +18,10 @@ jest.mock('@/hooks/use-accounts', () => ({
   useAccounts: jest.fn(),
 }));
 
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: jest.fn() }),
+}));
+
 import { useCreateCharge } from '@/hooks/use-charges';
 import { useAccounts } from '@/hooks/use-accounts';
 
@@ -167,7 +171,7 @@ describe('ChargeCreateForm', () => {
       screen.getByText('Charge créée — échéances générées (tout-ou-rien).')
     ).toBeTruthy();
     expect(
-      screen.getByRole('link', { name: 'Retour aux charges' })
+      screen.getByRole('button', { name: 'Retour aux charges' })
     ).toBeTruthy();
   });
 

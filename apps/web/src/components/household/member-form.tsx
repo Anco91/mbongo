@@ -20,8 +20,13 @@ import {
   type Member,
 } from '@mbongo/shared';
 import { useCreateMember, useUpdateMember } from '@/hooks/use-members';
-import { Form, FormSection, TextInput, SelectInput } from '@/components/form';
-import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormActions,
+  FormSection,
+  TextInput,
+  SelectInput,
+} from '@/components/form';
 import { JSX } from 'react';
 
 const ROLE_OPTIONS = [
@@ -41,14 +46,18 @@ type MemberFormValues = z.infer<typeof memberFormSchema>;
 export function MemberForm({
   member,
   onDone,
+  onCancel,
 }: {
   /** Absent → mode création. */
   member?: Member;
   onDone?: () => void;
+  onCancel?: () => void;
 }): JSX.Element {
   const isEdit = Boolean(member);
-  const { mutate: createMember, isPending: isCreating } = useCreateMember();
-  const { mutate: updateMember, isPending: isUpdating } = useUpdateMember();
+  const create = useCreateMember();
+  const update = useUpdateMember();
+  const isPending = create.isPending || update.isPending;
+  const error = create.error ?? update.error;
 
   const form = useForm<MemberFormValues>({
     resolver: zodResolver(memberFormSchema),
@@ -67,14 +76,14 @@ export function MemberForm({
         lastName,
         role: data.role,
       };
-      updateMember({ id: member.id, input }, { onSuccess: () => onDone?.() });
+      update.mutate({ id: member.id, input }, { onSuccess: () => onDone?.() });
     } else {
       const input: CreateMemberInput = {
         firstName: data.firstName,
         lastName,
         role: data.role,
       };
-      createMember(input, { onSuccess: () => onDone?.() });
+      create.mutate(input, { onSuccess: () => onDone?.() });
     }
   });
 
@@ -89,16 +98,12 @@ export function MemberForm({
         />
         <SelectInput name="role" label="Rôle" options={ROLE_OPTIONS} />
       </FormSection>
-      <Button
-        type="submit"
-        className="w-full"
-        disabled={isCreating || isUpdating}
-      >
-        {isEdit ? 'Enregistrer' : 'Créer le membre'}
-      </Button>
-      {(isCreating || isUpdating) && (
-        <p className="text-xs text-slate-400">Enregistrement…</p>
-      )}
+      <FormActions
+        submitLabel={isEdit ? 'Enregistrer' : 'Créer le membre'}
+        isPending={isPending}
+        error={error?.message}
+        onCancel={onCancel}
+      />
     </Form>
   );
 }

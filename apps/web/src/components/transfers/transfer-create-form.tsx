@@ -23,14 +23,16 @@ import { useAccounts } from '@/hooks/use-accounts';
 import { useCreateTransfer } from '@/hooks/use-transfers';
 import {
   Form,
+  FormActions,
   FormSection,
+  FormSuccess,
   FormHint,
   TextInput,
   SelectInput,
   AmountInput,
 } from '@/components/form';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { JSX } from 'react';
 import type { z } from 'zod';
 
@@ -66,6 +68,7 @@ export function buildTransferFormSchema(
  * TransferCreateForm Component
  */
 export function TransferCreateForm(): JSX.Element {
+  const router = useRouter();
   const { data: accounts = [] } = useAccounts();
   const {
     mutate: createTransfer,
@@ -112,20 +115,15 @@ export function TransferCreateForm(): JSX.Element {
 
   if (isSuccess) {
     return (
-      <div className="space-y-4">
-        <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-4">
-          <p className="text-emerald-700">
-            Transfert enregistré (estimé). Enregistrez le crédit reçu depuis la
-            liste des transferts.
-          </p>
-        </div>
-        <Link
-          href="/transfers"
-          className="inline-block rounded bg-slate-900 px-4 py-2 text-white transition-colors hover:bg-slate-800"
+      <FormSuccess message="Transfert enregistré (estimé). Enregistrez le crédit reçu depuis la liste des transferts.">
+        <Button
+          size="lg"
+          className="w-full"
+          onClick={() => router.push('/transfers')}
         >
           Retour aux transferts
-        </Link>
-      </div>
+        </Button>
+      </FormSuccess>
     );
   }
 
@@ -187,11 +185,11 @@ export function TransferCreateForm(): JSX.Element {
         </FormHint>
       </FormSection>
 
-      {error && <p className="text-sm text-red-600">{error.message}</p>}
-
-      <Button type="submit" size="lg" className="w-full" disabled={isCreating}>
-        {isCreating ? 'Enregistrement…' : 'Enregistrer le transfert (estimé)'}
-      </Button>
+      <FormActions
+        submitLabel="Enregistrer le transfert (estimé)"
+        isPending={isCreating}
+        error={error?.message}
+      />
     </Form>
   );
 }

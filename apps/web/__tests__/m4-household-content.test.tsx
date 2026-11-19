@@ -23,8 +23,7 @@ jest.mock('@/hooks/use-members', () => ({
     isSuccess: false,
   })),
   useDeleteMember: jest.fn(() => ({
-    mutate: jest.fn(),
-    isPending: false,
+    mutateAsync: jest.fn(),
   })),
 }));
 
@@ -78,10 +77,9 @@ describe('HouseholdContent', () => {
 
   it('suppression : confirmation deux étapes puis deleteMember', async () => {
     (useMembers as jest.Mock).mockReturnValue({ data: members });
-    const deleteMember = jest.fn();
+    const deleteMember = jest.fn(() => Promise.resolve());
     (useDeleteMember as jest.Mock).mockReturnValue({
-      mutate: deleteMember,
-      isPending: false,
+      mutateAsync: deleteMember,
     });
     render(<HouseholdContent />);
     fireEvent.click(screen.getAllByText('Supprimer le membre')[0]);

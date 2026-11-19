@@ -81,7 +81,6 @@ export function ChargesContent(): JSX.Element {
                     remaining={remaining}
                     next={next}
                     payments={payments}
-                    isDeleting={view.isDeleting}
                     onDelete={view.deleteCharge}
                   />
                 </DetailSheet>

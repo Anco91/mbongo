@@ -18,7 +18,9 @@ import { useAccounts } from '@/hooks/use-accounts';
 import { useCreateCharge } from '@/hooks/use-charges';
 import {
   Form,
+  FormActions,
   FormSection,
+  FormSuccess,
   FormHint,
   TextInput,
   SelectInput,
@@ -28,7 +30,7 @@ import {
   yesNoOptions,
 } from '@/components/form';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { JSX } from 'react';
 
 const CHARGE_TYPES = [
@@ -74,6 +76,7 @@ const FREQUENCIES = [
  * ChargeCreateForm Component
  */
 export function ChargeCreateForm(): JSX.Element {
+  const router = useRouter();
   const { data: accounts = [] } = useAccounts();
   const {
     mutate: createCharge,
@@ -112,19 +115,15 @@ export function ChargeCreateForm(): JSX.Element {
 
   if (createdCharge) {
     return (
-      <div className="space-y-4">
-        <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-4">
-          <p className="text-emerald-700">
-            Charge créée — échéances générées (tout-ou-rien).
-          </p>
-        </div>
-        <Link
-          href="/charges"
-          className="inline-block rounded bg-slate-900 px-4 py-2 text-white transition-colors hover:bg-slate-800"
+      <FormSuccess message="Charge créée — échéances générées (tout-ou-rien).">
+        <Button
+          size="lg"
+          className="w-full"
+          onClick={() => router.push('/charges')}
         >
           Retour aux charges
-        </Link>
-      </div>
+        </Button>
+      </FormSuccess>
     );
   }
 
@@ -218,11 +217,11 @@ export function ChargeCreateForm(): JSX.Element {
         </FormSection>
       )}
 
-      {error && <p className="text-sm text-red-600">{error.message}</p>}
-
-      <Button type="submit" size="lg" className="w-full" disabled={isCreating}>
-        {isCreating ? 'Création…' : 'Créer la charge'}
-      </Button>
+      <FormActions
+        submitLabel="Créer la charge"
+        isPending={isCreating}
+        error={error?.message}
+      />
     </Form>
   );
 }

@@ -26,7 +26,9 @@ import {
 } from '@/hooks/use-charges';
 import {
   Form,
+  FormActions,
   FormSection,
+  FormSuccess,
   FormHint,
   TextInput,
   SelectInput,
@@ -77,7 +79,7 @@ export function ChargeEditForm({
     isSuccess,
     error,
   } = useUpdateCharge(chargeId);
-  const { mutate: deleteCharge } = useDeleteCharge();
+  const { mutateAsync: deleteCharge } = useDeleteCharge();
 
   const form = useForm<UpdateChargeInput>({
     resolver: zodResolver(updateChargeSchema),
@@ -104,10 +106,7 @@ export function ChargeEditForm({
 
   if (isSuccess) {
     return (
-      <div className="space-y-4">
-        <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-4">
-          <p className="text-emerald-700">Charge mise à jour.</p>
-        </div>
+      <FormSuccess message="Charge mise à jour.">
         <Button
           size="lg"
           className="w-full"
@@ -115,7 +114,7 @@ export function ChargeEditForm({
         >
           Retour aux charges
         </Button>
-      </div>
+      </FormSuccess>
     );
   }
 
@@ -193,19 +192,20 @@ export function ChargeEditForm({
         </FormSection>
       )}
 
-      {error && <p className="text-sm text-red-600">{error.message}</p>}
-
-      <Button type="submit" size="lg" className="w-full" disabled={isSaving}>
-        {isSaving ? 'Enregistrement…' : 'Enregistrer les modifications'}
-      </Button>
-
-      <DeleteButton
-        label="Supprimer la charge"
-        message={`Supprimer « ${charge.label} » ? Les récurrences seront arrêtées et l'historique des paiements conservé.`}
-        onDone={() => {
-          deleteCharge(charge.id);
-          router.push('/charges');
-        }}
+      <FormActions
+        submitLabel="Enregistrer les modifications"
+        isPending={isSaving}
+        error={error?.message}
+        destructive={
+          <DeleteButton
+            label="Supprimer la charge"
+            message={`Supprimer « ${charge.label} » ? Les récurrences seront arrêtées et l'historique des paiements conservé.`}
+            onConfirmed={async () => {
+              await deleteCharge(charge.id);
+              router.push('/charges');
+            }}
+          />
+        }
       />
     </Form>
   );

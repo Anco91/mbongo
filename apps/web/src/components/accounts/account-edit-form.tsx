@@ -27,8 +27,10 @@ import {
 } from '@/hooks/use-accounts';
 import {
   Form,
+  FormActions,
   FormSection,
   FormHint,
+  FormSuccess,
   TextInput,
   SelectInput,
   ToggleInput,
@@ -62,7 +64,7 @@ export function AccountEditForm({
     isSuccess,
     error,
   } = useUpdateAccount();
-  const { mutate: close } = useCloseAccount();
+  const { mutateAsync: close } = useCloseAccount();
 
   const form = useForm<UpdateAccountInput>({
     resolver: zodResolver(updateAccountSchema),
@@ -101,10 +103,7 @@ export function AccountEditForm({
 
   if (isSuccess) {
     return (
-      <div className="space-y-4">
-        <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-4">
-          <p className="text-emerald-700">Compte mis à jour.</p>
-        </div>
+      <FormSuccess message="Compte mis à jour.">
         <Button
           size="lg"
           className="w-full"
@@ -112,7 +111,7 @@ export function AccountEditForm({
         >
           Retour aux comptes
         </Button>
-      </div>
+      </FormSuccess>
     );
   }
 
@@ -194,20 +193,21 @@ export function AccountEditForm({
         </FormSection>
       )}
 
-      {error && <p className="text-sm text-red-600">{error.message}</p>}
-
-      <Button type="submit" size="lg" className="w-full" disabled={isSaving}>
-        {isSaving ? 'Enregistrement…' : 'Enregistrer les modifications'}
-      </Button>
-
-      <DeleteButton
-        label="Clôturer le compte"
-        message={`Clôturer « ${account.name} » ? Le compte disparaît de la liste active ; l'historique est conservé.`}
-        confirmLabel="Clôturer"
-        onDone={() => {
-          close(account.id);
-          router.push('/accounts');
-        }}
+      <FormActions
+        submitLabel="Enregistrer les modifications"
+        isPending={isSaving}
+        error={error?.message}
+        destructive={
+          <DeleteButton
+            label="Clôturer le compte"
+            message={`Clôturer « ${account.name} » ? Le compte disparaît de la liste active ; l'historique est conservé.`}
+            confirmLabel="Clôturer"
+            onConfirmed={async () => {
+              await close(account.id);
+              router.push('/accounts');
+            }}
+          />
+        }
       />
     </Form>
   );

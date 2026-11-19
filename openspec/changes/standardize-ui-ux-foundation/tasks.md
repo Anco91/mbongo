@@ -10,12 +10,12 @@
 
 ## 2. Formulaire standard
 
-- [ ] 2.1 Créer `FormActions`, `FormError`, `FormSuccess` dans `components/form/` selon D3 ; vérifier le rendu des trois états par un test Testing Library (`npx jest __tests__/form-actions.test.tsx`).
-- [ ] 2.2 Rendre `DeleteButton` asynchrone (`onConfirmed: () => Promise<unknown>`, état d'attente, double désactivation) ; vérifier qu'un `onConfirmed` rejeté laisse le bouton réactivé et affiche l'erreur (`npx jest __tests__/delete-button.test.tsx`).
-- [ ] 2.3 Migrer les formulaires compte (création, édition) vers `FormActions`/`FormError`/`FormSuccess` et attendre la clôture avant `router.push` ; vérifier que la clôture attend la mutation (`npx jest __tests__/account-edit-form.test.tsx`).
-- [ ] 2.4 Migrer les formulaires charge (création, édition) et ajouter la confirmation de création manquante ; vérifier qu'une création réussie affiche la confirmation puis revient à la liste (`npx jest __tests__/charge-forms.test.tsx`).
-- [ ] 2.5 Migrer le formulaire transfert et le formulaire membre vers les mêmes primitives ; vérifier que les cinq formulaires partagent le même ordre d'actions (`npx jest __tests__/form-actions.test.tsx`).
-- [ ] 2.6 Conserver la saisie et afficher `FormError` en cas d'échec de mutation ; vérifier par un test d'échec simulé sur la création de compte.
+- [x] 2.1 Créer `FormActions`, `FormError`, `FormSuccess` dans `components/form/` selon D3 ; vérifier le rendu des trois états par un test Testing Library (`npx jest __tests__/form-actions.test.tsx`).
+- [x] 2.2 Rendre `DeleteButton` asynchrone (`onConfirmed: () => Promise<unknown>`, état d'attente, double désactivation) ; vérifier qu'un `onConfirmed` rejeté laisse le bouton réactivé et affiche l'erreur (`npx jest __tests__/delete-button.test.tsx`).
+- [x] 2.3 Migrer les formulaires compte (création, édition) vers `FormActions`/`FormError`/`FormSuccess` et attendre la clôture avant `router.push` ; vérifier que la clôture attend la mutation (`npx jest __tests__/account-edit-form.test.tsx`).
+- [x] 2.4 Migrer les formulaires charge (création, édition) et ajouter la confirmation de création manquante ; vérifier qu'une création réussie affiche la confirmation puis revient à la liste (`npx jest __tests__/charge-forms.test.tsx`).
+- [x] 2.5 Migrer le formulaire transfert et le formulaire membre vers les mêmes primitives ; vérifier que les cinq formulaires partagent le même ordre d'actions (`npx jest __tests__/form-actions.test.tsx`).
+- [x] 2.6 Conserver la saisie et afficher `FormError` en cas d'échec de mutation ; vérifier par un test d'échec simulé sur la création de compte.
 
 ## 3. Chargement de navigation
 

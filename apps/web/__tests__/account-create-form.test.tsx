@@ -20,6 +20,10 @@ jest.mock('@/hooks/use-members', () => ({
   useMembers: jest.fn(),
 }));
 
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: jest.fn() }),
+}));
+
 import { useAccounts, useCreateAccount } from '@/hooks/use-accounts';
 import { useMembers } from '@/hooks/use-members';
 
@@ -192,8 +196,28 @@ describe('AccountCreateForm', () => {
 
     expect(screen.getByText('Compte créé.')).toBeTruthy();
     expect(
-      screen.getByRole('link', { name: 'Retour aux comptes' })
+      screen.getByRole('button', { name: 'Retour aux comptes' })
     ).toBeTruthy();
+  });
+
+  it('shows the failure below the actions and keeps the input', () => {
+    (useCreateAccount as jest.Mock).mockReturnValue({
+      mutate: mockMutate,
+      isPending: false,
+      isSuccess: false,
+      error: new Error('Membre inconnu'),
+    });
+
+    render(createElement(AccountCreateForm));
+
+    fireEvent.change(screen.getByLabelText('Nom du compte'), {
+      target: { value: 'UBS Courant' },
+    });
+
+    expect(screen.getByRole('alert').textContent).toBe('Membre inconnu');
+    expect(
+      (screen.getByLabelText('Nom du compte') as HTMLInputElement).value
+    ).toBe('UBS Courant');
   });
 
   it('shows the mutation error message', () => {
@@ -209,7 +233,7 @@ describe('AccountCreateForm', () => {
     expect(screen.getByText('Membre inconnu')).toBeTruthy();
   });
 
-  it('shows the pending label while creating', () => {
+  it('keeps the submit label and disables it while creating', () => {
     (useCreateAccount as jest.Mock).mockReturnValue({
       mutate: mockMutate,
       isPending: true,
@@ -219,6 +243,8 @@ describe('AccountCreateForm', () => {
 
     render(createElement(AccountCreateForm));
 
-    expect(screen.getByRole('button', { name: 'Création…' })).toBeTruthy();
+    const submit = screen.getByRole('button', { name: 'Créer le compte' });
+    expect(submit.getAttribute('aria-busy')).toBe('true');
+    expect((submit as HTMLButtonElement).disabled).toBe(true);
   });
 });

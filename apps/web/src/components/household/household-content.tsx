@@ -25,7 +25,7 @@ const ROLE_LABELS: Record<Member['role'], string> = {
 
 export function HouseholdContent(): JSX.Element {
   const { data: members = [] } = useMembers();
-  const { mutate: deleteMember, isPending: isDeleting } = useDeleteMember();
+  const { mutateAsync: deleteMember } = useDeleteMember();
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -34,16 +34,10 @@ export function HouseholdContent(): JSX.Element {
       {creating && (
         <Card>
           <CardContent className="pt-4">
-            <MemberForm onDone={() => setCreating(false)} />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="mt-3 w-full"
-              onClick={() => setCreating(false)}
-            >
-              Annuler
-            </Button>
+            <MemberForm
+              onDone={() => setCreating(false)}
+              onCancel={() => setCreating(false)}
+            />
           </CardContent>
         </Card>
       )}
@@ -84,6 +78,7 @@ export function HouseholdContent(): JSX.Element {
                   <MemberForm
                     member={member}
                     onDone={() => setEditingId(null)}
+                    onCancel={() => setEditingId(null)}
                   />
                 </div>
               )}
@@ -92,12 +87,9 @@ export function HouseholdContent(): JSX.Element {
                   <DeleteButton
                     label="Supprimer le membre"
                     message={`Supprimer « ${member.firstName} » ? Ses comptes restent intacts et deviennent « Foyer ».`}
-                    onDone={() => deleteMember(member.id)}
+                    onConfirmed={() => deleteMember(member.id)}
                   />
                 </div>
-              )}
-              {isDeleting && editingId !== member.id && (
-                <p className="mt-1 text-xs text-slate-400">Suppression…</p>
               )}
             </div>
           ))}

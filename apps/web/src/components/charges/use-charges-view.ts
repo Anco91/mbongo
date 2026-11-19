@@ -31,8 +31,7 @@ export interface ChargesView {
   accountsById: Map<string, Account>;
   paymentsByCharge: Map<string, Payment[]>;
   nextByCharge: Map<string, Payment>;
-  deleteCharge: (id: string) => void;
-  isDeleting: boolean;
+  deleteCharge: (id: string) => Promise<unknown>;
 }
 
 export function useChargesView(): ChargesView {
@@ -43,7 +42,7 @@ export function useChargesView(): ChargesView {
   const { data: payments = [] } = usePayments();
   const { data: accounts = [] } = useAccounts();
   const { data: members = [] } = useMembers();
-  const { mutate: deleteCharge, isPending: isDeleting } = useDeleteCharge();
+  const { mutateAsync: deleteCharge } = useDeleteCharge();
 
   const accountsById = useMemo(() => buildAccountsMap(accounts), [accounts]);
   const paymentsByCharge = useMemo(
@@ -67,6 +66,5 @@ export function useChargesView(): ChargesView {
     paymentsByCharge,
     nextByCharge,
     deleteCharge,
-    isDeleting,
   };
 }
