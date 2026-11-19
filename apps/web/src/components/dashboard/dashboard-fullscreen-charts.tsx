@@ -1,6 +1,6 @@
 /**
- * Dashboard Fullscreen Charts — zoom plein écran Sankey / Donut
- * (M3, repris M4 : donut avec % dans l'anneau + légende).
+ * Dashboard Fullscreen Charts — zoom plein écran Sankey / Donut.
+ * Fullscreen carries the text: Sankey node labels and the donut legend.
  *
  * @module Components/Dashboard/DashboardFullscreenCharts
  */
@@ -11,6 +11,7 @@ import { ChartFullscreen } from '@/components/charts';
 import { SankeyFlowsChart } from '@/components/charts/sankey-flows-chart';
 import {
   DonutCategoriesChart,
+  DonutLegend,
   type DonutDatum,
 } from '@/components/charts/donut-categories-chart';
 import type { SankeyData } from '@mbongo/shared';
@@ -50,12 +51,16 @@ export function DashboardFullscreenCharts({
           />
         </div>
       ) : (
-        <div className="flex h-full w-full items-center justify-center">
+        <div className="flex h-full w-full flex-col items-center justify-center gap-4">
           <DonutCategoriesChart
             data={donutData}
             formatValue={formatValue}
             size={360}
-            showSegmentLabels
+          />
+          <DonutLegend
+            data={donutData}
+            formatValue={formatValue}
+            layout="wrap"
           />
         </div>
       )}

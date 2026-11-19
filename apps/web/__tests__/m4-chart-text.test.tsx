@@ -1,8 +1,8 @@
 /**
  * M4 — texte dans les graphes (task 4.1/4.2):
  * - sankeyNodeTotals : total par nœud dérivé des liens (max in/out)
- * - donutSegmentLabel : catégorie + % posés sur le bandeau de l'anneau
  * - DonutCategoriesChart : total au centre (SVG text) par défaut
+ * - aucun libellé posé sur les segments de l'anneau
  *
  * @module Tests/M4/ChartText
  */
@@ -12,7 +12,6 @@ import { createElement } from 'react';
 import { sankeyNodeTotals } from '@mbongo/shared';
 import {
   DonutCategoriesChart,
-  donutSegmentLabel,
   type DonutDatum,
 } from '@/components/charts/donut-categories-chart';
 
@@ -42,29 +41,6 @@ describe('sankeyNodeTotals (dérivation pure)', () => {
       ],
     };
     expect(sankeyNodeTotals(data)[2]).toBe(150);
-  });
-});
-
-describe('donutSegmentLabel (renderer pur)', () => {
-  it('rend catégorie + % au centre du bandeau', () => {
-    const el = donutSegmentLabel({
-      cx: 100,
-      cy: 100,
-      midAngle: 0,
-      innerRadius: 60,
-      outerRadius: 90,
-      percent: 0.345,
-      name: 'Logement',
-    });
-    // React element → json : texte nom + %, x sur le bandeau
-    expect(JSON.stringify(el)).toContain('Logement');
-    expect(JSON.stringify(el)).toContain('35 %');
-    expect((el.props as { x: number }).x).toBe(100);
-  });
-
-  it('percent nul → pas de texte', () => {
-    const el = donutSegmentLabel({ percent: 0 });
-    expect(JSON.stringify(el)).not.toContain('%');
   });
 });
 
@@ -109,7 +85,7 @@ describe('DonutCategoriesChart — total au centre', () => {
     expect(screen.queryByText('Total')).toBeFalsy();
   });
 
-  it('showSegmentLabels false → pas de label sur les segments', () => {
+  it('ne pose aucun libellé sur les segments', () => {
     render(
       createElement(DonutCategoriesChart, {
         data,

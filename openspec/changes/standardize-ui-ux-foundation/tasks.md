@@ -27,9 +27,9 @@
 
 ## 4. Graphiques
 
-- [ ] 4.1 Passer `SankeyFlowsChart` en `showLabels={false}` par défaut, réduire la marge de carte et conserver les libellés en plein écran ; vérifier qu'aucun texte de nœud n'est rendu en carte (`npx jest __tests__/sankey-flows-chart.test.tsx`).
-- [ ] 4.2 Supprimer `donutSegmentLabel` et la prop `showSegmentLabels` ; vérifier qu'aucun `<text>` de segment n'est rendu et que le total central reste présent (`npx jest __tests__/donut-categories-chart.test.tsx`).
-- [ ] 4.3 Rendre `DonutLegend` sous le donut en plein écran ; vérifier la présence de chaque catégorie et de son montant (`npx jest __tests__/dashboard-fullscreen-charts.test.tsx`).
+- [x] 4.1 Passer `SankeyFlowsChart` en `showLabels={false}` par défaut, réduire la marge de carte et conserver les libellés en plein écran ; vérifier qu'aucun texte de nœud n'est rendu en carte (`npx jest __tests__/sankey-flows-chart.test.tsx`).
+- [x] 4.2 Supprimer `donutSegmentLabel` et la prop `showSegmentLabels` ; vérifier qu'aucun `<text>` de segment n'est rendu et que le total central reste présent (`npx jest __tests__/donut-categories-chart.test.tsx`).
+- [x] 4.3 Rendre `DonutLegend` sous le donut en plein écran ; vérifier la présence de chaque catégorie et de son montant (`npx jest __tests__/dashboard-fullscreen-charts.test.tsx`).
 - [ ] 4.4 Vérifier la lisibilité à 390 px (aucun chevauchement de texte, légende complète) par une revue visuelle documentée dans la PR.
 
 ## 5. Lexique et points d'entrée

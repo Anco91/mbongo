@@ -130,7 +130,7 @@ interface SankeyFlowsChartProps {
   data: SankeyData;
   /** Sankey margins (card: tight; fullscreen: wider). */
   margin?: { top: number; right: number; bottom: number; left: number };
-  /** Node labels « nom · montant » (M4 : toujours visibles, carte + plein écran). */
+  /** Node labels « nom · montant ». Card: off (hover only). Fullscreen: on. */
   showLabels?: boolean;
   /** Formateur de montant (devise d'affichage, injecté par le dashboard). */
   formatValue?: (value: number) => string;
@@ -138,8 +138,8 @@ interface SankeyFlowsChartProps {
 
 export function SankeyFlowsChart({
   data,
-  margin = { top: 4, right: 110, bottom: 4, left: 4 },
-  showLabels = true,
+  margin = { top: 4, right: 16, bottom: 4, left: 4 },
+  showLabels = false,
   formatValue = (value: number) => String(Math.round(value)),
 }: SankeyFlowsChartProps): JSX.Element {
   const types = useMemo(
