@@ -13,13 +13,13 @@
 
 import { useState, useEffect, useCallback, JSX } from 'react';
 import { useDisplayCurrency } from '@/components/providers/display-currency-provider';
-import { formatAmount } from '@/components/common/format';
-import { SwipeZone, MonthCursor } from '@/components/common';
-import { WealthCard } from './wealth-card';
-import { SankeyCard } from './sankey-card';
-import { DonutCard } from './donut-card';
-import { MonthPaymentsCard } from './month-payments-card';
-import { ProvisionsCard } from './provisions-card';
+import { formatAmount } from '@/lib/format';
+import { SwipeZone, MonthCursor } from '@/components/patterns';
+import { WealthCard } from './cards/wealth-card';
+import { SankeyCard } from './cards/sankey-card';
+import { DonutCard } from './cards/donut-card';
+import { MonthPaymentsCard } from './cards/month-payments-card';
+import { ProvisionsCard } from './cards/provisions-card';
 import {
   DashboardFullscreenCharts,
   type FullscreenChart,

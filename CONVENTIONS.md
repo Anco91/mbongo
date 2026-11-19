@@ -114,7 +114,7 @@ packages/
 | Controller | `<module>.controller.ts` | `charges.controller.ts` |
 | Schéma Zod | `<module>.ts` | `charge.ts` |
 | Page Next.js | kebab-case | `page.tsx`, `charges/page.tsx` |
-| Composant | PascalCase | `ChargesView.tsx` |
+| Composant | fichier kebab-case, export PascalCase | `charges-view.tsx` → `ChargesView` |
 | Hook | `use-<nom>.ts` | `use-charges.ts` |
 | Utility | kebab-case | `where-translator.ts` |
 | Type/Interface | PascalCase | `Charge`, `ChargeQuery` |
@@ -140,7 +140,7 @@ Toutes les URLs sont en anglais (décision M3) :
 
 Anciennes routes FR (`/echeancier`, `/comptes`, `/transferts`, `*/nouveau`) : plus aucune URL FR référencée dans le code — les redirections temporaires ont été retirées de `next.config.js` (task 6.1). Pour les favoris/bookmarks existants, les routes EN sont canoniques.
 
-**Icônes** : la maquette utilise `nucleo-sharp` (licence Nucleo payante, non disponible). Substitution par `lucide-react` via `components/common/icons.tsx` qui réexporte les glyphes sous les noms `Icon*` de la maquette — un seul fichier à modifier si nucleo-sharp est acquis.
+**Icônes** : la maquette utilise `nucleo-sharp` (licence Nucleo payante, non disponible). Substitution par `lucide-react` via `components/ui/icons.tsx` qui réexporte les glyphes sous les noms `Icon*` de la maquette — un seul fichier à modifier si nucleo-sharp est acquis.
 
 ---
 
@@ -164,10 +164,24 @@ page.tsx (routage)  →  XxxView  (coquille de composition : sections, en-tête)
 
 ## 🎨 Design System & Form Kit
 
-**Tout le style vit dans les primitives** (`components/common/` et `components/ui/`) — jamais dans les vues ni les formulaires.
+**Tout le style vit dans les primitives** (`components/ui/`, `components/form/` et `components/patterns/`) — jamais dans les vues ni les formulaires.
 
-- Primitives de présentation : `StatusBadge`, `TypeBadge`, `AccountChip`, `SectionTitle`, `ExpandButton`, `DetailSheet` (bottom sheet), `DetailRow`, `ChartFullscreen` (zoom/pan), `DeleteButton`.
-- Primitives de formulaire : `FormField` (label + contrôle + hint/error), `TextInput`, `SelectInput`, `ToggleInput`, `AmountInput` (CHF/EUR).
+Taxonomie des composants (`apps/web/src/components/`) :
+
+| Dossier | Contenu | Exemples |
+|---------|---------|----------|
+| `ui/` | Primitives de design, sans domaine | `button.tsx`, `card.tsx`, `badge.tsx`, `skeleton.tsx`, `icons.tsx`, `status-badge.tsx` |
+| `form/` | Kit formulaire unique | `form.tsx`, `text-input.tsx`, `form-actions.tsx` |
+| `patterns/` | Motifs transverses partagés par plusieurs vues | `app-shell.tsx`, `tab-nav.tsx`, `detail-sheet.tsx`, `show-more-list.tsx`, `async-state.tsx`, `delete-button.tsx` |
+| `charts/` | Renderers de graphes | `sankey-flows-chart.tsx`, `donut-categories-chart.tsx` |
+| `<domaine>/` | Composants qui connaissent le métier | `accounts/`, `charges/`, `transfers/`, `household/`, `payments/`, `schedule/`, `dashboard/` |
+
+Règle d'affectation : un composant qui n'importe aucun type métier va dans `ui/`, `form/` ou `patterns/` ; un composant qui importe un type métier reste dans son domaine. Les cartes du dashboard vivent dans `dashboard/cards/`. Les helpers de formatage (`formatAmount`, `formatDate`) vivent dans `lib/format.ts`, pas dans `components/`.
+
+Point d'import : `@/components/ui`, `@/components/patterns` et `@/components/form` sont les barrels de référence ; importer un fichier de composant directement (`@/components/ui/card`) reste valide.
+
+- Primitives de présentation : `StatusBadge`, `TypeBadge`, `AccountChip` (`ui/`), `SectionTitle`, `ExpandButton`, `DetailSheet` (bottom sheet), `DetailRow`, `ChartFullscreen` (zoom/pan), `DeleteButton` (`patterns/`).
+- Primitives de formulaire : `FormField` (label + contrôle + hint/error), `TextInput`, `SelectInput`, `ToggleInput`, `AmountInput` (CHF/EUR), `FormActions` (position unique des actions), `FormError`, `FormSuccess`.
 - Kit `<Form>` composé (React Hook Form + `zodResolver` sur les schémas zod de `packages/shared`) : formulaires déclaratifs, typés par le schéma du domaine ; aucun type recréé à la volée.
 - Référence visuelle : `mock_POC.tsx.todo` (maquette validée, direction UI officielle du socle M3) — les classes Tailwind des primitives en sont reprises. Phone-frame de la maquette = artefact de démo, pas de l'app.
 

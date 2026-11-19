@@ -6,7 +6,7 @@
  */
 
 import { render, screen, fireEvent } from '@testing-library/react';
-import { ShowMoreList } from '@/components/common/show-more-list';
+import { ShowMoreList } from '@/components/patterns/show-more-list';
 import type { JSX } from 'react';
 
 const twelve = Array.from({ length: 12 }, (_, i) => `item-${i + 1}`);

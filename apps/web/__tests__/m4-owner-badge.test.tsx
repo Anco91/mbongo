@@ -9,7 +9,7 @@
  */
 
 import { render, screen } from '@testing-library/react';
-import { OwnerBadge, ownerLabel } from '@/components/common/owner-badge';
+import { OwnerBadge, ownerLabel } from '@/components/patterns/owner-badge';
 
 jest.mock('@/hooks/use-members', () => ({
   useMembers: jest.fn(() => ({

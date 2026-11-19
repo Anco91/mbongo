@@ -8,8 +8,8 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { createElement } from 'react';
 import type { Member } from '@mbongo/shared';
-import { MemberFilterChips } from '@/components/common/member-filter-chips';
-import { ErrorPanel, LoadingState } from '@/components/common/async-state';
+import { MemberFilterChips } from '@/components/patterns/member-filter-chips';
+import { ErrorPanel, LoadingState } from '@/components/patterns/async-state';
 
 const members: Member[] = [
   {

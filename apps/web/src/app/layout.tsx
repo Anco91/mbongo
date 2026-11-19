@@ -13,7 +13,7 @@ import './globals.css';
 import { QueryProvider } from '@/components/providers/query-provider';
 import { DisplayCurrencyProvider } from '@/components/providers/display-currency-provider';
 import { ServiceWorkerRegister } from '@/components/providers/service-worker-register';
-import { AppShell } from '@/components/common/app-shell';
+import { AppShell } from '@/components/patterns/app-shell';
 import { APP_METADATA, APP_VIEWPORT } from '@/lib/pwa';
 import { JSX } from 'react';
 

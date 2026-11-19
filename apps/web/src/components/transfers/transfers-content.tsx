@@ -16,14 +16,15 @@ import Link from 'next/link';
 import { useTransfers, useCompleteTransfer } from '@/hooks/use-transfers';
 import { useAccounts } from '@/hooks/use-accounts';
 import { counterValue, effectiveRate, transferFees } from '@mbongo/shared';
-import { formatAmount, formatDate } from '@/components/common/format';
-import { ShowMoreList, StatusBadge } from '@/components/common';
-import { LoadingState, ErrorPanel } from '@/components/common/async-state';
-import { Form, TextInput, AmountInput } from '@/components/common/form-kit';
+import { formatAmount, formatDate } from '@/lib/format';
+import { ShowMoreList } from '@/components/patterns';
+import { StatusBadge } from '@/components/ui';
+import { LoadingState, ErrorPanel } from '@/components/patterns/async-state';
+import { Form, TextInput, AmountInput } from '@/components/form';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { IconArrowRight, IconClock } from '@/components/common/icons';
+import { IconArrowRight, IconClock } from '@/components/ui/icons';
 
 export function TransfersContent(): JSX.Element {
   const { data: transfers = [], isLoading, error, refetch } = useTransfers();

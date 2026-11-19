@@ -26,7 +26,7 @@ import {
   AmountInput,
   currencyOptions,
   yesNoOptions,
-} from '@/components/common/form-kit';
+} from '@/components/form';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { JSX } from 'react';

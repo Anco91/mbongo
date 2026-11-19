@@ -8,8 +8,8 @@
 
 import { JSX } from 'react';
 import Link from 'next/link';
-import { OwnerBadge } from '@/components/common';
-import { formatAmount } from '@/components/common/format';
+import { OwnerBadge } from '@/components/patterns';
+import { formatAmount } from '@/lib/format';
 import { ACCOUNT_TYPE_LABELS, type AccountCardView } from '@/lib/accounts';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';

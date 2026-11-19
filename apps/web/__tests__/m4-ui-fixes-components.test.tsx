@@ -15,7 +15,7 @@ import {
   fireEvent,
 } from '@testing-library/react';
 import { createElement } from 'react';
-import { StatusBadge } from '@/components/common/status-badge';
+import { StatusBadge } from '@/components/ui/status-badge';
 import {
   useAlertsRead,
   useActiveAlerts,

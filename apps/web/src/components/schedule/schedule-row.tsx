@@ -8,8 +8,8 @@
 
 import { JSX } from 'react';
 import Link from 'next/link';
-import { AccountChip, StatusBadge } from '@/components/common';
-import { formatAmount, formatDate } from '@/components/common/format';
+import { AccountChip, StatusBadge } from '@/components/ui';
+import { formatAmount, formatDate } from '@/lib/format';
 import type { ScheduleRow as ScheduleRowModel } from '@/components/schedule/use-schedule-rows';
 
 interface ScheduleRowProps {

@@ -32,7 +32,7 @@ jest.mock('@/hooks/use-exchange-rate', () => ({
 }));
 
 import { usePathname } from 'next/navigation';
-import { AppShell } from '@/components/common/app-shell';
+import { AppShell } from '@/components/patterns/app-shell';
 import { DisplayCurrencyProvider } from '@/components/providers/display-currency-provider';
 
 const renderShell = (): ReturnType<typeof render> =>

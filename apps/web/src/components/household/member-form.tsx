@@ -20,12 +20,7 @@ import {
   type Member,
 } from '@mbongo/shared';
 import { useCreateMember, useUpdateMember } from '@/hooks/use-members';
-import {
-  Form,
-  FormSection,
-  TextInput,
-  SelectInput,
-} from '@/components/common/form-kit';
+import { Form, FormSection, TextInput, SelectInput } from '@/components/form';
 import { Button } from '@/components/ui/button';
 import { JSX } from 'react';
 

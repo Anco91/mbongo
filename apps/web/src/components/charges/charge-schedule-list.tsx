@@ -7,8 +7,8 @@
 
 import { JSX } from 'react';
 import type { Payment } from '@mbongo/shared';
-import { StatusBadge } from '@/components/common';
-import { formatAmount, formatDate } from '@/components/common/format';
+import { StatusBadge } from '@/components/ui';
+import { formatAmount, formatDate } from '@/lib/format';
 
 interface ChargeScheduleListProps {
   payments: Payment[];

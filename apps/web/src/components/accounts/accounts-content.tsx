@@ -13,11 +13,11 @@
 
 import { JSX } from 'react';
 import Link from 'next/link';
-import { ShowMoreList } from '@/components/common';
-import { MemberFilterChips } from '@/components/common/member-filter-chips';
-import { LoadingState, ErrorPanel } from '@/components/common/async-state';
+import { ShowMoreList } from '@/components/patterns';
+import { MemberFilterChips } from '@/components/patterns/member-filter-chips';
+import { LoadingState, ErrorPanel } from '@/components/patterns/async-state';
 import { Button } from '@/components/ui/button';
-import { IconPlus } from '@/components/common/icons';
+import { IconPlus } from '@/components/ui/icons';
 import { AccountCard } from '@/components/accounts/account-card';
 import { useAccountsView } from '@/components/accounts/use-accounts-view';
 

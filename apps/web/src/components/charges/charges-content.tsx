@@ -15,12 +15,12 @@
 import { JSX } from 'react';
 import Link from 'next/link';
 import { remainingBalance } from '@mbongo/shared';
-import { ShowMoreList, DetailSheet } from '@/components/common';
-import { MemberFilterChips } from '@/components/common/member-filter-chips';
-import { FilterChips } from '@/components/common/filter-chips';
+import { ShowMoreList, DetailSheet } from '@/components/patterns';
+import { MemberFilterChips } from '@/components/patterns/member-filter-chips';
+import { FilterChips } from '@/components/patterns/filter-chips';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { IconPlus } from '@/components/common/icons';
+import { IconPlus } from '@/components/ui/icons';
 import { CHARGE_FILTERS, type ChargeFilter } from '@/lib/charges';
 import { chargeStatus } from '@/lib/charges';
 import { useChargesView } from '@/components/charges/use-charges-view';

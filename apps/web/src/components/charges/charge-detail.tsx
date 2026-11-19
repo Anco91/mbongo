@@ -8,17 +8,11 @@
 import { JSX } from 'react';
 import Link from 'next/link';
 import type { Account, Charge, Payment } from '@mbongo/shared';
-import {
-  AccountChip,
-  DeleteButton,
-  DetailRow,
-  OwnerBadge,
-  StatusBadge,
-  TypeBadge,
-} from '@/components/common';
+import { DeleteButton, DetailRow, OwnerBadge } from '@/components/patterns';
+import { AccountChip, StatusBadge, TypeBadge } from '@/components/ui';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { formatAmount, formatDate } from '@/components/common/format';
+import { formatAmount, formatDate } from '@/lib/format';
 import { chargeAmountLabel } from '@/lib/charges';
 import { ChargeScheduleList } from '@/components/charges/charge-schedule-list';
 

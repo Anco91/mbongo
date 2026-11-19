@@ -14,8 +14,8 @@ import type { Member } from '@mbongo/shared';
 import { useMembers, useDeleteMember } from '@/hooks/use-members';
 import { MemberForm } from './member-form';
 import { Card, CardContent } from '@/components/ui/card';
-import { DeleteButton } from '@/components/common';
-import { IconPlus } from '@/components/common/icons';
+import { DeleteButton } from '@/components/patterns';
+import { IconPlus } from '@/components/ui/icons';
 import { Button } from '@/components/ui/button';
 
 const ROLE_LABELS: Record<Member['role'], string> = {

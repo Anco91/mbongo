@@ -10,7 +10,7 @@
 
 import { render, screen } from '@testing-library/react';
 import { createElement } from 'react';
-import { AppHeader } from '@/components/common/app-header';
+import { AppHeader } from '@/components/patterns/app-header';
 import { DisplayCurrencyProvider } from '@/components/providers/display-currency-provider';
 
 jest.mock('next/navigation', () => ({

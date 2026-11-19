@@ -7,7 +7,7 @@
  * @module App/Dashboard/Schedule/Detail
  */
 
-import { PaymentDetailView } from '@/components/schedule/payment-detail-view';
+import { PaymentDetailView } from '@/components/payments/payment-detail-view';
 import { JSX } from 'react';
 
 type Context = { params: Promise<{ id: string }> };

@@ -13,10 +13,10 @@
 
 import Link from 'next/link';
 import { JSX } from 'react';
-import { LoadingState, ErrorPanel } from '@/components/common/async-state';
+import { LoadingState, ErrorPanel } from '@/components/patterns/async-state';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { IconPlus } from '@/components/common/icons';
+import { IconPlus } from '@/components/ui/icons';
 import { ScheduleRow } from '@/components/schedule/schedule-row';
 import { useScheduleRows } from '@/components/schedule/use-schedule-rows';
 

@@ -10,7 +10,7 @@
  */
 
 import { JSX } from 'react';
-import { RouteError } from '@/components/common/route-error';
+import { RouteError } from '@/components/patterns/route-error';
 
 export default function ChargesError({
   error,

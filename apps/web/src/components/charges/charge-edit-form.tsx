@@ -34,8 +34,8 @@ import {
   AmountInput,
   currencyOptions,
   yesNoOptions,
-} from '@/components/common/form-kit';
-import { DeleteButton } from '@/components/common';
+} from '@/components/form';
+import { DeleteButton } from '@/components/patterns';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { JSX } from 'react';
