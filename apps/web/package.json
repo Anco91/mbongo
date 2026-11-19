@@ -177,6 +177,9 @@
     "preset": "ts-jest",
     "testEnvironment": "jsdom",
     "globalSetup": "<rootDir>/jest.global-setup.js",
+    "setupFiles": [
+      "<rootDir>/jest.setup.js"
+    ],
     "roots": [
       "<rootDir>/src",
       "<rootDir>/__tests__"

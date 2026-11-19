@@ -13,6 +13,7 @@
 
 import { render, screen, fireEvent } from '@testing-library/react';
 import { createElement } from 'react';
+import { renderToString } from 'react-dom/server';
 import { DashboardContent } from '@/components/dashboard/dashboard-content';
 
 jest.mock('@/hooks/use-accounts', () => ({
@@ -259,6 +260,21 @@ describe('DashboardContent', () => {
 
     fireEvent.click(toggleBtn);
     expect(screen.getByText('Réduire')).toBeTruthy();
+  });
+
+  it('renders chart skeletons before hydration, without an empty state', () => {
+    (usePayments as jest.Mock).mockReturnValue({ data: [] });
+
+    const markup = renderToString(
+      createElement(
+        DisplayCurrencyProvider,
+        null,
+        createElement(DashboardContent)
+      )
+    );
+
+    expect(markup).toContain('animate-pulse');
+    expect(markup).not.toContain('Aucun flux pour ce mois');
   });
 
   it('renders section titles for Sankey and Donut', () => {

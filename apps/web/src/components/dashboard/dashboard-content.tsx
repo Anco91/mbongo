@@ -26,6 +26,11 @@ import {
 } from './dashboard-fullscreen-charts';
 import { currentMonthKey, shiftMonthKey } from '@/lib/month-navigation';
 import { useDashboardData } from './use-dashboard-data';
+import {
+  SkeletonCard,
+  SkeletonLine,
+  SkeletonList,
+} from '@/components/ui/skeleton';
 
 export function DashboardContent(): JSX.Element {
   const [mounted, setMounted] = useState(false);
@@ -61,15 +66,6 @@ export function DashboardContent(): JSX.Element {
     [convert, displayCurrency]
   );
 
-  // Avant hydratation : données vides (les cards affichent leur état vide).
-  const viewData = mounted
-    ? { sankeyData, donutData, monthPayments }
-    : {
-        sankeyData: { nodes: [], links: [] },
-        donutData: [],
-        monthPayments: [],
-      };
-
   const changeMonth = useCallback(
     (direction: number) =>
       setSelectedMonth((current) => shiftMonthKey(current, direction)),
@@ -86,27 +82,40 @@ export function DashboardContent(): JSX.Element {
 
       {/* 2 + 3 : zone swipe — geste horizontal natif PWA pour changer de mois */}
       <SwipeZone onSwipe={changeMonth}>
-        <SankeyCard
-          data={viewData.sankeyData}
-          formatValue={formatDisplay}
-          onExpand={() => setFullscreenChart('sankey')}
-        />
-        <div className="h-4" />
-        <DonutCard
-          data={viewData.donutData}
-          formatValue={formatDisplay}
-          selectedMonth={selectedMonth}
-          onExpand={() => setFullscreenChart('donut')}
-        />
+        {mounted ? (
+          <>
+            <SankeyCard
+              data={sankeyData}
+              formatValue={formatDisplay}
+              onExpand={() => setFullscreenChart('sankey')}
+            />
+            <div className="h-4" />
+            <DonutCard
+              data={donutData}
+              formatValue={formatDisplay}
+              selectedMonth={selectedMonth}
+              onExpand={() => setFullscreenChart('donut')}
+            />
+          </>
+        ) : (
+          <DashboardChartsSkeleton />
+        )}
       </SwipeZone>
 
       {/* 4. Échéances du mois choisi */}
-      <MonthPaymentsCard
-        payments={viewData.monthPayments}
-        chargesById={chargesById}
-        accountsById={accountsById}
-        now={now}
-      />
+      {mounted ? (
+        <MonthPaymentsCard
+          payments={monthPayments}
+          chargesById={chargesById}
+          accountsById={accountsById}
+          now={now}
+        />
+      ) : (
+        <SkeletonCard lines={0} className="space-y-2">
+          <SkeletonLine className="h-3 w-1/3" />
+          <SkeletonList rows={3} />
+        </SkeletonCard>
+      )}
 
       {/* 5. Provisions · lissage mensuel */}
       <ProvisionsCard charges={charges} accountsById={accountsById} />
@@ -122,5 +131,24 @@ export function DashboardContent(): JSX.Element {
         />
       )}
     </div>
+  );
+}
+
+/** Chart placeholders at the real card height — no layout jump on hydration. */
+function DashboardChartsSkeleton(): JSX.Element {
+  return (
+    <>
+      <SkeletonCard lines={0} className="h-72">
+        <div className="h-56">
+          <SkeletonLine className="h-full w-full rounded-lg" />
+        </div>
+      </SkeletonCard>
+      <div className="h-4" />
+      <SkeletonCard lines={0} className="h-72">
+        <div className="flex h-56 items-center justify-center">
+          <SkeletonLine className="h-40 w-40 rounded-full" />
+        </div>
+      </SkeletonCard>
+    </>
   );
 }

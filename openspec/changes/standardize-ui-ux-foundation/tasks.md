@@ -19,11 +19,11 @@
 
 ## 3. Chargement de navigation
 
-- [ ] 3.1 Créer `components/ui/skeleton.tsx` (`SkeletonLine`, `SkeletonCard`, `SkeletonList`) ; vérifier le rendu et les classes de hauteur par un test de snapshot ciblé (`npx jest __tests__/skeleton.test.tsx`).
-- [ ] 3.2 Ajouter `loading.tsx` pour `/charges`, `/transfers`, `/accounts`, `/schedule`, `/household`, `/alerts` avec squelettes au gabarit ; vérifier que chaque route possède son fichier (`find src/app -name loading.tsx | sort`).
-- [ ] 3.3 Ajouter `loading.tsx` pour `/accounts/new`, `/accounts/[id]/edit`, `/charges/new`, `/charges/[id]/edit`, `/transfers/new`, `/schedule/[id]` ; vérifier la navigation vers chaque sous-vue sans écran figé.
-- [ ] 3.4 Remplacer le drapeau `mounted` du dashboard par un squelette de charts de hauteur identique (D5) ; vérifier l'absence de saut de mise en page au premier rendu et `npx jest __tests__/dashboard-content.test.tsx`.
-- [ ] 3.5 Remplacer le `Suspense` de `/schedule` par le squelette commun ; vérifier que la page affiche le même fallback que les autres segments (`npx jest __tests__/schedule-page.test.tsx`).
+- [x] 3.1 Créer `components/ui/skeleton.tsx` (`SkeletonLine`, `SkeletonCard`, `SkeletonList`) ; vérifier le rendu et les classes de hauteur par un test de snapshot ciblé (`npx jest __tests__/skeleton.test.tsx`).
+- [x] 3.2 Ajouter `loading.tsx` pour `/charges`, `/transfers`, `/accounts`, `/schedule`, `/household`, `/alerts` avec squelettes au gabarit ; vérifier que chaque route possède son fichier (`find src/app -name loading.tsx | sort`).
+- [x] 3.3 Ajouter `loading.tsx` pour `/accounts/new`, `/accounts/[id]/edit`, `/charges/new`, `/charges/[id]/edit`, `/transfers/new`, `/schedule/[id]` ; vérifier la navigation vers chaque sous-vue sans écran figé.
+- [x] 3.4 Remplacer le drapeau `mounted` du dashboard par un squelette de charts de hauteur identique (D5) ; vérifier l'absence de saut de mise en page au premier rendu et `npx jest __tests__/dashboard-content.test.tsx`.
+- [x] 3.5 Remplacer le `Suspense` de `/schedule` par le squelette commun ; vérifier que la page affiche le même fallback que les autres segments (`npx jest __tests__/schedule-page.test.tsx`).
 
 ## 4. Graphiques
 

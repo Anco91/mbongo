@@ -10,17 +10,12 @@
 
 import { Suspense } from 'react';
 import { ScheduleView } from '@/components/schedule/schedule-view';
+import ScheduleLoading from '@/app/schedule/loading';
 import { JSX } from 'react';
 
 export default function EcheancierPage(): JSX.Element {
   return (
-    <Suspense
-      fallback={
-        <div className="p-4">
-          <span>Chargement de l&apos;échéancier…</span>
-        </div>
-      }
-    >
+    <Suspense fallback={<ScheduleLoading />}>
       <ScheduleView />
     </Suspense>
   );
