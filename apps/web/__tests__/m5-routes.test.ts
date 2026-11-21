@@ -9,11 +9,11 @@ import { routeChrome } from '@/lib/routes';
 describe('routeChrome', () => {
   it('names every main destination', () => {
     expect(routeChrome('/').title).toBe('Tableau de bord');
-    expect(routeChrome('/charges').title).toBe('Charges & échéancier');
+    expect(routeChrome('/charges').title).toBe('Charges');
     expect(routeChrome('/transfers').title).toBe('Transferts');
     expect(routeChrome('/accounts').title).toBe('Comptes');
-    expect(routeChrome('/household').title).toBe('Vue foyer');
-    expect(routeChrome('/schedule').title).toBe('Échéancier');
+    expect(routeChrome('/household').title).toBe('Membres du foyer');
+    expect(routeChrome('/schedule').title).toBe('Échéances à venir');
     expect(routeChrome('/alerts').title).toBe('Alertes');
   });
 
@@ -50,7 +50,7 @@ describe('routeChrome', () => {
   });
 
   it('falls back to the section title for an unknown path', () => {
-    expect(routeChrome('/charges/abc').title).toBe('Charges & échéancier');
+    expect(routeChrome('/charges/abc').title).toBe('Charges');
     expect(routeChrome('/inconnu').title).toBe('Mbongo');
   });
 });

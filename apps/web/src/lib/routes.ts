@@ -19,11 +19,11 @@ export interface RouteChrome {
 
 const MAIN_ROUTES: Record<string, string> = {
   '/': 'Tableau de bord',
-  '/charges': 'Charges & échéancier',
+  '/charges': 'Charges',
   '/transfers': 'Transferts',
   '/accounts': 'Comptes',
-  '/household': 'Vue foyer',
-  '/schedule': 'Échéancier',
+  '/household': 'Membres du foyer',
+  '/schedule': 'Échéances à venir',
   '/alerts': 'Alertes',
 };
 

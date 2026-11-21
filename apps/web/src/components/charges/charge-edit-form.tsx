@@ -161,7 +161,7 @@ export function ChargeEditForm({
       )}
 
       {(type ?? charge.type) === 'INSTALLMENT' && (
-        <FormSection title="Échéancier">
+        <FormSection title="Échéances">
           <AmountInput name="installments" label="Nombre d'échéances" />
           <TextInput name="startDate" label="Première échéance" type="date" />
         </FormSection>
@@ -184,7 +184,7 @@ export function ChargeEditForm({
           <TextInput name="startDate" label="Date prévue" type="date" />
           <ToggleInput
             name="provisioned"
-            label="Provisionner (lissage mensuel)"
+            label="Provisionner (réparti chaque mois)"
             options={yesNoOptions}
             booleanValue
             currentValue={String(provisioned ?? charge.provisioned)}

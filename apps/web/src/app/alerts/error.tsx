@@ -21,7 +21,7 @@ export default function AlertsError({
 }): JSX.Element {
   return (
     <RouteError
-      title="Erreur lors du chargement des alertes"
+      title="Impossible de charger les alertes"
       error={error}
       reset={reset}
     />

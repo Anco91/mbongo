@@ -21,7 +21,7 @@ export default function HouseholdError({
 }): JSX.Element {
   return (
     <RouteError
-      title="Erreur lors du chargement du foyer"
+      title="Impossible de charger les membres du foyer"
       error={error}
       reset={reset}
     />

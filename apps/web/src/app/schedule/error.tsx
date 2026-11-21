@@ -21,7 +21,7 @@ export default function ScheduleError({
 }): JSX.Element {
   return (
     <RouteError
-      title="Erreur lors du chargement de l'échéancier"
+      title="Impossible de charger les échéances"
       error={error}
       reset={reset}
     />

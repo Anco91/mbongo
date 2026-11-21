@@ -37,7 +37,7 @@ export function TransfersContent(): JSX.Element {
   if (error) {
     return (
       <ErrorPanel
-        title="Erreur lors du chargement des transferts"
+        title="Impossible de charger les transferts"
         message={error.message}
         onRetry={() => {
           void refetch();

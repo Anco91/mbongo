@@ -102,6 +102,6 @@ describe('AppHeader', () => {
 
     expect(screen.queryByText('EUR')).toBeNull();
     expect(screen.queryByText('CHF')).toBeNull();
-    expect(screen.getByText('Charges & échéancier')).toBeTruthy();
+    expect(screen.getByText('Charges')).toBeTruthy();
   });
 });

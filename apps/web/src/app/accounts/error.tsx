@@ -21,7 +21,7 @@ export default function AccountsError({
 }): JSX.Element {
   return (
     <RouteError
-      title="Erreur lors du chargement des comptes"
+      title="Impossible de charger les comptes"
       error={error}
       reset={reset}
     />

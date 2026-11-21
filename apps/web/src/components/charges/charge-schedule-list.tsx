@@ -20,7 +20,7 @@ export function ChargeScheduleList({
   return (
     <>
       <p className="text-xs font-semibold text-slate-700">
-        Échéancier ({payments.length} échéances)
+        Échéances ({payments.length} échéances)
       </p>
       <div className="space-y-1.5 pt-1">
         {payments.map((payment, index) => (

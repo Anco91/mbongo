@@ -1,5 +1,5 @@
 /**
- * Provisions Card — Provisions · lissage mensuel (M3, repris M4).
+ * Provisions Card — monthly household charge allocation.
  * Le total provisionné reste visible quelle que soit la pagination.
  *
  * @module Components/Dashboard/Cards/ProvisionsCard
@@ -42,7 +42,7 @@ export function ProvisionsCard({
 
   return (
     <div>
-      <SectionTitle>Provisions · lissage mensuel</SectionTitle>
+      <SectionTitle>Charges lissées chaque mois</SectionTitle>
       <Card>
         <CardContent className="space-y-2 pt-4">
           {provisionedCharges.length > 0 ? (

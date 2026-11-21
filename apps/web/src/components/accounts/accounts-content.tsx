@@ -17,7 +17,7 @@ import { ShowMoreList } from '@/components/patterns';
 import { MemberFilterChips } from '@/components/patterns/member-filter-chips';
 import { LoadingState, ErrorPanel } from '@/components/patterns/async-state';
 import { Button } from '@/components/ui/button';
-import { IconPlus } from '@/components/ui/icons';
+import { IconArrowRight, IconPlus } from '@/components/ui/icons';
 import { AccountCard } from '@/components/accounts/account-card';
 import { useAccountsView } from '@/components/accounts/use-accounts-view';
 
@@ -31,7 +31,7 @@ export function AccountsContent(): JSX.Element {
   if (view.error) {
     return (
       <ErrorPanel
-        title="Erreur lors du chargement des comptes"
+        title="Impossible de charger les comptes"
         message={view.error.message}
         onRetry={view.refetch}
       />
@@ -78,9 +78,10 @@ export function AccountsContent(): JSX.Element {
 
       <Link
         href="/household"
-        className="block text-center text-xs font-medium text-slate-500 underline-offset-4 hover:text-slate-700 hover:underline"
+        className="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
       >
-        Vue foyer — gérer les membres
+        Gérer les membres
+        <IconArrowRight className="h-4 w-4 text-slate-400" />
       </Link>
     </div>
   );

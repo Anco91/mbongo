@@ -20,7 +20,7 @@ import { MemberFilterChips } from '@/components/patterns/member-filter-chips';
 import { FilterChips } from '@/components/patterns/filter-chips';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { IconPlus } from '@/components/ui/icons';
+import { IconCalendar, IconPlus } from '@/components/ui/icons';
 import { CHARGE_FILTERS, type ChargeFilter } from '@/lib/charges';
 import { chargeStatus } from '@/lib/charges';
 import { useChargesView } from '@/components/charges/use-charges-view';
@@ -93,6 +93,12 @@ export function ChargesContent(): JSX.Element {
       <Link href="/charges/new" className="block">
         <Button size="lg" className="w-full">
           <IconPlus className="h-4 w-4" /> Nouvelle charge
+        </Button>
+      </Link>
+
+      <Link href="/schedule" className="block">
+        <Button variant="outline" size="lg" className="w-full">
+          <IconCalendar className="h-4 w-4" /> Échéances à venir
         </Button>
       </Link>
     </div>

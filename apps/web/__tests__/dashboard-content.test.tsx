@@ -171,9 +171,9 @@ describe('DashboardContent', () => {
 
     // 2000 EUR + (1500 * 0.93 = 1395) = 3395 EUR
     expect(screen.getByText(/Patrimoine consolidé/i)).toBeTruthy();
-    expect(screen.getByText(/3[\s\u00A0\u202F]?395[\.,]00\s?€/)).toBeTruthy();
+    expect(screen.getByText(/3[\s\u00A0\u202F]?395[.,]00\s?€/)).toBeTruthy();
     // Parallel = the full counter-value in CHF (3395 / 0.93 ≈ 3650.54)
-    expect(screen.getByText(/3[\s\u00A0\u202F]?650[\.,]54\s?CHF/)).toBeTruthy();
+    expect(screen.getByText(/3[\s\u00A0\u202F]?650[.,]54\s?CHF/)).toBeTruthy();
   });
 
   it('renders the provisions card with monthly smoothing and total', () => {
@@ -187,9 +187,9 @@ describe('DashboardContent', () => {
       )
     );
 
-    expect(screen.getByText('Provisions · lissage mensuel')).toBeTruthy();
+    expect(screen.getByText('Charges lissées chaque mois')).toBeTruthy();
     expect(screen.getByText('SERAFE')).toBeTruthy();
-    expect(screen.getAllByText(/27[\.,]92\s?CHF \/ mois/).length).toBe(2);
+    expect(screen.getAllByText(/27[.,]92\s?CHF \/ mois/).length).toBe(2);
     expect(screen.getByText('Total provisionné')).toBeTruthy();
   });
 

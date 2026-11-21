@@ -37,7 +37,7 @@ export function PaymentReconcileActions({
       <div className="space-y-2">
         <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-3">
           <p className="text-sm text-emerald-800">
-            Rapprochée de la transaction du {formatDate(linked.date)} (
+            Lié au débit du {formatDate(linked.date)} (
             {formatAmount(linked.amount, currency)})
           </p>
         </div>
@@ -48,7 +48,7 @@ export function PaymentReconcileActions({
           onClick={() => unlink.mutate(payment.id)}
           disabled={unlink.isPending}
         >
-          {unlink.isPending ? 'Dérapprochement…' : 'Dérapprocher'}
+          {unlink.isPending ? 'Détachement…' : 'Détacher'}
         </Button>
         {unlink.error && <InlineError message={unlink.error.message} />}
       </div>

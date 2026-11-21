@@ -21,7 +21,7 @@ export default function DashboardError({
 }): JSX.Element {
   return (
     <RouteError
-      title="Erreur lors du chargement du tableau de bord"
+      title="Impossible de charger le tableau de bord"
       error={error}
       reset={reset}
     />

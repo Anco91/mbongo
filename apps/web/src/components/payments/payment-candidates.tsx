@@ -38,16 +38,13 @@ export function PaymentCandidates({
 
   return (
     <div className="space-y-2">
-      <h2 className="text-sm font-semibold text-slate-800">
-        Transactions candidates
-      </h2>
+      <h2 className="text-sm font-semibold text-slate-800">Débits possibles</h2>
       <p className="text-xs text-slate-500">
-        Même compte, montant à ± 0,01, date à ± 7 jours — sélection manuelle
-        uniquement.
+        Même compte, montant proche et date proche.
       </p>
       {candidates.length === 0 ? (
         <p className="text-sm text-slate-500">
-          Aucune candidate — saisissez la transaction puis revenez ici.
+          Aucun débit correspondant. Enregistrez le débit puis revenez ici.
         </p>
       ) : (
         <Card>
@@ -71,7 +68,7 @@ export function PaymentCandidates({
                   }
                   disabled={reconcile.isPending}
                 >
-                  Rapprocher
+                  Lier au débit
                 </Button>
               </div>
             ))}

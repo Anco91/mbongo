@@ -117,7 +117,7 @@ export function DashboardContent(): JSX.Element {
         </SkeletonCard>
       )}
 
-      {/* 5. Provisions · lissage mensuel */}
+      {/* 5. Charges lissées chaque mois */}
       <ProvisionsCard charges={charges} accountsById={accountsById} />
 
       {/* 6. Plein écran charts */}

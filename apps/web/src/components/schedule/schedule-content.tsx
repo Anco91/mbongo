@@ -24,13 +24,13 @@ export function ScheduleContent(): JSX.Element {
   const view = useScheduleRows();
 
   if (view.isLoading) {
-    return <LoadingState label="Chargement de l'échéancier…" />;
+    return <LoadingState label="Chargement des échéances…" />;
   }
 
   if (view.error) {
     return (
       <ErrorPanel
-        title="Erreur lors du chargement de l'échéancier"
+        title="Impossible de charger les échéances"
         message={view.error.message}
         onRetry={view.refetch}
       />
@@ -49,7 +49,7 @@ export function ScheduleContent(): JSX.Element {
             Aucune échéance à venir
           </h3>
           <p className="mb-4 text-sm text-slate-600">
-            Créez une charge pour voir son échéancier ici.
+            Créez une charge pour voir ses échéances ici.
           </p>
           <Link href="/charges/new" className="inline-block">
             <Button size="sm">

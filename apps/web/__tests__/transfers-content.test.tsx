@@ -215,7 +215,9 @@ describe('TransfersContent — loading and error states', () => {
 
     render(createElement(TransfersContent));
 
-    expect(screen.getByText(/Erreur lors du chargement/)).toBeTruthy();
+    expect(
+      screen.getByText('Impossible de charger les transferts')
+    ).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Réessayer' })).toBeTruthy();
   });
 

@@ -83,7 +83,7 @@ describe('AccountsContent (OwnerBadge qui-paie, M4)', () => {
     });
     (useTransactions as jest.Mock).mockReturnValue({ data: [] });
     (useMembers as jest.Mock).mockReturnValue({
-      data: [{ id: 'member-anco-0001', firstName: 'Anco', role: 'PRIMARY' }],
+      data: [{ id: 'member-anco-0001', firstName: 'Anco' }],
     });
 
     render(createElement(AccountsContent));
@@ -261,9 +261,7 @@ describe('AccountsContent — error and loading states', () => {
 
     render(createElement(AccountsContent));
 
-    expect(
-      screen.getByText('Erreur lors du chargement des comptes')
-    ).toBeTruthy();
+    expect(screen.getByText('Impossible de charger les comptes')).toBeTruthy();
     expect(screen.getByText('Network down')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Réessayer' })).toBeTruthy();
   });
@@ -296,6 +294,25 @@ describe('AccountsContent — error and loading states', () => {
     render(createElement(AccountsContent));
 
     expect(screen.getByText('Chargement des comptes…')).toBeTruthy();
+  });
+
+  it('opens the household from an explicit action row', () => {
+    (useAccounts as jest.Mock).mockReturnValue({
+      data: [account],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+    (useTransactions as jest.Mock).mockReturnValue({
+      data: [],
+      isLoading: false,
+    });
+
+    render(createElement(AccountsContent));
+
+    const link = screen.getByRole('link', { name: /Gérer les membres/ });
+    expect(link.getAttribute('href')).toBe('/household');
+    expect(link.querySelector('svg')).toBeTruthy();
   });
 
   it('shows the empty state with a create link', () => {

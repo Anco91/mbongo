@@ -66,7 +66,7 @@ describe('ChargeCreateForm', () => {
     expect(screen.getByText('Récurrence')).toBeTruthy();
     expect(screen.getByLabelText('Périodicité')).toBeTruthy();
     // Sections of other types are hidden
-    expect(screen.queryByText('Échéancier')).toBeFalsy();
+    expect(screen.queryByText('Échéances')).toBeFalsy();
     expect(screen.queryByText('Récurrence bornée')).toBeFalsy();
   });
 
@@ -77,7 +77,7 @@ describe('ChargeCreateForm', () => {
       target: { value: 'INSTALLMENT' },
     });
 
-    await waitFor(() => expect(screen.getByText('Échéancier')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('Échéances')).toBeTruthy());
     expect(screen.getByLabelText("Nombre d'échéances")).toBeTruthy();
     expect(screen.queryByText('Récurrence')).toBeFalsy();
   });
@@ -135,7 +135,7 @@ describe('ChargeCreateForm', () => {
 
     expect(screen.getByText('Paiement')).toBeTruthy();
     expect(screen.queryByText('Récurrence')).toBeFalsy();
-    expect(screen.queryByText('Échéancier')).toBeFalsy();
+    expect(screen.queryByText('Échéances')).toBeFalsy();
   });
 
   it('shows the provision checkbox for UPCOMING', () => {
@@ -147,7 +147,7 @@ describe('ChargeCreateForm', () => {
 
     expect(screen.getByText('Prévision & provision')).toBeTruthy();
     expect(
-      screen.getByLabelText(/Provisionner \(lissage mensuel\)/)
+      screen.getByLabelText(/Provisionner \(réparti chaque mois\)/)
     ).toBeTruthy();
   });
 

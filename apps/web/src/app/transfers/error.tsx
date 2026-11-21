@@ -21,7 +21,7 @@ export default function TransfersError({
 }): JSX.Element {
   return (
     <RouteError
-      title="Erreur lors du chargement des transferts"
+      title="Impossible de charger les transferts"
       error={error}
       reset={reset}
     />

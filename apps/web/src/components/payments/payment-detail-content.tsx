@@ -5,11 +5,11 @@
  * (M2, spec payment-schedule) — on the shared primitives, no local
  * styles:
  * - derived visible status (à venir / dû / payé) — never stored ;
- * - candidates list computed by the pure `reconciliationCandidates`
+ * - debit candidates computed by the pure `reconciliationCandidates`
  *   function, explicit selection only (no automatic link) ;
  * - manual check without transaction (espèces), reconciliation still
  *   possible afterwards ;
- * - unlink (dérapprochement) back to PENDING.
+ * - unlink back to PENDING.
  *
  * Actions live in `payment-actions`, candidates in `payment-schedule`
  * (design D5).
@@ -61,7 +61,7 @@ export function PaymentDetailContent({
   if (Boolean(error) || !payment) {
     return (
       <ErrorPanel
-        title="Erreur lors du chargement de l'échéance"
+        title="Impossible de charger l’échéance"
         message={error?.message ?? 'Inconnue'}
         onRetry={() => {
           void refetch();

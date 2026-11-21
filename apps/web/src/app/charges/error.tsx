@@ -21,7 +21,7 @@ export default function ChargesError({
 }): JSX.Element {
   return (
     <RouteError
-      title="Erreur lors du chargement des charges"
+      title="Impossible de charger les charges"
       error={error}
       reset={reset}
     />
