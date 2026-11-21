@@ -1,0 +1,9 @@
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "default_agent": "coder",
+  "permission": {
+    "task": {
+      "*": "allow"
+    }
+  }
+}
