@@ -210,6 +210,8 @@ export function useUpdateCharge(
       void queryClient.invalidateQueries({ queryKey: chargeKey(id) });
       // Invalidate charges list
       void queryClient.invalidateQueries({ queryKey: [CHARGE_KEY] });
+      // Invalidate payments (schedule may have changed)
+      void queryClient.invalidateQueries({ queryKey: ['payments'] });
     },
   });
 }
@@ -236,6 +238,8 @@ export function useDeleteCharge(): UseMutationResult<void, Error, string> {
       queryClient.removeQueries({ queryKey: chargeKey(chargeId) });
       // Invalidate charges list
       void queryClient.invalidateQueries({ queryKey: [CHARGE_KEY] });
+      // Invalidate payments (schedule removed)
+      void queryClient.invalidateQueries({ queryKey: ['payments'] });
     },
   });
 }

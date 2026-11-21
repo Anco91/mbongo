@@ -110,7 +110,8 @@ describe('ChargeCreateForm', () => {
         label: 'Loyer GE',
         amount: 1850,
         accountId: 'account-ubs-courant',
-      })
+      }),
+      expect.any(Object) // Second parameter: { onSuccess } callback
     );
   });
 

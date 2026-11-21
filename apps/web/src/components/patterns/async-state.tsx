@@ -5,7 +5,7 @@
  * @module Components/Patterns/AsyncState
  */
 
-import { JSX } from 'react';
+import { JSX, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 
 interface LoadingStateProps {
@@ -46,6 +46,21 @@ export function ErrorPanel({
           Réessayer
         </Button>
       )}
+    </div>
+  );
+}
+
+interface EmptyStateProps {
+  children: ReactNode;
+  action?: ReactNode;
+}
+
+/** Empty state with optional action. Used by ItemList when no items. */
+export function EmptyState({ children, action }: EmptyStateProps): JSX.Element {
+  return (
+    <div className="space-y-3 py-6 text-center">
+      <p className="text-sm text-slate-600">{children}</p>
+      {action}
     </div>
   );
 }

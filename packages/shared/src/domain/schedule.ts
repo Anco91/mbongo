@@ -400,14 +400,52 @@ export function overduePayments(payments: Payment[], asOf: Date): Payment[] {
 }
 
 /**
+ * Vérifie si une charge est expirée pour un mois donné.
+ *
+ * Une charge est expirée si sa date de fin est strictement avant la fin du mois
+ * de référence. Les charges sans date de fin ne sont jamais expirées.
+ *
+ * @param charge - La charge à vérifier
+ * @param monthDate - Date représentant le mois (ex: premier jour du mois)
+ * @returns true si la charge est expirée pour ce mois
+ *
+ * @example
+ * ```typescript
+ * const charge: Charge = { endDate: "2024-06-15", ... };
+ * const monthDate = new Date(2024, 6, 1); // Juillet 2024
+ * isChargeExpiredForMonth(charge, monthDate); // true (fin juin < fin juillet)
+ * ```
+ */
+export function isChargeExpiredForMonth(
+  charge: Charge,
+  monthDate: Date
+): boolean {
+  if (!charge.endDate) return false;
+  const endDate = parseISO(charge.endDate);
+  const monthEnd = endOfMonth(monthDate);
+  return endDate < monthEnd;
+}
+
+/**
+ * Convertisseur de devise optionnel pour computeMonthlyBudget.
+ */
+export type CurrencyConverter = (amount: number, currency: string) => number;
+
+/**
  * Calcule le budget mensuel avec la règle anti-double comptage des provisions :
  * Les charges provisionnées comptent via leur provision mensuelle (somme / 12)
  * et leurs échéances réelles du mois sont exclues.
+ *
+ * @param charges - Liste des charges
+ * @param payments - Liste des paiements
+ * @param month - Mois concerné
+ * @param convert - Convertisseur de devise optionnel
  */
 export function computeMonthlyBudget(
   charges: Charge[],
   payments: Payment[],
-  month: Date
+  month: Date,
+  convert?: CurrencyConverter
 ): {
   total: number;
   paymentsTotal: number;
@@ -424,7 +462,10 @@ export function computeMonthlyBudget(
   );
 
   const paymentsTotal = round2(
-    regularPayments.reduce((sum, p) => sum + p.amount, 0)
+    regularPayments.reduce((sum, p) => {
+      const amount = convert ? convert(p.amount, p.currency) : p.amount;
+      return sum + amount;
+    }, 0)
   );
   const provisionsTotal = monthlyProvision(charges);
   const total = round2(paymentsTotal + provisionsTotal);

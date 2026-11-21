@@ -15,6 +15,7 @@ import {
   computeConsolidatedBalance,
   computeDonutExpenses,
   computeSankeyFlows,
+  computeMonthlyBudget,
   monthRange,
   isInMonth,
   type Account,
@@ -29,6 +30,7 @@ import { useCharges } from '@/hooks/use-charges';
 import { usePayments } from '@/hooks/use-schedule';
 import { useTransfers } from '@/hooks/use-transfers';
 import { useDisplayCurrency } from '@/components/providers/display-currency-provider';
+import { monthKeyToDate } from '@/lib/month-navigation';
 
 interface DashboardData {
   accounts: Account[];
@@ -40,6 +42,8 @@ interface DashboardData {
   sankeyData: SankeyData;
   donutData: CategoryExpense[];
   monthPayments: Payment[];
+  /** Total charges for the selected month (for BudgetPreparationCard). */
+  totalCharges: number;
   now: Date;
 }
 
@@ -105,6 +109,14 @@ export function useDashboardData(selectedMonth: string): DashboardData {
     [payments, monthWindow]
   );
 
+  // Total charges for the selected month (for BudgetPreparationCard).
+  // Uses computeMonthlyBudget with the month's payments to get the correct total.
+  const totalCharges = useMemo(() => {
+    const monthDate = monthKeyToDate(selectedMonth);
+    const { total } = computeMonthlyBudget(charges, payments, monthDate);
+    return total;
+  }, [charges, payments, selectedMonth]);
+
   const sankeyData = useMemo(
     () =>
       computeSankeyFlows({
@@ -148,6 +160,7 @@ export function useDashboardData(selectedMonth: string): DashboardData {
     sankeyData,
     donutData,
     monthPayments,
+    totalCharges,
     now,
   };
 }

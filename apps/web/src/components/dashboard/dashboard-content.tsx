@@ -20,6 +20,7 @@ import { SankeyCard } from './cards/sankey-card';
 import { DonutCard } from './cards/donut-card';
 import { MonthPaymentsCard } from './cards/month-payments-card';
 import { ProvisionsCard } from './cards/provisions-card';
+import { BudgetPreparationCard } from './cards/budget-preparation-card';
 import {
   DashboardFullscreenCharts,
   type FullscreenChart,
@@ -54,6 +55,7 @@ export function DashboardContent(): JSX.Element {
     sankeyData,
     donutData,
     monthPayments,
+    totalCharges,
     now,
   } = useDashboardData(selectedMonth);
 
@@ -76,6 +78,12 @@ export function DashboardContent(): JSX.Element {
     <div className="space-y-4">
       {/* 1. Patrimoine consolidé — état du jour */}
       <WealthCard consolidated={consolidated} rate={rate} />
+
+      {/* Budget preparation card — only for current month */}
+      <BudgetPreparationCard
+        selectedMonth={selectedMonth}
+        totalCharges={totalCharges}
+      />
 
       {/* Curseur mensuel : « ‹ nov. 2026 › » */}
       <MonthCursor selectedMonth={selectedMonth} onChange={setSelectedMonth} />

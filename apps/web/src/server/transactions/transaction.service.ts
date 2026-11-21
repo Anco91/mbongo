@@ -71,6 +71,37 @@ export class TransactionService {
   ): Promise<Transaction> {
     const existing = await prisma.transaction.findUnique({ where: { id } });
     if (!existing) throw new NotFoundError('Transaction', id);
+
+    // D3: Guard on confirmed transactions (budgetMonth is set).
+    // Confirmed transactions have invariants that must not be violated.
+    if (existing.budgetMonth !== null) {
+      if (input.date !== undefined) {
+        const newDate = parseISO(input.date);
+        const [year, month] = existing.budgetMonth.split('-').map(Number);
+        if (
+          newDate.getFullYear() !== year ||
+          newDate.getMonth() + 1 !== month
+        ) {
+          throw new HttpError(
+            422,
+            'Transaction date must be within the confirmed month'
+          );
+        }
+      }
+      if (input.amount !== undefined && input.amount <= 0) {
+        throw new HttpError(
+          422,
+          'Confirmed transaction amount must be positive'
+        );
+      }
+      if (input.accountId !== undefined || input.transferId !== undefined) {
+        throw new HttpError(
+          422,
+          'Cannot change account or transfer on confirmed transaction'
+        );
+      }
+    }
+
     const row = await prisma.transaction.update({
       where: { id },
       data: this.toPrisma(input),

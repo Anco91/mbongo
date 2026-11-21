@@ -13,7 +13,11 @@
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createChargeSchema, type CreateChargeInput } from '@mbongo/shared';
+import {
+  createChargeSchema,
+  type CreateChargeInput,
+  type Charge,
+} from '@mbongo/shared';
 import { useAccounts } from '@/hooks/use-accounts';
 import { useCreateCharge } from '@/hooks/use-charges';
 import {
@@ -74,8 +78,15 @@ const FREQUENCIES = [
 
 /**
  * ChargeCreateForm Component
+ *
+ * @param onSaved - Optional callback when charge is created (for inline use).
+ *                  If provided, skips FormSuccess and router.push.
  */
-export function ChargeCreateForm(): JSX.Element {
+export function ChargeCreateForm({
+  onSaved,
+}: {
+  onSaved?: (charge: Charge) => void;
+}): JSX.Element {
   const router = useRouter();
   const { data: accounts = [] } = useAccounts();
   const {
@@ -111,9 +122,19 @@ export function ChargeCreateForm(): JSX.Element {
     .filter((a) => a.status === 'ACTIVE')
     .map((a) => ({ value: a.id, label: `${a.name} (${a.currency})` }));
 
-  const onSubmit = form.handleSubmit((data) => createCharge(data));
+  const onSubmit = form.handleSubmit((data) =>
+    createCharge(data, {
+      onSuccess: (charge) => {
+        if (onSaved) {
+          onSaved(charge);
+          form.reset();
+        }
+      },
+    })
+  );
 
-  if (createdCharge) {
+  // If onSaved is provided (inline use), don't show FormSuccess — the parent handles it
+  if (createdCharge && !onSaved) {
     return (
       <FormSuccess message="Charge créée — échéances générées (tout-ou-rien).">
         <Button

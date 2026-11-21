@@ -45,6 +45,10 @@ export const transactionSchema = z.object({
   note: z.string().nullable().default(null),
   transferId: z.string().min(1).nullable(),
   transferRole: transferRoleSchema.nullable(),
+  /** Source de revenu rattachée (confirmation mensuelle uniquement). */
+  incomeId: z.string().min(1).nullable().optional(),
+  /** Mois confirmé `AAAA-MM` (confirmation mensuelle uniquement). */
+  budgetMonth: z.string().min(1).nullable().optional(),
   createdAt: isoDate,
   updatedAt: isoDate,
 });
@@ -64,6 +68,9 @@ export const createTransactionSchema = transactionSchema
     id: true,
     createdAt: true,
     updatedAt: true,
+    // Renseignés uniquement par la confirmation d'un revenu.
+    incomeId: true,
+    budgetMonth: true,
   })
   .extend({
     // Une transaction saisie manuellement n'est pas liée à un transfert :
