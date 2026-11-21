@@ -86,9 +86,10 @@
   ],
   "overrides": [
     {
-      "files": ["**/*.test.ts", "**/*.spec.ts"],
+      "files": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts"],
       "rules": {
-        "@typescript-eslint/no-explicit-any": "off"
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-unnecessary-type-assertion": "off"
       }
     },
     {

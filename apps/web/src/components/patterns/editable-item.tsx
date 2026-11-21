@@ -71,11 +71,11 @@ export function EditableItem({
   };
 
   return (
-    <>
-      <div className="flex-1">
-        <p className="font-medium">{label}</p>
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 w-full">
+      <div className="flex-1 min-w-0">
+        <p className="font-medium truncate">{label}</p>
         {meta ? (
-          <p className="text-sm text-slate-600">{meta}</p>
+          <p className="text-sm text-slate-600 truncate">{meta}</p>
         ) : (
           <p className="text-sm text-slate-600">
             {amount.toFixed(2)} {currency}
@@ -83,13 +83,13 @@ export function EditableItem({
         )}
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 w-full sm:w-auto flex-shrink-0">
         <input
           type="number"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder={amount.toString()}
-          className="w-32 px-3 py-1 border rounded text-sm"
+          className="w-24 sm:w-32 px-3 py-1 border rounded text-sm"
           step="0.01"
           disabled={isPending}
         />
@@ -104,6 +104,6 @@ export function EditableItem({
         </Button>
         {actions}
       </div>
-    </>
+    </div>
   );
 }

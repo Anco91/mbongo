@@ -13,7 +13,11 @@
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createAccountSchema, type CreateAccountInput } from '@mbongo/shared';
+import {
+  createAccountSchema,
+  type CreateAccountInput,
+  type Account,
+} from '@mbongo/shared';
 import { useMembers } from '@/hooks/use-members';
 import { useAccounts, useCreateAccount } from '@/hooks/use-accounts';
 import {
@@ -42,16 +46,23 @@ const ACCOUNT_KINDS = [
 
 /**
  * AccountCreateForm Component
+ *
+ * @param onSaved - Optional callback when account is created (for inline use).
+ *                  If provided, skips FormSuccess and router.push.
  */
-export function AccountCreateForm(): JSX.Element {
+export function AccountCreateForm({
+  onSaved,
+}: {
+  onSaved?: (account: Account) => void;
+}): JSX.Element {
   const router = useRouter();
   const { data: members = [] } = useMembers();
   const { data: accounts = [] } = useAccounts();
   const {
     mutate: createAccount,
     isPending: isCreating,
+    data: createdAccount,
     error,
-    isSuccess,
   } = useCreateAccount();
 
   const form = useForm<CreateAccountInput>({
@@ -87,9 +98,19 @@ export function AccountCreateForm(): JSX.Element {
       .map((a) => ({ value: a.id, label: a.name })),
   ];
 
-  const onSubmit = form.handleSubmit((data) => createAccount(data));
+  const onSubmit = form.handleSubmit((data) =>
+    createAccount(data, {
+      onSuccess: (account) => {
+        if (onSaved) {
+          onSaved(account);
+          form.reset();
+        }
+      },
+    })
+  );
 
-  if (isSuccess) {
+  // If onSaved is provided (inline use), don't show FormSuccess — the parent handles it
+  if (createdAccount && !onSaved) {
     return (
       <FormSuccess message="Compte créé.">
         <Button

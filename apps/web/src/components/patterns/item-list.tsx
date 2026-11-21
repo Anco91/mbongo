@@ -34,7 +34,7 @@ export function ItemList<T>({
   renderItem,
   emptyState,
   footer,
-  rowClassName = 'flex items-center justify-between p-4 border rounded-lg',
+  rowClassName = 'p-4 border rounded-lg',
 }: ItemListProps<T>): JSX.Element {
   if (isLoading) {
     return <LoadingState />;
