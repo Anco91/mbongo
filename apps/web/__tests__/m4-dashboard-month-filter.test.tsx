@@ -38,6 +38,10 @@ jest.mock('@/hooks/use-members', () => ({
   useMembers: jest.fn(() => ({ data: [] })),
 }));
 
+jest.mock('@/hooks/use-monthly-budget', () => ({
+  useMonthlyBudget: jest.fn(() => ({ data: null })),
+}));
+
 jest.mock('@/hooks/use-schedule', () => ({
   usePayments: jest.fn(),
 }));

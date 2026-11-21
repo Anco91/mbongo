@@ -87,10 +87,42 @@ async function main(): Promise<void> {
     `  ✓ Accounts: ${ubsCourant.name}, ${bnpPerso.name}, ${bnpJoint.name}`
   );
 
+  // ─── Source de revenu récurrente + état mensuel ───────────────────────────
+  const salaireSource = await prisma.income.upsert({
+    where: { id: 'income-salaire' },
+    update: {},
+    create: {
+      id: 'income-salaire',
+      label: 'Salaire',
+      amount: 4400,
+      currency: 'CHF',
+      accountId: ubsCourant.id,
+      memberId: anco.id,
+      frequency: 'monthly',
+      startDate: new Date('2026-01-01T12:00:00.000Z'),
+      active: true,
+    },
+  });
+
+  // Le mois précédent est préparé : le mois courant reste « à préparer »
+  // pour que l'invitation du dashboard soit visible en développement.
+  const previousMonth = (() => {
+    const now = new Date();
+    const date = new Date(now.getFullYear(), now.getMonth() - 1, 1, 12);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  })();
+  await prisma.monthlyBudget.upsert({
+    where: { month: previousMonth },
+    update: { preparedAt: new Date() },
+    create: { month: previousMonth, preparedAt: new Date() },
+  });
+
+  console.log(`  ✓ Income: ${salaireSource.label} + budget ${previousMonth}`);
+
   // ─── Transactions représentatives (UBS Courant) ───────────────────────────
   const salaire = await prisma.transaction.upsert({
     where: { id: 'tx-salaire-nov-2026' },
-    update: {},
+    update: { incomeId: salaireSource.id, budgetMonth: '2026-11' },
     create: {
       id: 'tx-salaire-nov-2026',
       accountId: ubsCourant.id,
@@ -98,6 +130,8 @@ async function main(): Promise<void> {
       amount: 4400,
       category: 'SALAIRE',
       note: 'Salaire novembre 2026',
+      incomeId: salaireSource.id,
+      budgetMonth: '2026-11',
     },
   });
 

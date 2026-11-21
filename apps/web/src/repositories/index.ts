@@ -13,3 +13,5 @@ export { paymentsRepository } from './payments.repository';
 export { snapshotsRepository } from './snapshots.repository';
 export { transactionsRepository } from './transactions.repository';
 export { transfersRepository } from './transfers.repository';
+export { incomesRepository } from './incomes.repository';
+export { monthlyBudgetsRepository } from './monthly-budgets.repository';

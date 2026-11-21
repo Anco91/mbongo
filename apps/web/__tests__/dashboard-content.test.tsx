@@ -44,6 +44,10 @@ jest.mock('@/hooks/use-exchange-rate', () => ({
   useExchangeRate: jest.fn(),
 }));
 
+jest.mock('@/hooks/use-monthly-budget', () => ({
+  useMonthlyBudget: jest.fn(() => ({ data: null })),
+}));
+
 import { useAccounts } from '@/hooks/use-accounts';
 import { useTransactions } from '@/hooks/use-transactions';
 import { useCharges } from '@/hooks/use-charges';

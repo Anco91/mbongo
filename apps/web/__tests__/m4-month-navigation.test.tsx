@@ -45,6 +45,10 @@ jest.mock('@/hooks/use-members', () => ({
   useMembers: jest.fn(() => ({ data: [] })),
 }));
 
+jest.mock('@/hooks/use-monthly-budget', () => ({
+  useMonthlyBudget: jest.fn(() => ({ data: null })),
+}));
+
 describe('monthRange / isInMonth (dérivation pure)', () => {
   it("monthRange('2026-11-16') → fenêtre inclusive du mois", () => {
     const range = monthRange('2026-11-16');

@@ -20,8 +20,9 @@ datasource db {
 model Member {
   id        String    @id @default(uuid())
   firstName String
-  lastName  String?   // M4 : nom optionnel (vue foyer)
+  lastName  String? // M4 : nom optionnel (vue foyer)
   accounts  Account[]
+  incomes   Income[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
@@ -35,8 +36,8 @@ model Account {
   id                String            @id @default(uuid())
   name              String
   bank              String?
-  currency          String            // "CHF" | "EUR"
-  accountType       String            // "CURRENT"|"CREDIT_CARD"|"JOINT"|"SAVINGS"
+  currency          String // "CHF" | "EUR"
+  accountType       String // "CURRENT"|"CREDIT_CARD"|"JOINT"|"SAVINGS"
   memberId          String?
   member            Member?           @relation(fields: [memberId], references: [id])
   overdraftLimit    Float             @default(0)
@@ -45,12 +46,13 @@ model Account {
   linkedAccountId   String?
   linkedAccount     Account?          @relation("CardSettlement", fields: [linkedAccountId], references: [id])
   settlementCards   Account[]         @relation("CardSettlement")
-  openingBalance    Float             @default(0)   // renamed from balance
+  openingBalance    Float             @default(0) // renamed from balance
   status            String            @default("ACTIVE") // "ACTIVE" | "CLOSED"
   closedAt          DateTime?
   transactions      Transaction[]
   snapshots         BalanceSnapshot[]
-  charges           Charge[]          // existing relation preserved
+  charges           Charge[] // existing relation preserved
+  incomes           Income[]
   outgoingTransfers Transfer[]        @relation("TransferSourceAccount")
   incomingTransfers Transfer[]        @relation("TransferTargetAccount")
   createdAt         DateTime          @default(now())
@@ -60,7 +62,6 @@ model Account {
   @@index([memberId])
   @@index([status])
   @@index([linkedAccountId])
-
   @@map("accounts")
 }
 
@@ -72,19 +73,23 @@ model Transaction {
   accountId    String
   account      Account   @relation(fields: [accountId], references: [id])
   date         DateTime
-  amount       Float     // SIGNED: negative = debit, positive = credit, non-zero
+  amount       Float // SIGNED: negative = debit, positive = credit, non-zero
   category     String?
   note         String?
   transferId   String?
-  transfer     Transfer?    @relation(fields: [transferId], references: [id])
-  transferRole String?      // "SOURCE" | "TARGET"
+  transfer     Transfer? @relation(fields: [transferId], references: [id])
+  transferRole String? // "SOURCE" | "TARGET"
+  incomeId     String?
+  income       Income?   @relation(fields: [incomeId], references: [id], onDelete: SetNull)
+  budgetMonth  String? // "YYYY-MM" — confirmation mensuelle d'un revenu
   payments     Payment[]
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
+  @@unique([incomeId, budgetMonth])
   @@index([accountId, date])
   @@index([transferId])
-
+  @@index([incomeId])
   @@map("transactions")
 }
 
@@ -114,7 +119,6 @@ model Transfer {
   @@index([status])
   @@index([sourceAccountId])
   @@index([targetAccountId])
-
   @@map("transfers")
 }
 
@@ -132,7 +136,6 @@ model BalanceSnapshot {
   updatedAt DateTime @updatedAt
 
   @@index([accountId, date])
-
   @@map("balance_snapshots")
 }
 
@@ -142,13 +145,13 @@ model BalanceSnapshot {
 model Charge {
   id           String    @id @default(uuid())
   label        String
-  type         String    // ChargeType enum (validated by zod at the edge)
+  type         String // ChargeType enum (validated by zod at the edge)
   amount       Float
-  currency     String    // Currency enum
+  currency     String // Currency enum
   category     String
   startDate    DateTime
   endDate      DateTime?
-  frequency    String?   // Frequency enum
+  frequency    String? // Frequency enum
   installments Int?
   provisioned  Boolean   @default(false)
   accountId    String
@@ -163,7 +166,6 @@ model Charge {
   @@index([startDate])
   @@index([endDate])
   @@index([provisioned])
-
   @@map("charges")
 }
 
@@ -187,6 +189,42 @@ model Payment {
   @@index([dueDate])
   @@index([status])
   @@index([paidAt])
-
   @@map("scheduled_payments")
+}
+
+// ─── Revenus & budget mensuel ─────────────────────────────────────────────────
+
+/// Income represents a recurring income source (salary, allowance)
+model Income {
+  id           String        @id @default(uuid())
+  label        String
+  amount       Float
+  currency     String // "CHF" | "EUR"
+  accountId    String
+  account      Account       @relation(fields: [accountId], references: [id])
+  memberId     String?
+  member       Member?       @relation(fields: [memberId], references: [id])
+  frequency    String // "monthly" | "yearly"
+  startDate    DateTime
+  endDate      DateTime?
+  active       Boolean       @default(true)
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([accountId])
+  @@index([memberId])
+  @@index([active])
+  @@map("incomes")
+}
+
+/// MonthlyBudget marks one calendar month as prepared by the household
+model MonthlyBudget {
+  id         String    @id @default(uuid())
+  month      String    @unique // "YYYY-MM"
+  preparedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@map("monthly_budgets")
 }

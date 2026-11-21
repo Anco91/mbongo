@@ -7,6 +7,7 @@ import {
   nextPayment,
   isOverdue,
   overduePayments,
+  isChargeExpiredForMonth,
   Charge,
   Payment,
 } from '@mbongo/shared';
@@ -223,6 +224,57 @@ describe('Schedule Domain Logic', () => {
       const febPayments = paymentsInMonth(payments, febDate);
       expect(febPayments).toHaveLength(2);
       expect(monthlyPaymentTotal(payments, febDate)).toBe(400);
+    });
+  });
+
+  describe('isChargeExpiredForMonth', () => {
+    const chargeWithEndDate: Charge = {
+      ...baseCharge,
+      endDate: '2026-06-15T00:00:00.000Z',
+    };
+
+    const chargeWithoutEndDate: Charge = {
+      ...baseCharge,
+      endDate: null,
+    };
+
+    it('returns false when charge has no end date', () => {
+      const monthDate = new Date(2026, 11, 1); // December 2026
+      expect(isChargeExpiredForMonth(chargeWithoutEndDate, monthDate)).toBe(
+        false
+      );
+    });
+
+    it('returns true when end date is before end of month', () => {
+      const monthDate = new Date(2026, 6, 1); // July 2026
+      // End date is June 15, which is before end of July
+      expect(isChargeExpiredForMonth(chargeWithEndDate, monthDate)).toBe(true);
+    });
+
+    it('returns false when end date is after end of month', () => {
+      const charge: Charge = {
+        ...baseCharge,
+        endDate: '2026-07-01T00:00:00.000Z',
+      };
+      const monthDate = new Date(2026, 5, 1); // June 2026
+      // End date is July 1, which is after end of June - NOT expired
+      expect(isChargeExpiredForMonth(charge, monthDate)).toBe(false);
+    });
+
+    it('returns false when end date is after the month', () => {
+      const monthDate = new Date(2026, 3, 1); // April 2026
+      // End date is June 15, which is after April
+      expect(isChargeExpiredForMonth(chargeWithEndDate, monthDate)).toBe(false);
+    });
+
+    it('returns true when end date is exactly at end of previous month', () => {
+      const charge: Charge = {
+        ...baseCharge,
+        endDate: '2026-05-31T00:00:00.000Z',
+      };
+      const monthDate = new Date(2026, 5, 1); // June 2026
+      // May 31 is before end of June
+      expect(isChargeExpiredForMonth(charge, monthDate)).toBe(true);
     });
   });
 });

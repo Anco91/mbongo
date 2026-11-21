@@ -23,6 +23,8 @@ export * from './schemas/account';
 export * from './schemas/transaction';
 export * from './schemas/transfer';
 export * from './schemas/snapshot';
+export * from './schemas/income';
+export * from './schemas/monthly-budget';
 export * from './contracts/charges.http';
 export * from './contracts/payments.http';
 export * from './contracts/members.http';
@@ -30,6 +32,8 @@ export * from './contracts/accounts.http';
 export * from './contracts/transactions.http';
 export * from './contracts/transfers.http';
 export * from './contracts/snapshots.http';
+export * from './contracts/incomes.http';
+export * from './contracts/monthly-budgets.http';
 
 // ============================================================================
 // Domain Logic & Calculations
@@ -41,6 +45,8 @@ export * from './domain/conversion';
 export * from './domain/card-billing';
 export * from './domain/payment-status';
 export * from './domain/alerts';
+export * from './domain/income';
+export * from './domain/budget';
 export * from './lib/calculation/sankey';
 export * from './lib/calculation/donut';
 export * from './lib/calculation/consolidated';
