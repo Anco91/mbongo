@@ -94,7 +94,7 @@ Alternative rejetée : navigation optimiste immédiate + invalidation en arrièr
 
 ### D7. Graphiques : politique unique carte/plein écran
 
-- `SankeyFlowsChart` : défaut `showLabels={false}` ; `margin.right` réduit à 16 px en carte. Le plein écran passe `showLabels` et une marge large. Le tooltip Recharts couvre le survol et le tap.
+- `SankeyFlowsChart` : défaut `showLabels={false}` ; `margin.right` réduit à 16 px en carte. Le plein écran passe `showLabels` et une marge large. Le tooltip Recharts couvre le survol et le tap. En plein écran, les libellés sont posés dans une couche mesurée après le layout : chaque libellé reste au centre de son nœud et descend d'une ligne en cas de collision, pour rester lisible à 390 px.
 - `DonutCategoriesChart` : suppression de `donutSegmentLabel` et de la prop `showSegmentLabels`. Le total au centre reste. `DonutLegend`, aujourd'hui code mort, est rendu sous le donut en plein écran, avec le formatage de devise déjà injecté.
 
 Sur mobile, l'absence de survol est compensée par la légende (lecture sans interaction) et le tooltip au tap.
@@ -102,6 +102,8 @@ Sur mobile, l'absence de survol est compensée par la légende (lecture sans int
 ### D8. Retrait du rôle membre
 
 Ordre : schéma zod partagé → contrat HTTP → service et contrôleur → formulaire et vue → migration Prisma → seed → tests. La migration supprime la colonne `role`. Les deux membres seedés n'ont pas d'information de rôle à conserver.
+
+Le dépôt n'avait aucun historique Prisma alors que la base locale existante a été créée par `db push`. Ajouter un baseline initial à partir du schéma versionné avant le retrait du rôle, puis l'enregistrer comme déjà appliqué sur les bases existantes avec `prisma migrate resolve`. La migration de retrait reste distincte ; sur une base existante elle ne reconstruit que `members` et conserve les autres colonnes.
 
 **BREAKING** : les clients qui envoient `role` reçoivent une validation stricte (champ inconnu rejeté ou ignoré selon le mode zod retenu). Le contrat documente l'absence du champ. Rollback : migration inverse recréant `role` avec défaut `PRIMARY`, sans perte fonctionnelle puisque le champ n'est plus lu.
 
@@ -116,6 +118,10 @@ Pas de module de chaînes ni de fichier `messages.ts` : les libellés restent da
 - `/alerts` : cloche existante conservée.
 
 Titres : `routeChrome` remplace « Vue foyer » par « Membres du foyer » et « Échéancier » par « Échéances à venir ». Les libellés d'onglets restent inchangés pour ne pas dépasser la largeur mobile.
+
+### D11. Règles lint adaptées aux tests
+
+Le lint de production conserve les règles TypeScript strictes. Les tests désactivent uniquement les règles de méthode non liée à `this`, d'accès/assignation `any`, de type de retour explicite sur les callbacks de test et d'`await` inutile : Jest/Prisma fournissent des mocks et des résultats JSON volontairement non typés. Les tests restent formatés, sans variable inutilisée, et compilés par TypeScript.
 
 ## Risks / Trade-offs
 
@@ -132,7 +138,7 @@ Titres : `routeChrome` remplace « Vue foyer » par « Membres du foyer » et «
 2. Phase formulaire : `FormActions`, `FormError`, `FormSuccess`, `DeleteButton` asynchrone, migration des quatre formulaires.
 3. Phase chargement : `ui/skeleton.tsx`, `loading.tsx` par segment, squelette du dashboard.
 4. Phase graphes et lexique : politique carte/plein écran, `docs/LEXIQUE.md`, application des libellés, points d'entrée des vues orphelines.
-5. Phase rôle : schéma partagé, API, UI, migration Prisma, seed, tests.
+5. Phase rôle : schéma partagé, API, UI, baseline Prisma pour les bases existantes, migration Prisma de suppression, seed, tests.
 
 Rollback : les phases 1 à 4 sont réversibles par revert de commit. La phase 5 se rollback par migration inverse ; aucune donnée métier ne dépend du rôle.
 
