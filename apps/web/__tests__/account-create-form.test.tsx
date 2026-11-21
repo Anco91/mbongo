@@ -36,7 +36,7 @@ beforeEach(() => {
   (useCreateAccount as jest.Mock).mockReturnValue({
     mutate: mockMutate,
     isPending: false,
-    isSuccess: false,
+    data: undefined,
     error: null,
   });
 });
@@ -64,7 +64,8 @@ describe('AccountCreateForm', () => {
         name: 'UBS Courant',
         currency: 'CHF',
         accountType: 'CURRENT',
-      })
+      }),
+      expect.any(Object) // Second parameter: { onSuccess } callback
     );
   });
 
@@ -179,7 +180,8 @@ describe('AccountCreateForm', () => {
       expect.objectContaining({
         accountType: 'CREDIT_CARD',
         linkedAccountId: 'account-ubs-courant',
-      })
+      }),
+      expect.any(Object) // Second parameter: { onSuccess } callback
     );
   });
 
@@ -187,7 +189,7 @@ describe('AccountCreateForm', () => {
     (useCreateAccount as jest.Mock).mockReturnValue({
       mutate: mockMutate,
       isPending: false,
-      isSuccess: true,
+      data: { id: 'account-1', name: 'UBS Courant' },
       error: null,
     });
 
@@ -203,7 +205,7 @@ describe('AccountCreateForm', () => {
     (useCreateAccount as jest.Mock).mockReturnValue({
       mutate: mockMutate,
       isPending: false,
-      isSuccess: false,
+      data: undefined,
       error: new Error('Membre inconnu'),
     });
 
@@ -223,7 +225,7 @@ describe('AccountCreateForm', () => {
     (useCreateAccount as jest.Mock).mockReturnValue({
       mutate: mockMutate,
       isPending: false,
-      isSuccess: false,
+      data: undefined,
       error: new Error('Membre inconnu'),
     });
 
@@ -236,7 +238,7 @@ describe('AccountCreateForm', () => {
     (useCreateAccount as jest.Mock).mockReturnValue({
       mutate: mockMutate,
       isPending: true,
-      isSuccess: false,
+      data: undefined,
       error: null,
     });
 
@@ -245,5 +247,53 @@ describe('AccountCreateForm', () => {
     const submit = screen.getByRole('button', { name: 'Créer le compte' });
     expect(submit.getAttribute('aria-busy')).toBe('true');
     expect((submit as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  describe('inline mode (onSaved)', () => {
+    it('does NOT show FormSuccess in inline mode', () => {
+      (useCreateAccount as jest.Mock).mockReturnValue({
+        mutate: mockMutate,
+        isPending: false,
+        data: { id: 'account-1', name: 'UBS Courant' },
+        error: null,
+      });
+
+      const onSaved = jest.fn();
+      render(createElement(AccountCreateForm, { onSaved }));
+
+      expect(screen.queryByText('Compte créé.')).toBeNull();
+      expect(
+        screen.queryByRole('button', { name: 'Retour aux comptes' })
+      ).toBeNull();
+    });
+
+    it('calls onSaved callback on successful creation', async () => {
+      const onSaved = jest.fn();
+      const mockAccount = { id: 'account-1', name: 'UBS Courant' };
+
+      (useCreateAccount as jest.Mock).mockReturnValue({
+        mutate: (
+          data: unknown,
+          options?: { onSuccess?: (account: unknown) => void }
+        ) => {
+          mockMutate(data, options);
+          if (options?.onSuccess) {
+            options.onSuccess(mockAccount);
+          }
+        },
+        isPending: false,
+        data: undefined,
+        error: null,
+      });
+
+      render(createElement(AccountCreateForm, { onSaved }));
+
+      fireEvent.change(screen.getByLabelText('Nom du compte'), {
+        target: { value: 'UBS Courant' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: 'Créer le compte' }));
+
+      await waitFor(() => expect(onSaved).toHaveBeenCalledWith(mockAccount));
+    });
   });
 });

@@ -25,18 +25,27 @@
    - Mettre à jour la todo list en temps réel
 
 3. **CLEAN CODE & KISS**
-   - **KISS**: Keep It Simple, Stupid - La solution la plus simple est la meilleure
-   - **YAGNI**: You Aren't Gonna Need It - Ne pas implémenter "au cas où"
-   - **DRY**: Don't Repeat Yourself - Pas de duplication de code
-   - **Code Lisible**: Le code doit être aussi lisible que de la prose
+    - **KISS**: Keep It Simple, Stupid - La solution la plus simple est la meilleure
+    - **YAGNI**: You Aren't Gonna Need It - Ne pas implémenter "au cas où"
+    - **DRY**: Don't Repeat Yourself - Pas de duplication de code
+    - **Code Lisible**: Le code doit être aussi lisible que de la prose
 
-4. **ARCHITECTURE STANDARD**
+4. **PHILOSOPHIE DE CODAGE (OBLIGATOIRE)**
+    - **Functional Programming** : `pure functions` en premier — logique métier dans des fonctions pures (`packages/shared/src/domain/`)
+    - **Server State First** : utiliser TanStack Query pour tout état serveur, éviter `useState`/`useEffect` à moins que ce soit justifié (UI éphémère uniquement)
+    - **Contexte évité** : ne jamais utiliser React Context sauf justification forte (thème, auth); préférer props drilling ou TanStack Query
+    - **Vérifier l'existant** : AVANT de créer un composant/hook, chercher si l'équivalent existe déjà dans le projet ou une lib éprouvée
+    - **Composition > Inline** : assembler des petits composants réutilisables (`ItemList`, `EditableItem`, `CreatePanel`, `Form` kit), JAMAIS de monolithes inline
+    - **Minimalisme YAGNI/KISS** : ne produire QUE ce qui est strictement nécessaire; fonctions < 30 lignes, max 4 paramètres; aucun code "juste pour voir"
+    - **Craftsmanship** : tests obligatoires sur toute logique métier; zéro logique métier dans les contrôleurs ou composants UI; imports triés et propres
+
+5. **ARCHITECTURE STANDARD**
    - **Next.js BFF Fullstack**: Un seul déploiement, backend et frontend intégrés
    - **Style NestJS**: Services, Controllers, Entities (avec Prisma si nécessaire)
    - **Pas de DDD, pas d'Hexagonal**: Architecture simple et directe
    - **Validation Zod**: Toutes les entrées validées avec Zod à la frontière
 
-5. **PRAGMATISME**
+6. **PRAGMATISME**
    - Ne faire QUE ce qui est nécessaire
    - Éviter les abstractions prématurées
    - Privilégier la simplicité à la complexité

@@ -80,7 +80,7 @@ export const incomeQuerySchema = z.object({
 
 export type Income = z.infer<typeof incomeSchema>;
 export type IncomeFrequency = z.infer<typeof incomeFrequencySchema>;
-export type CreateIncomeInput = z.infer<typeof createIncomeSchema>;
+export type CreateIncomeInput = z.input<typeof createIncomeSchema>;
 export type UpdateIncomeInput = z.infer<typeof updateIncomeSchema>;
 export type ConfirmIncomeInput = z.infer<typeof confirmIncomeSchema>;
 export type IncomeQuery = z.infer<typeof incomeQuerySchema>;

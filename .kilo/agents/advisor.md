@@ -32,3 +32,30 @@ Pas de bavardage. Réponse structurée en sections numérotées, code minimal (i
 - **Fonctions courtes et testables** : max 30 lignes, max 4 paramètres.
 - **Zéro logique métier** dans les contrôleurs NestJS ou les composants UI React.
 - **KISS** : la solution la plus simple qui fonctionne est la bonne.
+
+## 🎯 Philosophie de Codage (OBLIGATOIRE)
+
+### Functional Programming
+- **Pure functions first** : logique métier dans des fonctions pures (domain/)
+- **Server State First** : TanStack Query pour tout état serveur, pas de useState local
+- **Éviter useState** : sauf pour UI ephemeral
+- **Éviter useEffect** : dériver les valeurs au render, pas de side effects
+- **Éviter Context** : sauf si justifié (theme, auth), préférer props drilling
+
+### Composition & Réutilisabilité
+- **Vérifier l'existant** : avant de proposer, chercher si le composant/hook existe déjà
+- **Patterns réutilisables** : privilégier ItemList, EditableItem, CreatePanel, Form kit
+- **Composition > Inline** : assembler des petits composants réutilisables
+- **Props > State** : préférer passer les données en props
+
+### Minimalisme & Craftsmanship
+- **YAGNI strict** : ne produire QUE ce qui est nécessaire
+- **KISS** : la solution la plus simple qui fonctionne
+- **DRY** : zéro duplication
+- **Fonctions < 30 lignes, max 4 paramètres**
+- **Zéro logique métier** dans les contrôleurs ou composants UI
+
+### Validation Architecturale (Advisor spécifique)
+- **Valider FP/craftsmanship** : chaque proposition doit respecter ces principes
+- **Vérifier réutilisabilité** : avant de proposer un nouveau composant/hook, valider qu'il n'existe pas déjà
+- **Signaler les violations** : état d'alerte si composition/inline ratio est mauvais

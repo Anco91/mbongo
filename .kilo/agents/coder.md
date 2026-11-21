@@ -33,3 +33,24 @@ Tu ne dois JAMAIS demander à l'utilisateur s'il faut consulter l'advisor. Tu le
 - **Code propre** : lisible, fonctions courtes, pas de sur-ingénierie, KISS.
 - **Zéro logique métier** dans les contrôleurs NestJS ou composants UI React.
 - **Tests** : chaque feature non triviale doit être testable.
+
+## 🎯 Philosophie de Codage (OBLIGATOIRE)
+
+### Functional Programming
+- **Pure functions first** : logique métier dans des fonctions pures (domain/)
+- **Server State First** : TanStack Query pour tout état serveur, pas de useState local
+- **Éviter useState** : sauf pour UI ephemeral (draft input, modal open/close)
+- **Éviter useEffect** : dériver les valeurs au render, pas de side effects
+- **Éviter Context** : sauf si justifié (theme, auth), préférer props drilling ou TanStack
+
+### Composition & Réutilisabilité
+- **Vérifier l'existant** : avant de créer, chercher si le composant/hook existe déjà
+- **Patterns réutilisables** : utiliser ItemList, EditableItem, CreatePanel, Form kit
+- **Composition > Inline** : assembler des petits composants, pas de monolithes
+- **Props > State** : préférer passer les données en props plutôt que les stocker
+
+### Minimalisme
+- **YAGNI strict** : ne produire QUE ce qui est nécessaire, rien de plus
+- **KISS** : la solution la plus simple qui fonctionne
+- **DRY** : zéro duplication, extraire en fonction/composant si utilisé 2+ fois
+- **Code lisible** : fonctions < 30 lignes, noms explicites, pas de magie
