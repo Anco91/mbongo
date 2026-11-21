@@ -50,7 +50,7 @@ export function AccountCard({ view }: AccountCardProps): JSX.Element {
           {savingsProgress !== null && (
             <div className="mt-2 flex items-center gap-2">
               <Progress value={savingsProgress} className="h-1.5" />
-              <span className="text-[11px] text-slate-500">
+              <span className="shrink-0 whitespace-nowrap text-[11px] text-slate-500">
                 {Math.round(savingsProgress)} %
               </span>
             </div>

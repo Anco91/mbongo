@@ -5,14 +5,18 @@
  * @module Tests/Charts/SankeyFlowsChart
  */
 
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { createElement } from 'react';
 import type { SankeyNodeProps } from 'recharts';
-import { SankeyFlowsChart } from '@/components/charts/sankey-flows-chart';
+import {
+  SankeyFlowsChart,
+  layoutSankeyLabels,
+} from '@/components/charts/sankey-flows-chart';
 import type { SankeyData } from '@mbongo/shared';
 
 interface CapturedSankeyProps {
   margin: { right: number };
+  data: SankeyData;
   node: (props: SankeyNodeProps) => JSX.Element;
 }
 
@@ -21,7 +25,21 @@ let captured: CapturedSankeyProps | null = null;
 jest.mock('recharts', () => ({
   Sankey: (props: CapturedSankeyProps) => {
     captured = props;
-    return createElement('svg');
+    const nodes = props.data.nodes.map((node, index) =>
+      createElement(
+        'g',
+        { key: index },
+        props.node({
+          x: 10 + index * 120,
+          y: 10 + index * 30,
+          width: 8,
+          height: 20,
+          payload: node,
+          index,
+        } as unknown as SankeyNodeProps)
+      )
+    );
+    return createElement('svg', null, nodes);
   },
   Tooltip: () => null,
   ResponsiveContainer: ({ children }: { children: React.ReactNode }) =>
@@ -36,40 +54,60 @@ const data: SankeyData = {
   ],
 };
 
-const nodeProps = {
-  x: 0,
-  y: 10,
-  width: 8,
-  height: 40,
-  payload: { name: 'Salaire' },
-  index: 0,
-} as unknown as SankeyNodeProps;
-
-function textCount(showLabels?: boolean): number {
+function renderChart(showLabels?: boolean): ReturnType<typeof render> {
   captured = null;
-  render(
+  return render(
     createElement(SankeyFlowsChart, {
       data,
       formatValue: (value: number) => `${value} €`,
       ...(showLabels === undefined ? {} : { showLabels }),
     })
   );
-  const node = (captured as unknown as CapturedSankeyProps).node(nodeProps);
-  return JSON.stringify(node).split('"text"').length - 1;
 }
 
 describe('SankeyFlowsChart', () => {
   it('renders no node text in the card by default', () => {
-    expect(textCount()).toBe(0);
+    const { container } = renderChart();
+    expect(container.querySelectorAll('text')).toHaveLength(0);
+    expect(container.textContent).not.toContain('Salaire');
   });
 
-  it('renders the node name and amount when labels are enabled', () => {
-    const rendered = textCount(true);
-    expect(rendered).toBeGreaterThan(0);
+  it('renders each node name and amount when labels are enabled', () => {
+    renderChart(true);
+    expect(screen.getByText('Salaire · 3000 €')).toBeTruthy();
+    expect(screen.getByText('Loyer · 2495 €')).toBeTruthy();
   });
 
   it('keeps a tight right margin in the card', () => {
-    render(createElement(SankeyFlowsChart, { data }));
+    renderChart();
     expect((captured as unknown as CapturedSankeyProps).margin.right).toBe(16);
+  });
+
+  it('shifts colliding labels so two amounts never overlap', () => {
+    const placed = layoutSankeyLabels(
+      [
+        {
+          name: 'M1 Verify CHF',
+          type: 'income',
+          total: 1403.6,
+          x: 10,
+          y: 100,
+          width: 8,
+          height: 400,
+        },
+        {
+          name: 'M1 Verify EUR',
+          type: 'account',
+          total: 1403.6,
+          x: 60,
+          y: 200,
+          width: 8,
+          height: 200,
+        },
+      ],
+      (value) => `${value} CHF`
+    );
+
+    expect(Math.abs(placed[0].y - placed[1].y)).toBeGreaterThanOrEqual(13);
   });
 });

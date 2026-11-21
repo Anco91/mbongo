@@ -26,12 +26,6 @@ export default async function NewChargePage(): Promise<JSX.Element> {
 
   return (
     <div className="max-w-xl mx-auto space-y-6">
-      <div>
-        <p className="text-[11px] uppercase tracking-wider text-gray-400">
-          Création
-        </p>
-        <h1 className="text-2xl font-bold text-gray-900">Nouvelle charge</h1>
-      </div>
       <HydrationBoundary state={dehydrate(qc)}>
         <ChargeCreateForm />
       </HydrationBoundary>

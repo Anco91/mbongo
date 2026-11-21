@@ -26,16 +26,10 @@ export default async function NewTransferPage(): Promise<JSX.Element> {
 
   return (
     <div className="max-w-xl mx-auto space-y-6">
-      <div>
-        <p className="text-[11px] uppercase tracking-wider text-gray-400">
-          Création
-        </p>
-        <h1 className="text-2xl font-bold text-gray-900">Nouveau transfert</h1>
-        <p className="text-sm text-gray-500">
-          Phase 1 — envoi estimé. Le crédit reçu sera enregistré en phase 2
-          depuis la liste.
-        </p>
-      </div>
+      <p className="text-sm text-gray-500">
+        Phase 1 — envoi estimé. Le crédit reçu sera enregistré en phase 2 depuis
+        la liste.
+      </p>
       <HydrationBoundary state={dehydrate(qc)}>
         <TransferCreateForm />
       </HydrationBoundary>
