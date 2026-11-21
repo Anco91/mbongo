@@ -11,15 +11,6 @@ import { z } from 'zod';
 import { isoDate } from './charge';
 
 // ============================================================================
-// Types Enum
-// ============================================================================
-
-/** Rôle d'un membre du foyer */
-export const memberRoleSchema = z.enum(['PRIMARY', 'PARTNER']);
-
-export type MemberRole = z.infer<typeof memberRoleSchema>;
-
-// ============================================================================
 // Schéma Principal
 // ============================================================================
 
@@ -35,7 +26,6 @@ export const memberSchema = z.object({
     (v) => (typeof v === 'string' && v.trim() === '' ? null : v),
     z.string().min(1).nullish()
   ),
-  role: memberRoleSchema,
   createdAt: isoDate,
   updatedAt: isoDate,
 });
@@ -53,7 +43,6 @@ export const memberSchema = z.object({
 export const createMemberSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1).nullish(),
-  role: memberRoleSchema,
 });
 
 /**

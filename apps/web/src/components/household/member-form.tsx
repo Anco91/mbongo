@@ -14,31 +14,18 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
-  memberRoleSchema,
   type CreateMemberInput,
   type UpdateMemberInput,
   type Member,
 } from '@mbongo/shared';
 import { useCreateMember, useUpdateMember } from '@/hooks/use-members';
-import {
-  Form,
-  FormActions,
-  FormSection,
-  TextInput,
-  SelectInput,
-} from '@/components/form';
+import { Form, FormActions, FormSection, TextInput } from '@/components/form';
 import { JSX } from 'react';
-
-const ROLE_OPTIONS = [
-  { value: 'PRIMARY', label: 'Titulaire' },
-  { value: 'PARTNER', label: 'Partenaire' },
-] as const;
 
 // Formulaire : lastName vide autorisé (''), mappé en null à la soumission.
 const memberFormSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().nullish(),
-  role: memberRoleSchema,
 });
 
 type MemberFormValues = z.infer<typeof memberFormSchema>;
@@ -64,7 +51,6 @@ export function MemberForm({
     defaultValues: {
       firstName: member?.firstName ?? '',
       lastName: member?.lastName ?? '',
-      role: member?.role ?? 'PRIMARY',
     },
   });
 
@@ -74,14 +60,12 @@ export function MemberForm({
       const input: UpdateMemberInput = {
         firstName: data.firstName,
         lastName,
-        role: data.role,
       };
       update.mutate({ id: member.id, input }, { onSuccess: () => onDone?.() });
     } else {
       const input: CreateMemberInput = {
         firstName: data.firstName,
         lastName,
-        role: data.role,
       };
       create.mutate(input, { onSuccess: () => onDone?.() });
     }
@@ -96,7 +80,6 @@ export function MemberForm({
           label="Nom (optionnel)"
           placeholder="Ex. Dupont"
         />
-        <SelectInput name="role" label="Rôle" options={ROLE_OPTIONS} />
       </FormSection>
       <FormActions
         submitLabel={isEdit ? 'Enregistrer' : 'Créer le membre'}

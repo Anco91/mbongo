@@ -6,11 +6,10 @@
  * @module Tests/M4/ChargesOwnerBadge
  */
 
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { createElement } from 'react';
 import { ChargesContent } from '@/components/charges/charges-content';
-import { useCharges, useDeleteCharge } from '@/hooks/use-charges';
-import { usePayments } from '@/hooks/use-schedule';
+import { useCharges } from '@/hooks/use-charges';
 import { useAccounts } from '@/hooks/use-accounts';
 import { useMembers } from '@/hooks/use-members';
 import type { Charge } from '@mbongo/shared';
@@ -75,7 +74,7 @@ describe('ChargesContent — OwnerBadge', () => {
       ],
     });
     (useMembers as jest.Mock).mockReturnValue({
-      data: [{ id: 'member-anco-0001', firstName: 'Anco', role: 'PRIMARY' }],
+      data: [{ id: 'member-anco-0001', firstName: 'Anco' }],
     });
 
     render(createElement(ChargesContent));

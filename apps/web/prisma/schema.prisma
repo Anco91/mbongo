@@ -16,12 +16,11 @@ datasource db {
 
 // ─── Foyer ───────────────────────────────────────────────────────────────────
 
-/// Member represents a household member (PRIMARY or PARTNER)
+/// Member represents a household member
 model Member {
   id        String    @id @default(uuid())
   firstName String
   lastName  String?   // M4 : nom optionnel (vue foyer)
-  role      String    // "PRIMARY" | "PARTNER"
   accounts  Account[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

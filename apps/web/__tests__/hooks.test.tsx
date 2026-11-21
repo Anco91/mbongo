@@ -136,7 +136,6 @@ describe('useMembers', () => {
           {
             id: 'member-anco-0001',
             firstName: 'Anco',
-            role: 'PRIMARY',
             createdAt: now,
             updatedAt: now,
           },

@@ -24,8 +24,10 @@ jest.mock('@/server/db', () => ({
 
 import { prisma } from '@/server/db';
 import { MemberService } from '@/server/members/member.service';
-import { membersController } from '@/server/members/members.controller';
-import { POST as postMembers } from '@/app/api/members/route';
+import {
+  GET as getMembers,
+  POST as postMembers,
+} from '@/app/api/members/route';
 import {
   PATCH as patchMember,
   DELETE as deleteMember,
@@ -47,7 +49,6 @@ const memberRow = (overrides: Record<string, unknown> = {}) => ({
   id: 'member-1',
   firstName: 'Anco',
   lastName: null,
-  role: 'PRIMARY',
   createdAt: new Date('2026-01-01T00:00:00.000Z'),
   updatedAt: new Date('2026-01-01T00:00:00.000Z'),
   ...overrides,
@@ -65,7 +66,6 @@ describe('member schemas (lastName optionnel)', () => {
     const member = {
       id: 'member-1',
       firstName: 'Anco',
-      role: 'PRIMARY' as const,
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
     };
@@ -77,7 +77,6 @@ describe('member schemas (lastName optionnel)', () => {
       id: 'member-1',
       firstName: 'Anco',
       lastName: '',
-      role: 'PRIMARY',
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
     });
@@ -89,7 +88,6 @@ describe('member schemas (lastName optionnel)', () => {
       id: 'member-1',
       firstName: 'Anco',
       lastName: 'Dupont',
-      role: 'PRIMARY',
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
     });
@@ -97,13 +95,10 @@ describe('member schemas (lastName optionnel)', () => {
   });
 
   it('createMemberSchema exige firstName, lastName optionnel', () => {
-    expect(
-      createMemberSchema.safeParse({ firstName: 'Anco', role: 'PRIMARY' })
-        .success
-    ).toBe(true);
-    expect(createMemberSchema.safeParse({ role: 'PRIMARY' }).success).toBe(
-      false
+    expect(createMemberSchema.safeParse({ firstName: 'Anco' }).success).toBe(
+      true
     );
+    expect(createMemberSchema.safeParse({}).success).toBe(false);
   });
 
   it('updateMemberSchema : tous les champs optionnels', () => {
@@ -115,16 +110,15 @@ describe('member schemas (lastName optionnel)', () => {
 });
 
 describe('MemberService CRUD', () => {
-  it('create persiste firstName, lastName nullable et role', async () => {
+  it('create persiste firstName et lastName nullable', async () => {
     mockedMemberCreate.mockResolvedValue(memberRow({ lastName: 'Dupont' }));
     const service = new MemberService();
     const member = await service.create({
       firstName: 'Anco',
       lastName: 'Dupont',
-      role: 'PRIMARY',
     });
     expect(mockedMemberCreate).toHaveBeenCalledWith({
-      data: { firstName: 'Anco', lastName: 'Dupont', role: 'PRIMARY' },
+      data: { firstName: 'Anco', lastName: 'Dupont' },
     });
     expect(member.lastName).toBe('Dupont');
   });
@@ -132,9 +126,9 @@ describe('MemberService CRUD', () => {
   it('create sans lastName persiste null', async () => {
     mockedMemberCreate.mockResolvedValue(memberRow());
     const service = new MemberService();
-    await service.create({ firstName: 'Épouse', role: 'PARTNER' });
+    await service.create({ firstName: 'Épouse' });
     expect(mockedMemberCreate).toHaveBeenCalledWith({
-      data: { firstName: 'Épouse', lastName: null, role: 'PARTNER' },
+      data: { firstName: 'Épouse', lastName: null },
     });
   });
 
@@ -148,7 +142,6 @@ describe('MemberService CRUD', () => {
       data: {
         firstName: 'Renommé',
         lastName: undefined,
-        role: undefined,
       },
     });
     expect(member.firstName).toBe('Renommé');
@@ -161,7 +154,7 @@ describe('MemberService CRUD', () => {
     await service.update('member-1', { lastName: null });
     expect(mockedMemberUpdate).toHaveBeenCalledWith({
       where: { id: 'member-1' },
-      data: { firstName: undefined, lastName: null, role: undefined },
+      data: { firstName: undefined, lastName: null },
     });
   });
 
@@ -194,16 +187,22 @@ describe('MemberService CRUD', () => {
 });
 
 describe('Members API routes', () => {
+  it('GET /api/members retourne les membres sans rôle', async () => {
+    (prisma.member.findMany as jest.Mock).mockResolvedValue([memberRow()]);
+    const response = await getMembers(new Request('http://localhost/api'));
+    const body = await response.json();
+    expect(response.status).toBe(200);
+    expect(body.data[0]).not.toHaveProperty('role');
+  });
+
   it('POST /api/members → 201', async () => {
     mockedMemberCreate.mockResolvedValue(memberRow());
-    const response = await postMembers(
-      jsonRequest({ firstName: 'Anco', role: 'PRIMARY' })
-    );
+    const response = await postMembers(jsonRequest({ firstName: 'Anco' }));
     expect(response.status).toBe(201);
   });
 
   it('POST /api/members avec body invalide → 400', async () => {
-    const response = await postMembers(jsonRequest({ role: 'PRIMARY' }));
+    const response = await postMembers(jsonRequest({}));
     expect(response.status).toBe(400);
   });
 

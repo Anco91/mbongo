@@ -37,7 +37,6 @@ const members: Member[] = [
     id: 'm1',
     firstName: 'Anco',
     lastName: null,
-    role: 'PRIMARY',
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
   },
@@ -45,20 +44,19 @@ const members: Member[] = [
     id: 'm2',
     firstName: 'Carla',
     lastName: 'Dupont',
-    role: 'PARTNER',
     createdAt: '2026-01-02T00:00:00.000Z',
     updatedAt: '2026-01-02T00:00:00.000Z',
   },
 ];
 
 describe('HouseholdContent', () => {
-  it('liste les membres avec nom et rôle FR', () => {
+  it('liste les membres par leur nom sans étiquette de rôle', () => {
     (useMembers as jest.Mock).mockReturnValue({ data: members });
     render(<HouseholdContent />);
     expect(screen.getByText('Anco')).toBeTruthy();
     expect(screen.getByText('Carla Dupont')).toBeTruthy();
-    expect(screen.getByText('Titulaire')).toBeTruthy();
-    expect(screen.getByText('Partenaire')).toBeTruthy();
+    expect(screen.queryByText('Titulaire')).toBeNull();
+    expect(screen.queryByText('Partenaire')).toBeNull();
   });
 
   it('état vide sans membre', () => {

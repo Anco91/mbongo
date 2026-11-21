@@ -1,6 +1,6 @@
 /**
- * Household Content — vue foyer (M4, design D1): member list with
- * rename, role change and two-step delete. Create/edit reuse
+ * Household Content — member list with
+ * rename and two-step delete. Create/edit reuse
  * `MemberForm`. No hardcoded « Anco / épouse »: the seed members are
  * listed like any other, fully editable.
  *
@@ -10,18 +10,12 @@
 'use client';
 
 import { useState, JSX } from 'react';
-import type { Member } from '@mbongo/shared';
 import { useMembers, useDeleteMember } from '@/hooks/use-members';
 import { MemberForm } from './member-form';
 import { Card, CardContent } from '@/components/ui/card';
 import { DeleteButton } from '@/components/patterns';
 import { IconPlus } from '@/components/ui/icons';
 import { Button } from '@/components/ui/button';
-
-const ROLE_LABELS: Record<Member['role'], string> = {
-  PRIMARY: 'Titulaire',
-  PARTNER: 'Partenaire',
-};
 
 export function HouseholdContent(): JSX.Element {
   const { data: members = [] } = useMembers();
@@ -56,9 +50,6 @@ export function HouseholdContent(): JSX.Element {
                   <p className="text-sm font-medium text-slate-800">
                     {member.firstName}
                     {member.lastName ? ` ${member.lastName}` : ''}
-                  </p>
-                  <p className="text-xs text-slate-400">
-                    {ROLE_LABELS[member.role]}
                   </p>
                 </div>
                 <Button

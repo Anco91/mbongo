@@ -14,8 +14,8 @@ import { OwnerBadge, ownerLabel } from '@/components/patterns/owner-badge';
 jest.mock('@/hooks/use-members', () => ({
   useMembers: jest.fn(() => ({
     data: [
-      { id: 'm1', firstName: 'Anco', role: 'PRIMARY' },
-      { id: 'm2', firstName: 'Carla', role: 'PARTNER' },
+      { id: 'm1', firstName: 'Anco' },
+      { id: 'm2', firstName: 'Carla' },
     ],
   })),
 }));

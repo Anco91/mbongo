@@ -74,7 +74,6 @@ describe('AccountCreateForm', () => {
         {
           id: 'member-anco-0001',
           firstName: 'Anco',
-          role: 'PRIMARY',
           createdAt: '2026-11-12T00:00:00.000Z',
           updatedAt: '2026-11-12T00:00:00.000Z',
         },
@@ -215,9 +214,9 @@ describe('AccountCreateForm', () => {
     });
 
     expect(screen.getByRole('alert').textContent).toBe('Membre inconnu');
-    expect(
-      (screen.getByLabelText('Nom du compte') as HTMLInputElement).value
-    ).toBe('UBS Courant');
+    expect(screen.getByLabelText<HTMLInputElement>('Nom du compte').value).toBe(
+      'UBS Courant'
+    );
   });
 
   it('shows the mutation error message', () => {

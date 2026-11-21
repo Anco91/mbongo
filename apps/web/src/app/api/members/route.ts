@@ -1,7 +1,7 @@
 /**
  * Members API Route
  *
- * Pure wiring (the main.ts role in Nest): no logic lives here.
+ * Route wiring only; request handling lives in MembersController.
  * All requests are delegated to the MembersController.
  *
  * @module API/Members

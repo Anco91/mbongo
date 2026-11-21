@@ -55,7 +55,7 @@ describe('membersRepository', () => {
 
   it('rejects an invalid member payload', async () => {
     fetchMock.mockResolvedValue(
-      jsonResponse({ data: [{ id: 'x', role: 'PRIMARY' }], success: true })
+      jsonResponse({ data: [{ id: 'x' }], success: true })
     );
 
     await expect(membersRepository.findMany()).rejects.toThrow();

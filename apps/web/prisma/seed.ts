@@ -22,7 +22,6 @@ async function main(): Promise<void> {
     create: {
       id: 'member-anco-0001',
       firstName: 'Anco',
-      role: 'PRIMARY',
     },
   });
 
@@ -32,7 +31,6 @@ async function main(): Promise<void> {
     create: {
       id: 'member-epouse-001',
       firstName: 'Épouse',
-      role: 'PARTNER',
     },
   });
 

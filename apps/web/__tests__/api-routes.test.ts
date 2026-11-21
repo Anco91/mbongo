@@ -68,7 +68,6 @@ describe('GET /api/members', () => {
       {
         id: 'member-anco-0001',
         firstName: 'Anco',
-        role: 'PRIMARY',
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -189,7 +188,7 @@ describe('POST /api/charges', () => {
   });
 
   it('rejects a missing label with 400', async () => {
-    const { label: _label, ...invalid } = validBody;
+    const invalid = { ...validBody, label: undefined };
 
     const response = await postCharges(
       jsonRequest('http://localhost/api/charges', 'POST', invalid)

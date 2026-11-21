@@ -7,7 +7,6 @@ import { Prisma } from '@prisma/client';
 
 const memberWhereTranslator = createWhereTranslator<Prisma.MemberWhereInput>({
   firstName: { ops: ['eq', 'contains', 'startsWith'] },
-  role: { ops: ['eq', 'in'] },
 });
 
 export class MemberService {
@@ -24,7 +23,6 @@ export class MemberService {
       data: {
         firstName: input.firstName,
         lastName: input.lastName ?? null,
-        role: input.role,
       },
     });
     return this.toMember(row);
@@ -39,7 +37,6 @@ export class MemberService {
         firstName: input.firstName ?? undefined,
         lastName:
           input.lastName === undefined ? undefined : (input.lastName ?? null),
-        role: input.role ?? undefined,
       },
     });
     return this.toMember(row);
@@ -65,7 +62,6 @@ export class MemberService {
   private toMember(row: Prisma.MemberGetPayload<object>): Member {
     return {
       ...row,
-      role: row.role as Member['role'],
       createdAt: row.createdAt.toISOString(),
       updatedAt: row.updatedAt.toISOString(),
     };
