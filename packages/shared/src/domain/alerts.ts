@@ -10,7 +10,12 @@
  * @packageDocumentation
  */
 
-import { differenceInCalendarDays, isBefore, parseISO, startOfDay } from 'date-fns';
+import {
+  differenceInCalendarDays,
+  isBefore,
+  parseISO,
+  startOfDay,
+} from 'date-fns';
 import { Account } from '../schemas/account';
 import { Charge } from '../schemas/charge';
 import { Payment } from '../schemas/payment';
@@ -80,7 +85,7 @@ export function computeAlerts(params: ComputeAlertsParams): Alert[] {
 
     if (days >= 0 && days <= 7) {
       const charge = chargeMap.get(p.chargeId);
-      const label = charge?.label || 'Échéance';
+      const label = charge?.label ?? 'Échéance';
       const daysText =
         days === 0
           ? "aujourd'hui"
@@ -102,7 +107,7 @@ export function computeAlerts(params: ComputeAlertsParams): Alert[] {
     } else if (isBefore(dueDate, today)) {
       // En retard
       const charge = chargeMap.get(p.chargeId);
-      const label = charge?.label || 'Échéance';
+      const label = charge?.label ?? 'Échéance';
       const lateDays = Math.abs(days);
 
       alerts.push({
@@ -197,5 +202,7 @@ export function computeAlerts(params: ComputeAlertsParams): Alert[] {
   }
 
   // Tri par gravité : danger (1), warning (2), info (3)
-  return alerts.sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]);
+  return alerts.sort(
+    (a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]
+  );
 }

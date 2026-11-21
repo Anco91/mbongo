@@ -88,7 +88,7 @@ export function computeDonutExpenses(params: {
       reconciledTxIds.add(p.transactionId);
     }
     const charge = chargeMap.get(p.chargeId);
-    const category = charge?.category || 'Autres';
+    const category = charge?.category ?? 'Autres';
     addExpense(category, p.amount, p.currency);
   }
 
@@ -98,7 +98,8 @@ export function computeDonutExpenses(params: {
     if (reconciledTxIds.has(t.id)) continue; // Déjà compté via l'échéance rapprochée
     if (t.amount >= 0) continue; // Seules les sorties sont des dépenses
 
-    const category = t.category || 'Autres';
+    const category =
+      t.category === null || t.category === '' ? 'Autres' : t.category;
     const absAmount = Math.abs(t.amount);
     // Supposer EUR par défaut si non spécifié sur transaction (dépend du compte)
     addExpense(category, absAmount, 'EUR');
@@ -110,13 +111,14 @@ export function computeDonutExpenses(params: {
   for (const [name, amounts] of totals.entries()) {
     const nativeEur = round2(amounts.eur);
     const nativeChf = round2(amounts.chf);
-    const consolidatedEur = round2(nativeEur + counterValue(nativeChf, effectiveRate));
+    const consolidatedEur = round2(
+      nativeEur + counterValue(nativeChf, effectiveRate)
+    );
 
     if (consolidatedEur > 0) {
       const color =
-        DEFAULT_CATEGORY_COLORS[name] ??
-        PALETTE[colorIndex % PALETTE.length];
-      colorIndex++;
+        DEFAULT_CATEGORY_COLORS[name] ?? PALETTE[colorIndex % PALETTE.length];
+      colorIndex += 1;
 
       result.push({
         name,

@@ -204,6 +204,8 @@ export function genericQueryToPrisma<T extends Record<string, unknown>>(
 
   if (query.filters) {
     for (const [field, filter] of Object.entries(query.filters)) {
+      // An empty mapping keeps the input field name, matching the legacy behavior.
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       const mappedField = fieldMap?.[field] || field;
       where[mappedField] = filterToPrisma(filter);
     }

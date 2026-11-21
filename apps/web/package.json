@@ -160,7 +160,20 @@
           "endOfLine": "auto"
         }
       ]
-    }
+    },
+    "overrides": [
+      {
+        "files": ["__tests__/**/*.{ts,tsx}"],
+        "rules": {
+          "@typescript-eslint/unbound-method": "off",
+          "@typescript-eslint/no-unsafe-assignment": "off",
+          "@typescript-eslint/no-unsafe-member-access": "off",
+          "@typescript-eslint/explicit-function-return-type": "off",
+          "require-await": "off",
+          "@typescript-eslint/require-await": "off"
+        }
+      }
+    ]
   },
   "prettier": {
     "semi": true,

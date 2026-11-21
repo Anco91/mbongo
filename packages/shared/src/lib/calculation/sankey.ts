@@ -137,6 +137,8 @@ export function computeSankeyFlows(params: {
 
     const account = accountMap.get(t.accountId);
     const accountName = account ? account.name : 'Compte inconnu';
+    // Empty labels fall through to the next useful display value.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const sourceName = t.note || t.category || 'Revenus';
     const currency = account?.currency ?? 'EUR';
 
@@ -150,7 +152,8 @@ export function computeSankeyFlows(params: {
     const srcName = srcAccount ? srcAccount.name : 'Compte émetteur';
     const tgtName = tgtAccount ? tgtAccount.name : 'Compte récepteur';
 
-    const receivedEur = tr.amountReceived ?? counterValue(tr.amountSent, effectiveRate);
+    const receivedEur =
+      tr.amountReceived ?? counterValue(tr.amountSent, effectiveRate);
     addLink(srcName, tgtName, receivedEur, 'EUR');
   }
 
@@ -163,7 +166,7 @@ export function computeSankeyFlows(params: {
     const charge = chargeMap.get(p.chargeId);
     const account = charge ? accountMap.get(charge.accountId) : undefined;
     const accountName = account ? account.name : 'Compte débité';
-    const categoryName = charge?.category || 'Charges';
+    const categoryName = charge?.category ?? 'Charges';
 
     addLink(accountName, categoryName, p.amount, p.currency);
   }
@@ -176,7 +179,8 @@ export function computeSankeyFlows(params: {
 
     const account = accountMap.get(t.accountId);
     const accountName = account ? account.name : 'Compte débité';
-    const categoryName = t.category || 'Vie courante';
+    const categoryName =
+      t.category === null || t.category === '' ? 'Vie courante' : t.category;
     const currency = account?.currency ?? 'EUR';
     const absAmount = Math.abs(t.amount);
 

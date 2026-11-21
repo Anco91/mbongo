@@ -7,13 +7,7 @@
  * @module Tests/M4/UiFixesComponents
  */
 
-import {
-  render,
-  screen,
-  renderHook,
-  act,
-  fireEvent,
-} from '@testing-library/react';
+import { render, screen, renderHook, act } from '@testing-library/react';
 import { createElement } from 'react';
 import { StatusBadge } from '@/components/ui/status-badge';
 import {
@@ -22,6 +16,13 @@ import {
   alertFingerprint,
 } from '@/hooks/use-alerts';
 import type { Alert } from '@mbongo/shared';
+
+function currentCurrencyContext(
+  context: ReturnType<typeof useDisplayCurrency> | null
+): ReturnType<typeof useDisplayCurrency> {
+  if (!context) throw new Error('Display currency context is unavailable');
+  return context;
+}
 
 jest.mock('@/hooks/use-accounts', () => ({
   useAccounts: jest.fn(() => ({ data: [] })),
@@ -125,17 +126,19 @@ describe('DisplayCurrencyProvider', () => {
       return createElement('span');
     };
     render(createElement(DisplayCurrencyProvider, null, createElement(Probe)));
+    const readContext = (): ReturnType<typeof useDisplayCurrency> =>
+      currentCurrencyContext(ctx);
 
-    expect(ctx!.displayCurrency).toBe('EUR');
+    expect(readContext().displayCurrency).toBe('EUR');
 
     act(() => {
-      ctx!.setDisplayCurrency('CHF');
+      readContext().setDisplayCurrency('CHF');
     });
 
     expect(window.localStorage.getItem('mbongo.displayCurrency')).toBe('CHF');
-    expect(ctx!.displayCurrency).toBe('CHF');
+    expect(readContext().displayCurrency).toBe('CHF');
     // Rate 0.93 (CHF → EUR): 100 EUR ≈ 107.53 CHF (EUR / rate).
-    expect(ctx!.convert(100)).toBe(107.53);
+    expect(readContext().convert(100)).toBe(107.53);
   });
 
   it('reads a persisted CHF selection back (reload parity)', () => {
@@ -146,8 +149,10 @@ describe('DisplayCurrencyProvider', () => {
       return createElement('span');
     };
     render(createElement(DisplayCurrencyProvider, null, createElement(Probe)));
+    const readContext = (): ReturnType<typeof useDisplayCurrency> =>
+      currentCurrencyContext(ctx);
 
-    expect(ctx!.displayCurrency).toBe('CHF');
+    expect(readContext().displayCurrency).toBe('CHF');
   });
 });
 

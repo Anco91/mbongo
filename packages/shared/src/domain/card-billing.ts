@@ -16,7 +16,15 @@
  * @packageDocumentation
  */
 
-import { addDays, endOfMonth, isAfter, parseISO, setDate, startOfDay, startOfMonth } from 'date-fns';
+import {
+  addDays,
+  endOfMonth,
+  isAfter,
+  parseISO,
+  setDate,
+  startOfDay,
+  startOfMonth,
+} from 'date-fns';
 import { Account } from '../schemas/account';
 import { Transaction } from '../schemas/transaction';
 

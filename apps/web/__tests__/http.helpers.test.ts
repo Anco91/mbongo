@@ -9,6 +9,7 @@ import {
   toSuccessResponse,
   toCreatedResponse,
   parseBody,
+  parseParams,
   parseQuery,
   HttpError,
 } from '@/server/common/http';
@@ -146,13 +147,6 @@ describe('parseQuery — filter syntax and pagination helper', () => {
   });
 
   it('validates dynamic route params through parseParams', () => {
-    const { parseParams } = require('@/server/common/http') as {
-      parseParams: (
-        params: Record<string, string | undefined>,
-        schema: z.ZodSchema<{ id: string }>
-      ) => { id: string };
-    };
-
     expect(parseParams({ id: 'abc' }, z.object({ id: z.string() }))).toEqual({
       id: 'abc',
     });

@@ -44,7 +44,11 @@ export function resolveRate(
   }
   const fallback = findLatestRate(fallbackTransfers);
   if (fallback) {
-    return { rate: fallback.rate, rateDate: fallback.rateDate, source: 'fallback' };
+    return {
+      rate: fallback.rate,
+      rateDate: fallback.rateDate,
+      source: 'fallback',
+    };
   }
   return null;
 }
@@ -61,15 +65,21 @@ function round2(n: number): number {
  * 1. Taux effectif du dernier transfert COMPLETED
  * 2. Sinon taux estimé du dernier transfert
  */
-export function findLatestRate(transfers: Transfer[]): { rate: number; rateDate: string } | null {
+export function findLatestRate(
+  transfers: Transfer[]
+): { rate: number; rateDate: string } | null {
   if (transfers.length === 0) return null;
 
   // 1. Chercher d'abord les transferts complétés avec taux effectif
   const completed = transfers
     .filter((t) => t.status === 'COMPLETED' && t.rateEffective !== null)
     .sort((a, b) => {
-      const dateA = a.receivedAt ? new Date(a.receivedAt).getTime() : new Date(a.rateDate).getTime();
-      const dateB = b.receivedAt ? new Date(b.receivedAt).getTime() : new Date(b.rateDate).getTime();
+      const dateA = a.receivedAt
+        ? new Date(a.receivedAt).getTime()
+        : new Date(a.rateDate).getTime();
+      const dateB = b.receivedAt
+        ? new Date(b.receivedAt).getTime()
+        : new Date(b.rateDate).getTime();
       return dateB - dateA;
     });
 
@@ -128,9 +138,10 @@ export function computeConsolidatedBalance(
   totalChf = round2(totalChf);
   totalEurNative = round2(totalEurNative);
 
-  const rateInfo = rateOverride && rateOverride.rate > 0
-    ? rateOverride
-    : findLatestRate(transfers);
+  const rateInfo =
+    rateOverride && rateOverride.rate > 0
+      ? rateOverride
+      : findLatestRate(transfers);
 
   if (!rateInfo) {
     return {
