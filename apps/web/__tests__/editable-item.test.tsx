@@ -65,23 +65,30 @@ describe('EditableItem', () => {
     });
   });
 
-  describe('responsive layout', () => {
-    it('has responsive flex classes', () => {
+  describe('layout invariants', () => {
+    it('never depends on viewport breakpoints (container is capped at 390px)', () => {
+      const { container } = render(<EditableItem {...defaultProps} />);
+
+      const allClasses = Array.from(container.querySelectorAll('*'))
+        .map((el) => el.className)
+        .join(' ');
+      expect(allClasses).not.toMatch(/\b(sm|md|lg|xl):/);
+    });
+
+    it('controls wrap to prevent overflow in the narrow app frame', () => {
+      const { container } = render(<EditableItem {...defaultProps} />);
+
+      const rootDiv = container.firstElementChild;
+      const controls = rootDiv?.children[1];
+      expect(controls?.className).toContain('flex-wrap');
+    });
+
+    it('renders label block above controls (always visible)', () => {
       const { container } = render(<EditableItem {...defaultProps} />);
 
       const rootDiv = container.firstElementChild;
       expect(rootDiv?.className).toContain('flex-col');
-      expect(rootDiv?.className).toContain('sm:flex-row');
-    });
-
-    it('has responsive width classes on actions container', () => {
-      const { container } = render(<EditableItem {...defaultProps} />);
-
-      // Find the actions container (second child of root)
-      const rootDiv = container.firstElementChild;
-      const actionsContainer = rootDiv?.children[1];
-      expect(actionsContainer?.className).toContain('w-full');
-      expect(actionsContainer?.className).toContain('sm:w-auto');
+      expect(rootDiv?.children.length).toBe(2);
     });
   });
 

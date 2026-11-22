@@ -42,11 +42,7 @@ function ChargeRow({ charge }: { charge: Charge }): JSX.Element {
   return (
     <EditableItem
       label={charge.label}
-      meta={
-        <>
-          {charge.amount.toFixed(2)} {charge.currency} — {charge.category}
-        </>
-      }
+      meta={`${charge.amount.toFixed(2)} ${charge.currency} — ${charge.category}`}
       amount={charge.amount}
       currency={charge.currency}
       actionLabel="Ajuster"

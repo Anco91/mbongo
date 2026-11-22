@@ -71,8 +71,8 @@ export function EditableItem({
   };
 
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 w-full">
-      <div className="flex-1 min-w-0">
+    <div className="flex flex-col gap-2 w-full">
+      <div className="min-w-0">
         <p className="font-medium truncate">{label}</p>
         {meta ? (
           <p className="text-sm text-slate-600 truncate">{meta}</p>
@@ -83,13 +83,13 @@ export function EditableItem({
         )}
       </div>
 
-      <div className="flex items-center gap-2 w-full sm:w-auto flex-shrink-0">
+      <div className="flex flex-wrap items-center gap-2 w-full">
         <input
           type="number"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder={amount.toString()}
-          className="w-24 sm:w-32 px-3 py-1 border rounded text-sm"
+          className="w-24 px-3 py-1 border rounded text-sm"
           step="0.01"
           disabled={isPending}
         />
@@ -102,7 +102,7 @@ export function EditableItem({
           {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
           {actionLabel}
         </Button>
-        {actions}
+        {actions && <div className="w-full">{actions}</div>}
       </div>
     </div>
   );
