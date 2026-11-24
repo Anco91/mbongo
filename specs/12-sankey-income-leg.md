@@ -110,3 +110,5 @@ None yet.
 - Changing the donut or the recap.
 
 ## Handoffs
+
+- `docs/handoffs/20261124-1932-12-sankey-income-leg.md`
