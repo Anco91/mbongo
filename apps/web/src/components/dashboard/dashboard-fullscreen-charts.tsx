@@ -47,14 +47,16 @@ export function DashboardFullscreenCharts({
         chart === 'sankey' ? 'Flux du mois (Sankey)' : 'Dépenses par catégorie'
       }
       onClose={onClose}
+      toolbar={
+        <div className="px-4 py-2">
+          <MemberScopeChips
+            members={members}
+            value={memberId}
+            onChange={onMemberChange}
+          />
+        </div>
+      }
     >
-      <div className="px-4 pb-2">
-        <MemberScopeChips
-          members={members}
-          value={memberId}
-          onChange={onMemberChange}
-        />
-      </div>
       {chart === 'sankey' ? (
         <div className="h-full w-full px-4">
           <SankeyFlowsChart

@@ -11,6 +11,7 @@
 import { useMemo } from 'react';
 import {
   useQuery,
+  useInfiniteQuery,
   useMutation,
   useQueryClient,
   type UseQueryResult,
@@ -31,7 +32,6 @@ import {
   UnmatchedIncome,
   findUnmatchedIncome,
 } from '@mbongo/shared';
-import { UNMATCHED_QUERY } from '@/lib/month-queries';
 
 // ============================================================================
 // Query Hooks
@@ -61,8 +61,12 @@ export function useUnmatchedIncome(): {
   incomes: Income[];
   isLoading: boolean;
   error: Error | null;
+  nextPageError: Error | null;
+  hasNextPage: boolean;
+  fetchNextPage: () => void;
+  isFetchingNextPage: boolean;
 } {
-  const transactions = useQuery(transactionQueries.list(UNMATCHED_QUERY));
+  const transactions = useInfiniteQuery(transactionQueries.unmatchedIncome());
   const incomes = useQuery(incomeQueries.list({}));
   const accounts = useQuery(accountQueries.list());
 
@@ -72,18 +76,27 @@ export function useUnmatchedIncome(): {
         .filter((account) => account.status === 'CLOSED')
         .map((account) => account.id)
     );
-    const openTransactions = (transactions.data ?? []).filter(
+    const openTransactions = (transactions.data?.pages.flat() ?? []).filter(
       (t) => !closedIds.has(t.accountId)
     );
     return findUnmatchedIncome(openTransactions, incomes.data ?? []);
   }, [transactions.data, incomes.data, accounts.data]);
+
+  const hasLoadedPages = transactions.data !== undefined;
 
   return {
     items,
     incomes: incomes.data ?? [],
     isLoading:
       transactions.isLoading || incomes.isLoading || accounts.isLoading,
-    error: transactions.error ?? incomes.error ?? accounts.error,
+    error:
+      (hasLoadedPages ? null : transactions.error) ??
+      incomes.error ??
+      accounts.error,
+    nextPageError: hasLoadedPages ? transactions.error : null,
+    hasNextPage: transactions.hasNextPage,
+    fetchNextPage: () => void transactions.fetchNextPage(),
+    isFetchingNextPage: transactions.isFetchingNextPage,
   };
 }
 

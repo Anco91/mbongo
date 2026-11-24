@@ -12,12 +12,15 @@ import { useRef, useState, JSX } from 'react';
 interface ChartFullscreenProps {
   title: string;
   onClose: () => void;
+  /** Rendered between header and pan area, unaffected by zoom/pan. */
+  toolbar?: React.ReactNode;
   children: React.ReactNode;
 }
 
 export function ChartFullscreen({
   title,
   onClose,
+  toolbar,
   children,
 }: ChartFullscreenProps): JSX.Element {
   const [zoom, setZoom] = useState(1);
@@ -75,6 +78,8 @@ export function ChartFullscreen({
           </button>
         </div>
       </div>
+
+      {toolbar}
 
       <div
         className="flex-1 cursor-grab touch-none overflow-hidden active:cursor-grabbing"

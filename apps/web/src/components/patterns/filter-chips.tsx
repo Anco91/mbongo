@@ -30,6 +30,7 @@ export function FilterChips({
         <button
           key={item.value}
           type="button"
+          aria-pressed={value === item.value}
           onClick={() => onChange(item.value)}
           className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
             value === item.value

@@ -122,6 +122,13 @@ L'écran `/incomes/unmatched` SHALL lister chaque entrée d'argent positive sans
 - **WHEN** une entrée n'a aucune proposition
 - **THEN** la ligne affiche « Aucune source de revenu possible »
 
+#### Scenario: Plus de cinquante entrées
+
+- **GIVEN** plus de 50 entrées d'argent sans source
+- **WHEN** l'écran s'ouvre
+- **THEN** les 50 plus récentes sont listées avec un bouton « Afficher plus »
+- **AND** un clic sur « Afficher plus » ajoute la page suivante, jusqu'à épuisement (le bouton disparaît)
+
 #### Scenario: Rien à lier
 
 - **WHEN** aucune entrée n'est sans source
