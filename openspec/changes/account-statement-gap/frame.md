@@ -81,3 +81,5 @@ Proof of failure: `npx jest __tests__/statement-gap.test.ts` → 10 failed, `not
 |---|---|---|---|
 
 ## Handoffs
+
+- `docs/handoffs/20261124-2154-account-statement-gap.md`
