@@ -9,6 +9,7 @@
 
 import { endOfMonth, isWithinInterval, parseISO, startOfMonth } from 'date-fns';
 import type { Income } from '../schemas/income';
+import type { CurrencyConverter } from './schedule';
 
 /**
  * Détermine si une source de revenu est due pour un mois donné.
@@ -66,4 +67,64 @@ export function isIncomeDueForMonth(income: Income, monthKey: string): boolean {
   if (endDate && monthStart > endOfMonth(endDate)) return false;
 
   return true;
+}
+
+/** Montant confirmé d'une source pour un mois (transaction rattachée à un revenu). */
+export interface ConfirmedIncomeEntry {
+  incomeId: string | null;
+  budgetMonth: string | null;
+  amount: number;
+}
+
+/** Une ligne de revenu attendu : une source due, prévue ou confirmée. */
+export interface ExpectedIncomeEntry {
+  incomeId: string;
+  amount: number;
+  currency: Income['currency'];
+  confirmed: boolean;
+}
+
+/** Résultat du calcul des revenus attendus d'un mois. */
+export interface MonthExpectedIncomeResult {
+  total: number;
+  entries: ExpectedIncomeEntry[];
+}
+
+/**
+ * Revenus attendus d'un mois : une ligne par source due (`isIncomeDueForMonth`).
+ * Le montant confirmé du mois (transaction avec `incomeId` et `budgetMonth`
+ * égal au mois) remplace le montant prévu, jamais les deux. Total converti
+ * (si `convert`) et arrondi à 2 décimales.
+ */
+export function computeMonthExpectedIncome(
+  incomes: Income[],
+  confirmed: ConfirmedIncomeEntry[],
+  monthKey: string,
+  convert?: CurrencyConverter
+): MonthExpectedIncomeResult {
+  const entries: ExpectedIncomeEntry[] = incomes
+    .filter((income) => isIncomeDueForMonth(income, monthKey))
+    .map((income) => {
+      const match = confirmed.find(
+        (c) => c.incomeId === income.id && c.budgetMonth === monthKey
+      );
+      return {
+        incomeId: income.id,
+        amount: match ? match.amount : income.amount,
+        currency: income.currency,
+        confirmed: match !== undefined,
+      };
+    });
+
+  const sum = entries.reduce(
+    (acc, entry) => acc + (convert?.(entry.amount, entry.currency) ?? entry.amount),
+    0
+  );
+
+  return { total: roundToCents(sum), entries };
+}
+
+/** Arrondi à 2 décimales (montants monétaires). */
+function roundToCents(value: number): number {
+  return Math.round(value * 100) / 100;
 }

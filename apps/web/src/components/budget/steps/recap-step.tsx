@@ -1,10 +1,12 @@
 /**
  * Recap Step
  *
- * Step 4: Display budget summary with income, charges, and remaining amount.
- * Real sources only (design D1): the month's due dates come from the
- * windowed payments query, the income from the month's positive
- * transactions (excluding transfers) — never from the income sources.
+ * Step 4: Display budget summary with expected income, charges, and remaining amount.
+ * Income = expected income of the month (active sources due this month, at
+ * their confirmed amount when confirmed, else at their planned amount). This
+ * supersedes archived decision D1/D8 (human decision 2026-11-24: a budget is
+ * built on expected income, not on realized transactions). Due dates still
+ * come from the windowed payments query.
  * Uses StepLayout for consistent spacing.
  *
  * @module Components/Budget/Steps/RecapStep
@@ -14,16 +16,16 @@
 
 import { useMemo } from 'react';
 import { useCharges } from '@/hooks/use-charges';
-import { useAccounts } from '@/hooks/use-accounts';
+import { useIncomes } from '@/hooks/use-incomes';
 import { useMonthlyBudget } from '@/hooks/use-monthly-budget';
 import { useMonthPayments } from '@/hooks/use-schedule';
 import { useMonthTransactions } from '@/hooks/use-transactions';
 import { useDisplayCurrency } from '@/components/providers/display-currency-provider';
 import { counterValue } from '@mbongo/shared';
 import {
-  computeMonthIncome,
-  type MonthIncomeEntry,
+  computeMonthExpectedIncome,
   computeMonthlyBudget,
+  type ConfirmedIncomeEntry,
   type CurrencyConverter,
 } from '@mbongo/shared';
 import { monthKeyToDate } from '@/lib/month-navigation';
@@ -36,18 +38,13 @@ interface RecapStepProps {
 
 export function RecapStep({ month }: RecapStepProps): JSX.Element {
   const { data: charges = [] } = useCharges();
-  const { data: accounts = [] } = useAccounts();
+  const { data: incomes = [] } = useIncomes({ active: 'true' });
   const { data: payments = [] } = useMonthPayments(month);
   const { data: transactions = [] } = useMonthTransactions(month);
   const { data: monthlyBudget } = useMonthlyBudget(month);
   // Display-currency shared context: the conversion composes the native
   // CHF→EUR counter-value with the EUR→display converter.
   const { rate, convert: convertEur, displayCurrency } = useDisplayCurrency();
-
-  const accountsById = useMemo(
-    () => new Map(accounts.map((account) => [account.id, account])),
-    [accounts]
-  );
 
   const convert: CurrencyConverter = useMemo(() => {
     const effectiveRate = rate && rate > 0 ? rate : 1;
@@ -57,22 +54,21 @@ export function RecapStep({ month }: RecapStepProps): JSX.Element {
       );
   }, [rate, convertEur]);
 
-  // Income: the month's positive transactions, transfers excluded —
-  // the transaction carries the native currency of its account.
-  const incomeEntries: MonthIncomeEntry[] = useMemo(
+  // Income: expected income of the month — confirmed amounts (transactions
+  // linked to a source for this month) replace the planned amounts.
+  const confirmedEntries: ConfirmedIncomeEntry[] = useMemo(
     () =>
       transactions.map((t) => ({
+        incomeId: t.incomeId ?? null,
+        budgetMonth: t.budgetMonth ?? null,
         amount: t.amount,
-        date: t.date,
-        transferId: t.transferId,
-        currency:
-          accountsById.get(t.accountId)?.currency === 'CHF' ? 'CHF' : 'EUR',
       })),
-    [transactions, accountsById]
+    [transactions]
   );
 
-  const { total: totalIncome } = computeMonthIncome(
-    incomeEntries,
+  const { total: totalIncome } = computeMonthExpectedIncome(
+    incomes,
+    confirmedEntries,
     month,
     convert
   );
@@ -91,7 +87,7 @@ export function RecapStep({ month }: RecapStepProps): JSX.Element {
     <StepLayout description="Récapitulatif de votre budget pour ce mois.">
       <div className="grid gap-4">
         <SummaryTile
-          label="Revenus"
+          label="Revenus prévus"
           value={`${totalIncome.toFixed(2)} ${displayCurrency}`}
           tone="positive"
         />

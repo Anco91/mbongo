@@ -137,7 +137,7 @@ L'étape Comptes SHALL lister les comptes actifs et permettre d'ajouter un compt
 
 ### Requirement: Récapitulatif du mois préparé
 
-Le récapitulatif SHALL afficher les revenus du mois, le total des échéances du mois hors provisions, le total des provisions, le total des charges du mois et le reste à vivre (revenus − charges). Les revenus SHALL être calculés depuis les transactions positives du mois hors transferts. Les échéances du mois SHALL être requêtées à la source pour le mois préparé. Le total des charges SHALL réutiliser le calcul de budget mensuel existant, sans double comptage des provisions.
+Le récapitulatif SHALL afficher les revenus du mois, le total des échéances du mois hors provisions, le total des provisions, le total des charges du mois et le reste à vivre (revenus − charges). Les revenus SHALL être les revenus attendus du mois : pour chaque source de revenu active due dans le mois, le montant confirmé pour ce mois s'il existe, sinon le montant prévu de la source (jamais les deux). Les transactions positives sans lien à une source ne SHALL pas être comptées. La tuile se nomme « Revenus prévus ». Les échéances du mois SHALL être requêtées à la source pour le mois préparé. Le total des charges SHALL réutiliser le calcul de budget mensuel existant, sans double comptage des provisions.
 
 #### Scenario: Calcul du reste à vivre
 
@@ -145,9 +145,15 @@ Le récapitulatif SHALL afficher les revenus du mois, le total des échéances d
 - **WHEN** l'utilisateur atteint le récapitulatif
 - **THEN** les charges affichées sont 1 877,92 CHF et le reste à vivre est 2 522,08 CHF
 
-#### Scenario: Revenu non saisi
+#### Scenario: Revenu non confirmé
 
-- **GIVEN** aucune transaction positive sur le mois
+- **GIVEN** une source de revenu active de 6 600 CHF due en novembre, sans confirmation
+- **WHEN** l'utilisateur atteint le récapitulatif
+- **THEN** « Revenus prévus » affiche 6 600,00 et le reste à vivre est calculé sur ce montant
+
+#### Scenario: Aucun revenu attendu
+
+- **GIVEN** aucune source de revenu active due sur le mois
 - **WHEN** l'utilisateur atteint le récapitulatif
 - **THEN** les revenus affichent 0,00 et le parcours invite à revenir à l'étape Revenus sans bloquer la sortie
 
@@ -163,11 +169,22 @@ Le récapitulatif SHALL afficher les revenus du mois, le total des échéances d
 - **WHEN** l'utilisateur atteint le récapitulatif
 - **THEN** le total des charges du mois inclut l'échéance de cette charge et affiche un total supérieur à 0
 
-#### Scenario: Revenu d'une source démarrée un mois précédent
+#### Scenario: Revenu confirmé à un autre montant
 
-- **GIVEN** un revenu dont la source a démarré le mois précédent et une transaction positive confirmée ce mois
+- **GIVEN** une source de 6 600 CHF confirmée pour le mois à 6 700 CHF
 - **WHEN** l'utilisateur atteint le récapitulatif
-- **THEN** le revenu du mois est affiché depuis la transaction du mois
+- **THEN** le revenu du mois est 6 700 CHF, jamais 13 300 CHF
+
+#### Scenario: Source ignorée
+
+- **GIVEN** une source inactive, une source non due ce mois, ou une confirmation d'un autre mois
+- **WHEN** le récapitulatif est calculé
+- **THEN** ces éléments ne comptent pas dans les revenus prévus
+
+#### Scenario: Mois déjà préparé
+
+- **WHEN** l'utilisateur rouvre le récapitulatif d'un mois préparé
+- **THEN** les mêmes revenus prévus sont affichés (jamais 0 faute de transaction)
 
 #### Scenario: Décomposition échéances et provisions
 
