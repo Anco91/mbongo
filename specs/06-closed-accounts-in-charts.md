@@ -1,6 +1,6 @@
 ---
 id: 06-closed-accounts-in-charts
-status: ready
+status: review
 branch: feat/06-closed-accounts-in-charts
 tier: medium
 locked_at: ea04a48d857b05e875d3d7d024dd3461778fcf31

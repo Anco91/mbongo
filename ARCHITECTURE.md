@@ -67,6 +67,8 @@ incomes, transfers, monthly budgets, alerts). Mobile-first PWA.
 | `apps/web/src/components/ui/` | ui | Primitives: Button, Card, Badge, StatusBadge, TypeBadge, AccountChip, Sheet, Skeleton, Progress, icons |
 | `apps/web/src/components/form/` | ui | Form kit: Form, TextInput, SelectInput, ToggleInput, AmountInput, FormActions, FormError, FormSuccess |
 | `apps/web/src/components/patterns/` | ui | AppShell, AppHeader, TabNav, AsyncState, ItemList, EditableItem, CreatePanel, DetailSheet, DetailRow, DeleteButton, FilterChips, MonthCursor, ShowMoreList, SwipeZone, RouteError… |
+| `packages/shared/src/lib/calculation/active-accounts.ts` | domain | `excludeClosedAccounts`: drops closed accounts and what points at them before chart calculations |
+| `apps/web/src/components/patterns/show-closed-toggle.tsx` | ui | `ShowClosedToggle`: « Afficher les comptes clôturés » checkbox (dashboard, accounts) |
 | `apps/web/src/components/charts/` | ui | Sankey, donut, fullscreen chart |
 | `apps/web/src/components/providers/` | ui | QueryProvider, DisplayCurrencyProvider, service worker register |
 

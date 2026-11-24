@@ -20,7 +20,8 @@ interface AccountCardProps {
 }
 
 export function AccountCard({ view }: AccountCardProps): JSX.Element {
-  const { account, balance, savingsProgress, billing, settlementName } = view;
+  const { account, status, balance, savingsProgress, billing, settlementName } =
+    view;
 
   return (
     <Link href={`/accounts/${account.id}/edit`} className="block">
@@ -39,6 +40,11 @@ export function AccountCard({ view }: AccountCardProps): JSX.Element {
             <Badge variant="outline" className="text-[10px] text-slate-500">
               {ACCOUNT_TYPE_LABELS[account.accountType] ?? account.accountType}
             </Badge>
+            {status === 'CLOSED' && (
+              <Badge variant="outline" className="text-[10px] text-slate-500">
+                Clôturé
+              </Badge>
+            )}
           </div>
           <p
             className={`mt-2 text-lg font-semibold ${

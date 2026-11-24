@@ -27,6 +27,7 @@ export type CardBillingView = ReturnType<typeof cardBilling>;
 
 export interface AccountCardView {
   account: Account;
+  status: Account['status'];
   balance: number;
   savingsProgress: number | null;
   billing: CardBillingView | null;
@@ -64,6 +65,7 @@ export function buildAccountCards(
 
     return {
       account,
+      status: account.status,
       balance,
       savingsProgress,
       billing,

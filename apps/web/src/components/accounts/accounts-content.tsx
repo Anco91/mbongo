@@ -13,7 +13,7 @@
 
 import { JSX } from 'react';
 import Link from 'next/link';
-import { ShowMoreList } from '@/components/patterns';
+import { ShowMoreList, ShowClosedToggle } from '@/components/patterns';
 import { MemberFilterChips } from '@/components/patterns/member-filter-chips';
 import { LoadingState, ErrorPanel } from '@/components/patterns/async-state';
 import { Button } from '@/components/ui/button';
@@ -52,6 +52,11 @@ export function AccountsContent(): JSX.Element {
         members={view.members}
         value={view.selectedMember}
         onChange={view.setSelectedMember}
+      />
+
+      <ShowClosedToggle
+        checked={view.showClosed}
+        onChange={view.setShowClosed}
       />
 
       <ShowMoreList

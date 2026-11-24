@@ -14,7 +14,11 @@
 import { useState, useEffect, useCallback, JSX } from 'react';
 import { useDisplayCurrency } from '@/components/providers/display-currency-provider';
 import { formatAmount } from '@/lib/format';
-import { SwipeZone, MonthCursor } from '@/components/patterns';
+import {
+  SwipeZone,
+  MonthCursor,
+  ShowClosedToggle,
+} from '@/components/patterns';
 import { WealthCard } from './cards/wealth-card';
 import { SankeyCard } from './cards/sankey-card';
 import { DonutCard } from './cards/donut-card';
@@ -41,6 +45,8 @@ export function DashboardContent(): JSX.Element {
   // défaut est le mois courant ; le patrimoine et les alertes restent
   // l'état du jour, quel que soit le mois affiché.
   const [selectedMonth, setSelectedMonth] = useState(currentMonthKey);
+  // Closed accounts are hidden from the charts by default.
+  const [showClosed, setShowClosed] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -57,7 +63,7 @@ export function DashboardContent(): JSX.Element {
     monthPayments,
     totalCharges,
     now,
-  } = useDashboardData(selectedMonth);
+  } = useDashboardData(selectedMonth, showClosed);
 
   const { displayCurrency, convert } = useDisplayCurrency();
 
@@ -89,6 +95,8 @@ export function DashboardContent(): JSX.Element {
       <MonthCursor selectedMonth={selectedMonth} onChange={setSelectedMonth} />
 
       {/* 2 + 3 : zone swipe — geste horizontal natif PWA pour changer de mois */}
+      <ShowClosedToggle checked={showClosed} onChange={setShowClosed} />
+
       <SwipeZone onSwipe={changeMonth}>
         {mounted ? (
           <>
