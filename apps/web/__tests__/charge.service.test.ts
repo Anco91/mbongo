@@ -56,6 +56,7 @@ const chargeRow = {
   endDate: null,
   frequency: 'monthly',
   installments: null,
+  dueDay: null,
   provisioned: false,
   accountId: 'account-ubs-courant',
   createdAt: new Date('2026-11-01T00:00:00.000Z'),
@@ -227,5 +228,103 @@ describe('ChargeService — other methods', () => {
     expect(prisma.charge.findMany).toHaveBeenCalledWith(
       expect.objectContaining({ cursor: { id: 'charge-1' }, take: 5 })
     );
+  });
+});
+
+describe('ChargeService — dueDay (design D4, tasks 4.4)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockedTransaction.mockImplementation((fn: (tx: unknown) => unknown) =>
+      fn(prisma)
+    );
+  });
+
+  it('persists dueDay at creation and generates due dates on the chosen day', async () => {
+    mockedFindUnique.mockResolvedValue({ id: 'account-ubs-courant' });
+    mockedCreate.mockResolvedValue({ ...chargeRow, dueDay: 5 });
+
+    await new ChargeService().create({ ...validInput, dueDay: 5 });
+
+    expect(mockedCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ dueDay: 5 }),
+      })
+    );
+
+    const createCall = (prisma.payment.createMany as jest.Mock).mock
+      .calls[0][0] as { data: Array<{ dueDate: string | Date }> };
+    const firstDay = new Date(createCall.data[0].dueDate).getDate();
+    expect(firstDay).toBe(5);
+  });
+
+  it('regenerates the monthly calendar from the start of the current month on dueDay edit, keeping PAID and reconciled ones', async () => {
+    (prisma.charge.findUnique as jest.Mock).mockResolvedValue(chargeRow);
+    (prisma.charge.update as jest.Mock).mockResolvedValue({
+      ...chargeRow,
+      dueDay: 5,
+    });
+
+    await new ChargeService().update('charge-1', { dueDay: 5 });
+
+    const { where } = (prisma.payment.deleteMany as jest.Mock).mock
+      .calls[0][0] as { where: { dueDate: { gte: Date } } };
+    expect(where).toMatchObject({
+      chargeId: 'charge-1',
+      status: 'PENDING',
+      transactionId: null,
+    });
+    // The anchor month is always regenerated: the lower bound is the
+    // first day of the current month, not today.
+    expect(where.dueDate.gte.getDate()).toBe(1);
+    expect(where.dueDate.gte.getMonth()).toBe(new Date().getMonth());
+  });
+
+  it('rejects a due day on a non-monthly frequency with a 422', async () => {
+    (prisma.charge.findUnique as jest.Mock).mockResolvedValue(chargeRow);
+
+    await expect(
+      new ChargeService().update('charge-1', {
+        frequency: 'yearly',
+        dueDay: 5,
+      })
+    ).rejects.toMatchObject({ status: 422 } as Partial<HttpError>);
+
+    expect(prisma.charge.update).not.toHaveBeenCalled();
+  });
+
+  it('accepts clearing dueDay (null) on any frequency', async () => {
+    (prisma.charge.findUnique as jest.Mock).mockResolvedValue({
+      ...chargeRow,
+      dueDay: 5,
+    });
+    (prisma.charge.update as jest.Mock).mockResolvedValue(chargeRow);
+
+    await new ChargeService().update('charge-1', { dueDay: null });
+
+    const data = (prisma.charge.update as jest.Mock).mock.calls[0][0].data;
+    expect(data.dueDay).toBeNull();
+  });
+
+  it('maps dueDay through toPrisma', async () => {
+    (prisma.charge.findUnique as jest.Mock).mockResolvedValue(chargeRow);
+    (prisma.charge.update as jest.Mock).mockResolvedValue({
+      ...chargeRow,
+      dueDay: 12,
+    });
+
+    await new ChargeService().update('charge-1', { dueDay: 12 });
+
+    const data = (prisma.charge.update as jest.Mock).mock.calls[0][0].data;
+    expect(data.dueDay).toBe(12);
+  });
+
+  it('exposes dueDay in the returned charge', async () => {
+    (prisma.charge.findUnique as jest.Mock).mockResolvedValue({
+      ...chargeRow,
+      dueDay: 5,
+    });
+
+    const charge = await new ChargeService().findOne('charge-1');
+    expect(charge.dueDay).toBe(5);
   });
 });

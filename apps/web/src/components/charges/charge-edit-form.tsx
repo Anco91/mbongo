@@ -11,14 +11,16 @@
 
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { parseISO } from 'date-fns';
 import {
   updateChargeSchema,
   type Charge,
   type UpdateChargeInput,
 } from '@mbongo/shared';
 import { useAccounts } from '@/hooks/use-accounts';
+import { DUE_DAY_OPTIONS } from '@/lib/charges';
 import {
   useCharge,
   useUpdateCharge,
@@ -81,14 +83,32 @@ export function ChargeEditForm({
   } = useUpdateCharge(chargeId);
   const { mutateAsync: deleteCharge } = useDeleteCharge();
 
+  // Validates through the shared schema after clearing `dueDay` outside the
+  // monthly recurrence: the hidden selector must not block the submission
+  // (spec charge-management — due day is monthly-only).
+  const resolver: Resolver<UpdateChargeInput> = (values, context, options) =>
+    zodResolver(updateChargeSchema)(
+      values.type === 'FIXED_RECURRING' &&
+        (values.frequency ?? charge?.frequency) === 'monthly'
+        ? values
+        : { ...values, dueDay: null },
+      context,
+      options
+    );
+
   const form = useForm<UpdateChargeInput>({
-    resolver: zodResolver(updateChargeSchema),
+    resolver,
     values: charge ? defaultsOf(charge) : undefined,
   });
 
   const type = form.watch('type');
   const currency = form.watch('currency');
   const provisioned = form.watch('provisioned');
+  const frequency = form.watch('frequency');
+  const activeType = type ?? charge?.type;
+  const isMonthlyRecurring =
+    activeType === 'FIXED_RECURRING' &&
+    (frequency ?? charge?.frequency) === 'monthly';
 
   const activeAccounts = accounts
     .filter((a) => a.status === 'ACTIVE')
@@ -102,7 +122,10 @@ export function ChargeEditForm({
     );
   }
 
-  const onSubmit = form.handleSubmit((data) => update(data));
+  const onSubmit = form.handleSubmit((data) =>
+    // Le jour de prélèvement n'existe que pour le mensuel (422 sinon).
+    update({ ...data, dueDay: isMonthlyRecurring ? data.dueDay : null })
+  );
 
   if (isSuccess) {
     return (
@@ -147,27 +170,34 @@ export function ChargeEditForm({
         />
       </FormSection>
 
-      {(type ?? charge.type) === 'FIXED_RECURRING' && (
+      {activeType === 'FIXED_RECURRING' && (
         <FormSection title="Récurrence">
           <SelectInput
             name="frequency"
             label="Périodicité"
             options={FREQUENCIES}
           />
+          {isMonthlyRecurring && (
+            <SelectInput
+              name="dueDay"
+              label="Jour de prélèvement"
+              options={DUE_DAY_OPTIONS}
+            />
+          )}
           <FormHint>
             Échéance générée chaque période. Montant révisable.
           </FormHint>
         </FormSection>
       )}
 
-      {(type ?? charge.type) === 'INSTALLMENT' && (
+      {activeType === 'INSTALLMENT' && (
         <FormSection title="Échéances">
           <AmountInput name="installments" label="Nombre d'échéances" />
           <TextInput name="startDate" label="Première échéance" type="date" />
         </FormSection>
       )}
 
-      {(type ?? charge.type) === 'TEMPORARY' && (
+      {activeType === 'TEMPORARY' && (
         <FormSection title="Récurrence bornée">
           <SelectInput
             name="frequency"
@@ -179,7 +209,7 @@ export function ChargeEditForm({
         </FormSection>
       )}
 
-      {(type ?? charge.type) === 'UPCOMING' && (
+      {activeType === 'UPCOMING' && (
         <FormSection title="Prévision & provision">
           <TextInput name="startDate" label="Date prévue" type="date" />
           <ToggleInput
@@ -224,6 +254,7 @@ function defaultsOf(charge: Charge): UpdateChargeInput {
     endDate: charge.endDate ? charge.endDate.slice(0, 10) : null,
     frequency: charge.frequency,
     installments: charge.installments,
+    dueDay: charge.dueDay ?? parseISO(charge.startDate).getDate(),
     provisioned: charge.provisioned,
   };
 }

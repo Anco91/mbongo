@@ -145,3 +145,77 @@ describe('ChargeEditForm', () => {
     await waitFor(() => expect(push).toHaveBeenCalledWith('/charges'));
   });
 });
+
+describe('ChargeEditForm — jour de prélèvement (tasks 4.5, design D4)', () => {
+  const updateMutate = jest.fn();
+
+  beforeEach(() => {
+    (useUpdateCharge as jest.Mock).mockReturnValue({
+      mutate: updateMutate,
+      isPending: false,
+      isSuccess: false,
+      error: null,
+    });
+  });
+
+  it('prefills the due day with the persisted value, falling back to the start-date day', () => {
+    (useCharge as jest.Mock).mockReturnValue({
+      data: { ...charge, dueDay: 5 },
+      isLoading: false,
+    });
+
+    render(createElement(ChargeEditForm, { chargeId: charge.id }));
+
+    const select = screen.getByLabelText(
+      'Jour de prélèvement'
+    ) as HTMLSelectElement;
+    expect(select.value).toBe('5');
+  });
+
+  it('falls back to the start-date day when the charge has no dueDay (legacy)', () => {
+    (useCharge as jest.Mock).mockReturnValue({
+      data: charge,
+      isLoading: false,
+    });
+
+    render(createElement(ChargeEditForm, { chargeId: charge.id }));
+
+    const select = screen.getByLabelText(
+      'Jour de prélèvement'
+    ) as HTMLSelectElement;
+    // startDate is the 1st — legacy anchor day.
+    expect(select.value).toBe('1');
+  });
+
+  it('hides the due day outside the monthly recurrence', () => {
+    (useCharge as jest.Mock).mockReturnValue({
+      data: { ...charge, type: 'INSTALLMENT', frequency: null },
+      isLoading: false,
+    });
+
+    render(createElement(ChargeEditForm, { chargeId: charge.id }));
+
+    expect(screen.queryByLabelText('Jour de prélèvement')).toBeNull();
+  });
+
+  it('submits the chosen due day', async () => {
+    (useCharge as jest.Mock).mockReturnValue({
+      data: { ...charge, dueDay: 1 },
+      isLoading: false,
+    });
+
+    render(createElement(ChargeEditForm, { chargeId: charge.id }));
+
+    fireEvent.change(screen.getByLabelText('Jour de prélèvement'), {
+      target: { value: '5' },
+    });
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Enregistrer les modifications' })
+    );
+
+    await waitFor(() => expect(updateMutate).toHaveBeenCalled());
+    expect(updateMutate).toHaveBeenCalledWith(
+      expect.objectContaining({ dueDay: 5 })
+    );
+  });
+});

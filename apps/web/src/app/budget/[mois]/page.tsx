@@ -22,7 +22,10 @@ import { paymentService } from '@/server/payments/payment.service';
 import { transactionService } from '@/server/transactions/transaction.service';
 import { incomeService } from '@/server/incomes/income.service';
 import { monthlyBudgetService } from '@/server/monthly-budgets/monthly-budget.service';
-import { monthBounds } from '@/lib/month-navigation';
+import {
+  monthPaymentsQuery,
+  monthTransactionsQuery,
+} from '@/lib/month-queries';
 import { JSX } from 'react';
 
 interface BudgetPageProps {
@@ -41,7 +44,10 @@ export default async function BudgetPage({
 
   const qc = new QueryClient();
   const monthLabel = monthLongLabel(mois);
-  const { start, end } = monthBounds(mois);
+  // Fenêtre d'échéances du mois préparé : même requête typée que le hook
+  // client (design D5) — le préfixe ['payments'] reste invalide par mutation.
+  const paymentsQuery = monthPaymentsQuery(mois);
+  const transactionsQuery = monthTransactionsQuery(mois);
 
   // Prefetch data using server-side services (not fetch — avoids relative URL 500)
   // Query keys match the client hooks exactly so prefetched data is reused.
@@ -55,16 +61,12 @@ export default async function BudgetPage({
       queryFn: () => chargeService.findMany({}),
     }),
     qc.prefetchQuery({
-      queryKey: ['payments', {}],
-      queryFn: () => paymentService.findMany({}),
+      queryKey: ['payments', paymentsQuery],
+      queryFn: () => paymentService.findMany(paymentsQuery),
     }),
     qc.prefetchQuery({
-      queryKey: ['transactions', { month: mois }],
-      queryFn: () =>
-        transactionService.findMany({
-          dateFrom: start.toISOString(),
-          dateTo: end.toISOString(),
-        }),
+      queryKey: ['transactions', transactionsQuery],
+      queryFn: () => transactionService.findMany(transactionsQuery),
     }),
     qc.prefetchQuery({
       queryKey: ['incomes', { month: mois }],

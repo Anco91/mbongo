@@ -9,7 +9,7 @@ import {
   generatePayments,
 } from '@mbongo/shared';
 import { Prisma } from '@prisma/client';
-import { parseISO, startOfDay } from 'date-fns';
+import { parseISO, startOfDay, startOfMonth } from 'date-fns';
 
 const chargeWhereTranslator = createWhereTranslator<Prisma.ChargeWhereInput>({
   label: { ops: ['eq', 'contains', 'startsWith', 'endsWith'] },
@@ -63,6 +63,7 @@ export class ChargeService {
           endDate: input.endDate ? parseISO(input.endDate) : null,
           frequency: input.frequency,
           installments: input.installments,
+          dueDay: input.dueDay ?? null,
           provisioned: input.provisioned ?? false,
         },
       });
@@ -88,19 +89,37 @@ export class ChargeService {
       return this.toCharge(row);
     }
 
+    // Design D4 : le jour de prélèvement n'existe que pour le mensuel.
+    const effectiveType = input.type ?? existing.type;
+    const effectiveFrequency = input.frequency ?? existing.frequency;
+    const effectiveDueDay =
+      input.dueDay !== undefined ? input.dueDay : (existing.dueDay ?? null);
+    if (effectiveDueDay !== null && effectiveFrequency !== 'monthly') {
+      throw new HttpError(422, {
+        message: 'Due day is only allowed for monthly charges',
+      });
+    }
+
     // M2 (design D6) : édition du calendrier — les échéances futures
     // PENDING sans rapprochement sont remplacées ; les échéances payées ou
     // rapprochées restent STRICTEMENT intouchées. Pour les types à
     // échéancier complet (INSTALLMENT, ONE_OFF, UPCOMING), tout l'échéancier
     // PENDING non rapproché est reconstruit (dates fixes depuis startDate).
-    const effectiveType = input.type ?? existing.type;
+    // Pour le mensuel (design D4), la borne est le début du MOIS courant :
+    // le mois d'ancrage est toujours régénéré, sinon éditer le jour
+    // recréerait l'échéance passée du mois courant en doublon.
     const from = startOfDay(new Date());
     const deleteWhere: Prisma.PaymentWhereInput = {
       chargeId: id,
       status: 'PENDING',
       transactionId: null,
       ...(effectiveType === 'FIXED_RECURRING' || effectiveType === 'TEMPORARY'
-        ? { dueDate: { gte: from } }
+        ? {
+            dueDate:
+              effectiveFrequency === 'monthly'
+                ? { gte: startOfMonth(from) }
+                : { gte: from },
+          }
         : {}),
     };
 
@@ -116,7 +135,10 @@ export class ChargeService {
     return this.toCharge(row);
   }
 
-  /** Vrai si l'édition touche le calendrier (montant, fréquence, dates, N). */
+  /**
+   * Vrai si l'édition touche le calendrier (montant, fréquence, dates, N,
+   * jour de prélèvement).
+   */
   private touchesSchedule(input: UpdateChargeInput): boolean {
     const scheduleFields: Array<keyof UpdateChargeInput> = [
       'type',
@@ -126,6 +148,7 @@ export class ChargeService {
       'startDate',
       'endDate',
       'installments',
+      'dueDay',
     ];
     return scheduleFields.some((field) => input[field] !== undefined);
   }
@@ -171,6 +194,7 @@ export class ChargeService {
     if (input.frequency !== undefined) data.frequency = input.frequency;
     if (input.installments !== undefined)
       data.installments = input.installments;
+    if (input.dueDay !== undefined) data.dueDay = input.dueDay;
     if (input.provisioned !== undefined) data.provisioned = input.provisioned;
     if (input.accountId !== undefined) data.accountId = input.accountId;
     return data;

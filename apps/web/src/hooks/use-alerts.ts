@@ -16,14 +16,20 @@
 
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo, useSyncExternalStore } from 'react';
+import { format } from 'date-fns';
 import { computeAlerts, type Alert } from '@mbongo/shared';
 import { useAccounts } from '@/hooks/use-accounts';
 import { useCharges } from '@/hooks/use-charges';
 import { usePayments } from '@/hooks/use-schedule';
 import { useBalances } from '@/hooks/use-balances';
-
-const ALERTS_READ_KEY = 'mbongo.alertsRead';
+import { alertsPaymentsQuery } from '@/lib/month-queries';
+import {
+  getServerSnapshot as getStoreServerSnapshot,
+  getSnapshot as getStoreSnapshot,
+  markAllRead as markAllReadInStore,
+  subscribe as subscribeToStore,
+} from '@/lib/alerts-read-store';
 
 /** Stable identity of an alert occurrence (id + triggering value/date). */
 export function alertFingerprint(alert: Alert): string {
@@ -32,11 +38,20 @@ export function alertFingerprint(alert: Alert): string {
 
 /**
  * Active alerts (sorted by severity, as produced by computeAlerts).
+ *
+ * Payments are windowed (design D5): every PENDING due date up to D+30
+ * — overdue history plus the 30-day forecast — with a day-stable query
+ * key instead of the global truncated list.
  */
 export function useActiveAlerts(): Alert[] {
   const { data: accounts = [] } = useAccounts();
   const { data: charges = [] } = useCharges();
-  const { data: payments = [] } = usePayments();
+  // Day key 'YYYY-MM-DD': the derived bounds (and the query key) stay
+  // stable within the day, so no midnight refetch churn.
+  const todayKey = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
+  const { data: payments = [] } = usePayments(
+    useMemo(() => alertsPaymentsQuery(todayKey), [todayKey])
+  );
   const balances = useBalances();
 
   return useMemo(
@@ -53,40 +68,22 @@ export function useActiveAlerts(): Alert[] {
 
 interface AlertsReadState {
   /** Fingerprints already read on this device. */
-  readIds: Set<string>;
+  readIds: ReadonlySet<string>;
   /** Marks every currently listed fingerprint as read. */
   markAllRead: (fingerprints: string[]) => void;
 }
 
 /**
- * Per-device read state, persisted in localStorage (`mbongo.alertsRead`).
+ * Per-device read state, persisted in localStorage (`mbongo.alertsRead`)
+ * through the shared external store: every mounted consumer (header
+ * bell, dedicated view) sees the same snapshot without a reload.
  */
 export function useAlertsRead(): AlertsReadState {
-  const [readIds, setReadIds] = useState<Set<string>>(new Set());
+  const readIds = useSyncExternalStore(
+    subscribeToStore,
+    getStoreSnapshot,
+    getStoreServerSnapshot
+  );
 
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(ALERTS_READ_KEY);
-      if (raw) {
-        setReadIds(new Set(JSON.parse(raw) as string[]));
-      }
-    } catch {
-      // Unreadable storage: start empty (all alerts count as unread).
-    }
-  }, []);
-
-  const markAllRead = useCallback((fingerprints: string[]): void => {
-    setReadIds((prev) => {
-      const next = new Set(prev);
-      for (const fp of fingerprints) next.add(fp);
-      try {
-        window.localStorage.setItem(ALERTS_READ_KEY, JSON.stringify([...next]));
-      } catch {
-        // Ignore persistence failure: the state stays valid for the session.
-      }
-      return next;
-    });
-  }, []);
-
-  return { readIds, markAllRead };
+  return { readIds, markAllRead: markAllReadInStore };
 }

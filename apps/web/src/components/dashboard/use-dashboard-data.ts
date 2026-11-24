@@ -27,7 +27,7 @@ import {
 import { useAccounts } from '@/hooks/use-accounts';
 import { useTransactions } from '@/hooks/use-transactions';
 import { useCharges } from '@/hooks/use-charges';
-import { usePayments } from '@/hooks/use-schedule';
+import { useMonthPayments } from '@/hooks/use-schedule';
 import { useTransfers } from '@/hooks/use-transfers';
 import { useDisplayCurrency } from '@/components/providers/display-currency-provider';
 import { monthKeyToDate } from '@/lib/month-navigation';
@@ -51,7 +51,9 @@ export function useDashboardData(selectedMonth: string): DashboardData {
   const { data: accounts = [] } = useAccounts();
   const { data: transactions = [] } = useTransactions();
   const { data: charges = [] } = useCharges();
-  const { data: payments = [] } = usePayments();
+  // Échéances requêtées pour le mois choisi (fenêtre dueDate, design D5) —
+  // la même requête que le prefetch serveur du guard.
+  const { data: payments = [] } = useMonthPayments(selectedMonth);
   const { data: transfers = [] } = useTransfers();
   // Devise d'affichage partagée + taux courant (live prioritaire, fallback transferts).
   const { rate, rateDate } = useDisplayCurrency();
@@ -104,10 +106,8 @@ export function useDashboardData(selectedMonth: string): DashboardData {
     [transfers, monthWindow]
   );
 
-  const monthPayments = useMemo(
-    () => payments.filter((p) => isInMonth(p.dueDate, monthWindow)),
-    [payments, monthWindow]
-  );
+  // La requête est déjà fenêtrée sur le mois choisi — plus de filtre local.
+  const monthPayments = payments;
 
   // Total charges for the selected month (for BudgetPreparationCard).
   // Uses computeMonthlyBudget with the month's payments to get the correct total.

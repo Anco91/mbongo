@@ -166,6 +166,7 @@ describe('Donut Expenses (donut.ts)', () => {
       endDate: null,
       frequency: 'monthly',
       installments: null,
+      dueDay: null,
       provisioned: false,
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
@@ -363,6 +364,96 @@ describe('Sankey Month Flows (sankey.ts)', () => {
     expect(flows.nodes).toEqual([]);
     expect(flows.links).toEqual([]);
   });
+
+  describe('expense transactions (compte → catégorie)', () => {
+    const makeTransaction = (overrides: Partial<Transaction>): Transaction => ({
+      id: 't-exp',
+      accountId: 'acc-chf',
+      amount: -100,
+      category: 'Santé',
+      date: '2026-11-10T00:00:00.000Z',
+      note: null,
+      transferId: null,
+      transferRole: null,
+      createdAt: '2026-11-10T00:00:00.000Z',
+      updatedAt: '2026-11-10T00:00:00.000Z',
+      ...overrides,
+    });
+
+    const flowsFor = (
+      transactions: Transaction[],
+      payments: Payment[] = []
+    ): ReturnType<typeof computeSankeyFlows> =>
+      computeSankeyFlows({
+        accounts,
+        transactions,
+        transfers: [],
+        payments,
+        charges: [],
+        rate: 1,
+      });
+
+    it('links the debited account to the transaction category', () => {
+      const flows = flowsFor([makeTransaction({})]);
+
+      expect(flows.links).toHaveLength(1);
+      expect(flows.links[0].value).toBe(100);
+      expect(flows.links[0].planned).toBeUndefined();
+      expect(flows.nodes.map((n) => n.name)).toEqual(
+        expect.arrayContaining(['UBS CHF', 'Santé'])
+      );
+    });
+
+    it('falls back to "Vie courante" when the category is empty', () => {
+      const flows = flowsFor([makeTransaction({ category: '' })]);
+
+      expect(flows.nodes.map((n) => n.name)).toContain('Vie courante');
+    });
+
+    it('falls back to "Compte débité" for an unknown account', () => {
+      const flows = flowsFor([makeTransaction({ accountId: 'acc-ghost' })]);
+
+      expect(flows.nodes.map((n) => n.name)).toContain('Compte débité');
+    });
+
+    it('ignores transfer movements', () => {
+      const flows = flowsFor([
+        makeTransaction({ id: 't-transfer', transferId: 'tr-1' }),
+      ]);
+
+      expect(flows.links).toEqual([]);
+    });
+
+    it('treats a positive amount as an income into the account, not an expense', () => {
+      const flows = flowsFor([
+        makeTransaction({ id: 't-income', amount: 100 }),
+      ]);
+
+      const link = flows.links[0];
+      expect(flows.nodes[link.source].name).toBe('Santé');
+      expect(flows.nodes[link.target].name).toBe('UBS CHF');
+    });
+
+    it('does not double count a transaction reconciled to a paid payment', () => {
+      const reconciled: Payment = {
+        id: 'p-reconciled',
+        chargeId: 'c-unknown',
+        amount: 100,
+        currency: 'CHF',
+        dueDate: '2026-11-10T00:00:00.000Z',
+        status: 'PAID',
+        paidAt: '2026-11-10T00:00:00.000Z',
+        transactionId: 't-exp',
+        createdAt: '2026-11-01T00:00:00.000Z',
+        updatedAt: '2026-11-10T00:00:00.000Z',
+      };
+
+      const flows = flowsFor([makeTransaction({})], [reconciled]);
+
+      const total = flows.links.reduce((sum, l) => sum + l.value, 0);
+      expect(total).toBe(100);
+    });
+  });
 });
 
 describe('Financial Alerts (alerts.ts)', () => {
@@ -509,6 +600,7 @@ describe('Provisions & Remaining Balance (schedule.ts)', () => {
     endDate: null,
     frequency: null,
     installments: null,
+    dueDay: null,
     provisioned: true,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
@@ -526,6 +618,7 @@ describe('Provisions & Remaining Balance (schedule.ts)', () => {
     endDate: null,
     frequency: 'monthly',
     installments: null,
+    dueDay: null,
     provisioned: false,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
@@ -589,6 +682,7 @@ describe('Provisions & Remaining Balance (schedule.ts)', () => {
       endDate: null,
       frequency: null,
       installments: 4,
+      dueDay: null,
       provisioned: false,
       createdAt: '2026-09-01T00:00:00.000Z',
       updatedAt: '2026-09-01T00:00:00.000Z',
@@ -634,5 +728,173 @@ describe('Provisions & Remaining Balance (schedule.ts)', () => {
     ];
 
     expect(remainingBalance(chargeInstallment, payments)).toBe(600);
+  });
+});
+
+describe('Planned flows in charts (tasks 5.2, design D2)', () => {
+  const accounts: Account[] = [
+    {
+      id: 'acc-chf',
+      name: 'UBS CHF',
+      currency: 'CHF',
+      accountType: 'CURRENT',
+      openingBalance: 0,
+      overdraftLimit: 0,
+      deferredCard: false,
+      billingDay: null,
+      linkedAccountId: null,
+      memberId: 'm1',
+      bank: 'UBS',
+      status: 'ACTIVE',
+      closedAt: null,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    },
+  ];
+
+  const charges: Charge[] = [
+    {
+      id: 'c-loyer',
+      label: 'Loyer',
+      type: 'FIXED_RECURRING',
+      amount: 1850,
+      currency: 'CHF',
+      accountId: 'acc-chf',
+      category: 'Logement',
+      startDate: '2026-01-01',
+      endDate: null,
+      frequency: 'monthly',
+      installments: null,
+      dueDay: null,
+      provisioned: false,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    },
+  ];
+
+  const pendingPayment: Payment = {
+    id: 'p-pending',
+    chargeId: 'c-loyer',
+    amount: 1850,
+    currency: 'CHF',
+    dueDate: '2026-11-05T00:00:00.000Z',
+    status: 'PENDING',
+    paidAt: null,
+    transactionId: null,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+  };
+
+  const paidPayment: Payment = {
+    ...pendingPayment,
+    id: 'p-paid',
+    status: 'PAID',
+    paidAt: '2026-11-05T00:00:00.000Z',
+  };
+
+  it('donut: the planned share is distinct from the realized one, same color', () => {
+    const result = computeDonutExpenses({
+      payments: [paidPayment, pendingPayment],
+      charges,
+      transactions: [],
+      rate: 1,
+    });
+
+    const realized = result.find((r) => r.name === 'Logement' && !r.planned);
+    const planned = result.find((r) => r.name === 'Logement' && r.planned);
+    expect(realized?.value).toBe(1850);
+    expect(planned?.value).toBe(1850);
+    expect(realized?.color).toBe(planned?.color);
+  });
+
+  it('donut: a prepared month without any payment is not empty (PENDING only)', () => {
+    const result = computeDonutExpenses({
+      payments: [pendingPayment],
+      charges,
+      transactions: [],
+      rate: 1,
+    });
+    expect(result).toHaveLength(1);
+    expect(result[0].planned).toBe(true);
+    expect(result[0].value).toBe(1850);
+  });
+
+  it('donut: an empty month still yields an empty state', () => {
+    const result = computeDonutExpenses({
+      payments: [],
+      charges,
+      transactions: [],
+      rate: 1,
+    });
+    expect(result).toEqual([]);
+  });
+
+  it('sankey: the planned leg is distinct from the realized one', () => {
+    const flows = computeSankeyFlows({
+      accounts,
+      transactions: [],
+      transfers: [],
+      payments: [paidPayment, pendingPayment],
+      charges,
+      rate: 1,
+    });
+
+    const plannedLink = flows.links.find((l) => l.planned);
+    const realizedLink = flows.links.find((l) => !l.planned);
+    expect(plannedLink?.value).toBe(1850);
+    expect(realizedLink?.value).toBe(1850);
+  });
+
+  it('sankey: a prepared month without any payment shows the account → charge leg', () => {
+    const flows = computeSankeyFlows({
+      accounts,
+      transactions: [],
+      transfers: [],
+      payments: [pendingPayment],
+      charges,
+      rate: 1,
+    });
+
+    expect(flows.links).toHaveLength(1);
+    expect(flows.links[0].planned).toBe(true);
+    expect(flows.nodes.map((n) => n.name)).toEqual(['UBS CHF', 'Logement']);
+  });
+
+  it('sankey: empty month keeps the empty state', () => {
+    const flows = computeSankeyFlows({
+      accounts,
+      transactions: [],
+      transfers: [],
+      payments: [],
+      charges,
+      rate: 1,
+    });
+    expect(flows.nodes).toEqual([]);
+    expect(flows.links).toEqual([]);
+  });
+
+  it('no double counting: a reconciled transaction is counted once (realized)', () => {
+    const result = computeDonutExpenses({
+      payments: [{ ...paidPayment, transactionId: 'tx-1' }],
+      charges,
+      transactions: [
+        {
+          id: 'tx-1',
+          accountId: 'acc-chf',
+          amount: -1850,
+          category: 'Logement',
+          date: '2026-11-05T00:00:00.000Z',
+          note: 'Loyer',
+          transferId: null,
+          transferRole: null,
+          createdAt: '2026-11-05T00:00:00.000Z',
+          updatedAt: '2026-11-05T00:00:00.000Z',
+        },
+      ],
+      rate: 1,
+    });
+    expect(result).toHaveLength(1);
+    expect(result[0].value).toBe(1850);
+    expect(result[0].planned).toBeUndefined();
   });
 });

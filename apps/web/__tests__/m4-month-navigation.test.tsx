@@ -26,6 +26,7 @@ jest.mock('@/hooks/use-charges', () => ({
 
 jest.mock('@/hooks/use-schedule', () => ({
   usePayments: jest.fn(() => ({ data: [] })),
+  useMonthPayments: jest.fn(() => ({ data: [] })),
 }));
 
 jest.mock('@/hooks/use-transfers', () => ({

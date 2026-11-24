@@ -14,10 +14,12 @@ import {
   HydrationBoundary,
   QueryClient,
 } from '@tanstack/react-query';
+import { format } from 'date-fns';
 import { accountService } from '@/server/accounts/account.service';
 import { transactionService } from '@/server/transactions/transaction.service';
 import { chargeService } from '@/server/charges/charge.service';
 import { paymentService } from '@/server/payments/payment.service';
+import { alertsPaymentsQuery } from '@/lib/month-queries';
 import { JSX } from 'react';
 
 export async function AlertsGuard({
@@ -26,6 +28,10 @@ export async function AlertsGuard({
   children: React.ReactNode;
 }): Promise<JSX.Element> {
   const qc = new QueryClient();
+
+  // La fenêtre d'alertes du guard est exactement celle du hook client
+  // (design D5) : PENDING jusqu'à J+30, retard inclus.
+  const alertsQuery = alertsPaymentsQuery(format(new Date(), 'yyyy-MM-dd'));
 
   await Promise.all([
     qc.prefetchQuery({
@@ -41,8 +47,8 @@ export async function AlertsGuard({
       queryFn: () => chargeService.findMany({}),
     }),
     qc.prefetchQuery({
-      queryKey: ['payments', {}],
-      queryFn: () => paymentService.findMany({}),
+      queryKey: ['payments', alertsQuery],
+      queryFn: () => paymentService.findMany(alertsQuery),
     }),
   ]);
 

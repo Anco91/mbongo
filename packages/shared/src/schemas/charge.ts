@@ -37,6 +37,19 @@ export const chargeTypeSchema = z.enum([
 /** Fréquence de répétition */
 export const frequencySchema = z.enum(['monthly', 'weekly', 'yearly', 'daily']);
 
+/**
+ * Jour de prélèvement choisi (1–31) pour les charges fixes mensuelles.
+ * `null` = comportement legacy (jour de la date de début). La coercition
+ * accepte les chaînes de formulaires ('5' → 5, '' → rejeté par min(1)).
+ */
+export const dueDaySchema = z.coerce
+  .number({ invalid_type_error: 'Due day must be a number' })
+  .int()
+  .min(1, 'Due day must be between 1 and 31')
+  .max(31, 'Due day must be between 1 and 31')
+  .nullable()
+  .default(null);
+
 export type ChargeType = z.infer<typeof chargeTypeSchema>;
 
 // ============================================================================
@@ -58,6 +71,7 @@ export const chargeSchema = z.object({
   endDate: isoDate.nullable().default(null),
   frequency: frequencySchema.nullable().default(null),
   installments: z.number().int().positive().nullable().default(null),
+  dueDay: dueDaySchema,
   provisioned: z.boolean().default(false),
   createdAt: isoDate,
   updatedAt: isoDate,
@@ -96,6 +110,13 @@ export const createChargeSchema = chargeSchema
         code: 'custom',
         path: ['installments'],
         message: 'Installment count is required',
+      });
+    }
+    if (charge.dueDay !== null && charge.frequency !== 'monthly') {
+      context.addIssue({
+        code: 'custom',
+        path: ['dueDay'],
+        message: 'Due day is only allowed for monthly charges',
       });
     }
   });

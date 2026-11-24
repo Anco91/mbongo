@@ -153,6 +153,7 @@ model Charge {
   endDate      DateTime?
   frequency    String? // Frequency enum
   installments Int?
+  dueDay       Int? // Due day of month (1-31), monthly charges only; null = legacy start-date day
   provisioned  Boolean   @default(false)
   accountId    String
   account      Account   @relation(fields: [accountId], references: [id])

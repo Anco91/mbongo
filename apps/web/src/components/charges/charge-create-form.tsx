@@ -11,8 +11,9 @@
 
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { startOfMonth, format } from 'date-fns';
 import {
   createChargeSchema,
   type CreateChargeInput,
@@ -20,6 +21,7 @@ import {
 } from '@mbongo/shared';
 import { useAccounts } from '@/hooks/use-accounts';
 import { useCreateCharge } from '@/hooks/use-charges';
+import { DUE_DAY_OPTIONS } from '@/lib/charges';
 import {
   Form,
   FormActions,
@@ -77,6 +79,20 @@ const FREQUENCIES = [
 ] as const;
 
 /**
+ * Validates through the shared schema after clearing `dueDay` outside the
+ * monthly recurrence: the hidden selector must not block the submission
+ * (spec charge-management — due day is monthly-only).
+ */
+const resolver: Resolver<CreateChargeInput> = (values, context, options) =>
+  zodResolver(createChargeSchema)(
+    values.type === 'FIXED_RECURRING' && values.frequency === 'monthly'
+      ? values
+      : { ...values, dueDay: null },
+    context,
+    options
+  );
+
+/**
  * ChargeCreateForm Component
  *
  * @param onSaved - Optional callback when charge is created (for inline use).
@@ -97,7 +113,7 @@ export function ChargeCreateForm({
   } = useCreateCharge();
 
   const form = useForm<CreateChargeInput>({
-    resolver: zodResolver(createChargeSchema),
+    resolver,
     defaultValues: {
       label: '',
       type: 'FIXED_RECURRING',
@@ -105,10 +121,12 @@ export function ChargeCreateForm({
       currency: 'CHF',
       accountId: '',
       category: 'Logement',
-      startDate: new Date().toISOString().slice(0, 10),
+      // Le premier jour du mois courant par défaut (spec charge-management).
+      startDate: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
       endDate: null,
       frequency: 'monthly',
       installments: null,
+      dueDay: 1,
       provisioned: false,
     },
   });
@@ -116,21 +134,28 @@ export function ChargeCreateForm({
   const type = form.watch('type');
   const currency = form.watch('currency');
   const provisioned = form.watch('provisioned');
+  const frequency = form.watch('frequency');
   const activeType = CHARGE_TYPES.find((t) => t.value === type);
+  const isMonthlyRecurring =
+    type === 'FIXED_RECURRING' && frequency === 'monthly';
 
   const activeAccounts = accounts
     .filter((a) => a.status === 'ACTIVE')
     .map((a) => ({ value: a.id, label: `${a.name} (${a.currency})` }));
 
   const onSubmit = form.handleSubmit((data) =>
-    createCharge(data, {
-      onSuccess: (charge) => {
-        if (onSaved) {
-          onSaved(charge);
-          form.reset();
-        }
-      },
-    })
+    // Le jour de prélèvement n'existe que pour le mensuel (422 sinon).
+    createCharge(
+      { ...data, dueDay: isMonthlyRecurring ? data.dueDay : null },
+      {
+        onSuccess: (charge) => {
+          if (onSaved) {
+            onSaved(charge);
+            form.reset();
+          }
+        },
+      }
+    )
   );
 
   // If onSaved is provided (inline use), don't show FormSuccess — the parent handles it
@@ -186,6 +211,13 @@ export function ChargeCreateForm({
             label="Périodicité"
             options={FREQUENCIES}
           />
+          {isMonthlyRecurring && (
+            <SelectInput
+              name="dueDay"
+              label="Jour de prélèvement"
+              options={DUE_DAY_OPTIONS}
+            />
+          )}
           <FormHint>
             Échéance générée chaque période. Montant révisable (ex. LaMaL
             révisée chaque 1ᵉʳ janvier).

@@ -18,6 +18,7 @@ interface CapturedSankeyProps {
   margin: { right: number };
   data: SankeyData;
   node: (props: SankeyNodeProps) => JSX.Element;
+  link: (props: Record<string, unknown>) => JSX.Element;
 }
 
 let captured: CapturedSankeyProps | null = null;
@@ -28,7 +29,7 @@ jest.mock('recharts', () => ({
     const nodes = props.data.nodes.map((node, index) =>
       createElement(
         'g',
-        { key: index },
+        { key: `node-${index}` },
         props.node({
           x: 10 + index * 120,
           y: 10 + index * 30,
@@ -39,7 +40,29 @@ jest.mock('recharts', () => ({
         } as unknown as SankeyNodeProps)
       )
     );
-    return createElement('svg', null, nodes);
+    const links = props.data.links.map((link, index) =>
+      createElement(
+        'g',
+        { key: `link-${index}` },
+        props.link({
+          sourceX: 0,
+          sourceY: 0,
+          targetX: 100,
+          targetY: 100,
+          sourceControlX: 50,
+          targetControlX: 50,
+          linkWidth: 10,
+          // Recharts resolves source/target to node objects and keeps
+          // the custom fields (planned) on the payload.
+          payload: {
+            ...link,
+            source: props.data.nodes[link.source],
+            target: props.data.nodes[link.target],
+          },
+        })
+      )
+    );
+    return createElement('svg', null, nodes, links);
   },
   Tooltip: () => null,
   ResponsiveContainer: ({ children }: { children: React.ReactNode }) =>
@@ -109,5 +132,34 @@ describe('SankeyFlowsChart', () => {
     );
 
     expect(Math.abs(placed[0].y - placed[1].y)).toBeGreaterThanOrEqual(13);
+  });
+});
+
+describe('SankeyFlowsChart — flux prévu distinct (tasks 5.3, design D2)', () => {
+  const plannedData: SankeyData = {
+    nodes: [{ name: 'UBS' }, { name: 'Logement' }],
+    links: [
+      { source: 0, target: 1, value: 1850 },
+      { source: 0, target: 1, value: 1850, planned: true },
+    ],
+  };
+
+  it('renders the planned link dashed and fainter than the realized one', () => {
+    captured = null;
+    const { container } = render(
+      createElement(SankeyFlowsChart, {
+        data: plannedData,
+        formatValue: (value: number) => `${value} €`,
+      })
+    );
+
+    const paths = Array.from(container.querySelectorAll('path'));
+    const planned = paths.find((p) => p.getAttribute('stroke-dasharray'));
+    const realized = paths.find((p) => !p.getAttribute('stroke-dasharray'));
+    expect(planned).toBeTruthy();
+    expect(realized).toBeTruthy();
+    expect(planned?.getAttribute('stroke-dasharray')).toBe('6 4');
+    expect(planned?.getAttribute('stroke-opacity')).toBe('0.3');
+    expect(realized?.getAttribute('stroke-opacity')).toBe('0.5');
   });
 });

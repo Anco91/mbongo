@@ -183,4 +183,97 @@ describe('DashboardGuard', () => {
     expect(screen.getByText(/Patrimoine consolidé/i)).toBeTruthy();
     expect(screen.getByText('Flux du mois')).toBeTruthy();
   });
+
+  it('prefetches the windowed month query shared with the client (no 100-row truncation)', async () => {
+    (accountService.findMany as jest.Mock).mockResolvedValue([account]);
+    (transactionService.findMany as jest.Mock).mockResolvedValue([]);
+    (transferService.findMany as jest.Mock).mockResolvedValue([]);
+    (chargeService.findMany as jest.Mock).mockResolvedValue([]);
+    (paymentService.findMany as jest.Mock).mockResolvedValue([]);
+    (memberService.findMany as jest.Mock).mockResolvedValue([]);
+
+    await renderHydrated(
+      DashboardGuard({
+        children: (
+          <DisplayCurrencyProvider>
+            <DashboardContent />
+          </DisplayCurrencyProvider>
+        ),
+      })
+    );
+
+    expect(paymentService.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dueDate: { gte: expect.any(String), lte: expect.any(String) },
+        limit: 500,
+      })
+    );
+  });
+
+  it('shows the month payments even beyond the first 100 global due dates', async () => {
+    const monthStart = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth(),
+      1
+    );
+    const monthEnd = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth() + 1,
+      0
+    );
+    (accountService.findMany as jest.Mock).mockResolvedValue([account]);
+    (transactionService.findMany as jest.Mock).mockResolvedValue([]);
+    (transferService.findMany as jest.Mock).mockResolvedValue([]);
+    (chargeService.findMany as jest.Mock).mockResolvedValue([
+      {
+        id: 'c-loyer',
+        label: 'Loyer GE',
+        type: 'FIXED_RECURRING',
+        amount: 1850,
+        currency: 'CHF',
+        accountId: account.id,
+        category: 'Logement',
+        startDate: '2026-01-01',
+        endDate: null,
+        frequency: 'monthly',
+        installments: null,
+        dueDay: null,
+        provisioned: false,
+        createdAt: now,
+        updatedAt: now,
+      },
+    ]);
+    // A database holding 150 earlier due dates would push this month's
+    // occurrences past the legacy global limit — the window query still
+    // returns them.
+    (paymentService.findMany as jest.Mock).mockResolvedValue([
+      {
+        id: 'p-month-1',
+        chargeId: 'c-loyer',
+        amount: 1850,
+        currency: 'CHF',
+        dueDate: monthEnd.toISOString(),
+        status: 'PENDING',
+        paidAt: null,
+        transactionId: null,
+        createdAt: now,
+        updatedAt: now,
+      },
+    ]);
+    (memberService.findMany as jest.Mock).mockResolvedValue([]);
+
+    await renderHydrated(
+      DashboardGuard({
+        children: (
+          <DisplayCurrencyProvider>
+            <DashboardContent />
+          </DisplayCurrencyProvider>
+        ),
+      })
+    );
+
+    expect(screen.getByText('Loyer GE')).toBeTruthy();
+    // monthStart kept for clarity of the window under test.
+    expect(monthStart.getMonth()).toBe(new Date().getMonth());
+  });
 });

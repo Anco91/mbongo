@@ -9,6 +9,7 @@ import { render, screen } from '@testing-library/react';
 import { createElement } from 'react';
 import {
   DonutCategoriesChart,
+  DonutLegend,
   type DonutDatum,
 } from '@/components/charts/donut-categories-chart';
 
@@ -56,5 +57,43 @@ describe('DonutCategoriesChart', () => {
 
     expect(screen.getByText('2135 €')).toBeTruthy();
     expect(screen.getByText('Total')).toBeTruthy();
+  });
+});
+
+describe('DonutCategoriesChart — part prévue distincte (tasks 5.3, design D2)', () => {
+  const plannedData: DonutDatum[] = [
+    { name: 'Logement', value: 1850, color: '#2563eb' },
+    { name: 'Logement', value: 1850, color: '#2563eb', planned: true },
+  ];
+
+  it('renders the planned segment with reduced opacity and a planned marker', () => {
+    const { container } = render(
+      createElement(DonutCategoriesChart, {
+        data: plannedData,
+        formatValue: (value: number) => `${value} €`,
+      })
+    );
+
+    const cells = Array.from(container.querySelectorAll('path'));
+    const planned = cells.find(
+      (c) => c.getAttribute('data-planned') === 'true'
+    );
+    const realized = cells.find((c) => c.getAttribute('data-planned') === null);
+    expect(planned).toBeTruthy();
+    expect(realized).toBeTruthy();
+    expect(planned?.getAttribute('fill-opacity')).toBe('0.45');
+    expect(realized?.getAttribute('fill-opacity')).toBe('1');
+  });
+
+  it('keeps one legend row per category (planned merged into realized)', () => {
+    render(
+      createElement(DonutLegend, {
+        data: plannedData,
+        formatValue: (value: number) => `${value} €`,
+      })
+    );
+
+    expect(screen.getAllByText('Logement')).toHaveLength(1);
+    expect(screen.getByText('3700 €')).toBeTruthy();
   });
 });
