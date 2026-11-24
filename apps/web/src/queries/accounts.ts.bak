@@ -1,0 +1,16 @@
+/** Stub for 01-query-factories: the Executor replaces this file. */
+import type { AccountQuery } from '@mbongo/shared';
+
+export const accountQueries = {
+  all: (): readonly ['accounts'] => {
+    throw new Error('not implemented');
+  },
+  list: (query?: AccountQuery): never => {
+    void query;
+    throw new Error('not implemented');
+  },
+  detail: (id: string): never => {
+    void id;
+    throw new Error('not implemented');
+  },
+};
