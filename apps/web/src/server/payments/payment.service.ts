@@ -2,9 +2,12 @@ import { NotFoundError, HttpError } from '@/server/common/http';
 import { createWhereTranslator } from '@/server/common/where-translator';
 import { prisma } from '@/server/db';
 import {
+  AUTO_DEBIT_NOTE,
   CreatePaymentInput,
   Payment,
   PaymentQuery,
+  paymentDebitAction,
+  PaymentDebit,
   planPaymentDebit,
   UpdatePaymentInput,
 } from '@mbongo/shared';
@@ -69,64 +72,175 @@ export class PaymentService {
   }
 
   async update(id: string, input: UpdatePaymentInput): Promise<Payment> {
-    const existing = await prisma.payment.findUnique({ where: { id } });
+    const existing = await prisma.payment.findUnique({
+      where: { id },
+      include: { transaction: true },
+    });
     if (!existing) throw new NotFoundError('Payment', id);
+    const hasAutoDebit = existing.transaction?.note === AUTO_DEBIT_NOTE;
+    const action = paymentDebitAction(
+      { status: existing.status, hasAutoDebit },
+      input
+    );
+    const { transactionId, ...rest } = input;
     const data = {
-      ...input,
+      ...rest,
       dueDate: input.dueDate ? parseISO(input.dueDate) : undefined,
       paidAt: input.paidAt ? parseISO(input.paidAt) : input.paidAt,
     };
 
-    // Manual tick (no transaction yet, PENDING -> PAID): book the debit on the
-    // charge's account and link it, so balances drop.
-    if (
-      input.status === 'PAID' &&
-      existing.status !== 'PAID' &&
-      !existing.transactionId
-    ) {
-      const charge = await prisma.charge.findUnique({
-        where: { id: existing.chargeId },
-        include: { account: true },
-      });
-      if (!charge) throw new NotFoundError('Charge', existing.chargeId);
-      const debit = planPaymentDebit(
-        {
-          amount: existing.amount,
-          currency: existing.currency as Payment['currency'],
-          dueDate: existing.dueDate.toISOString(),
-          paidAt: existing.paidAt?.toISOString() ?? null,
-        },
-        {
-          id: charge.account.id,
-          currency: charge.account.currency as Payment['currency'],
-        },
-        input.paidAt
-      );
+    if (action === 'create') {
+      if (transactionId) {
+        throw new HttpError(422, {
+          message: 'Use the reconcile endpoint to link a transaction',
+        });
+      }
+      return this.tick(existing, input, data);
+    }
+    if (action === 'delete') {
       const row = await prisma.$transaction(async (tx) => {
-        const transaction = await tx.transaction.create({
+        const updated = await tx.payment.update({
+          where: { id },
           data: {
-            accountId: debit.accountId,
-            date: parseISO(debit.date),
-            amount: debit.amount,
-            transferId: null,
+            ...data,
+            paidAt: input.paidAt ?? null,
+            transactionId: null,
           },
         });
-        return tx.payment.update({
-          where: { id },
-          data: { ...data, transactionId: transaction.id },
+        await tx.transaction.delete({
+          where: { id: existing.transactionId as string },
         });
+        return updated;
       });
       return this.toPayment(row);
     }
+    if (action === 'update') {
+      return this.syncDebit(existing, input, data);
+    }
 
-    const row = await prisma.payment.update({ where: { id }, data });
+    const row = await prisma.payment.update({
+      where: { id },
+      data: { ...data, transactionId },
+    });
+    return this.toPayment(row);
+  }
+
+  /** Account that carries the payment's charge. */
+  private async chargeAccount(
+    chargeId: string
+  ): Promise<{ id: string; currency: Payment['currency'] }> {
+    const charge = await prisma.charge.findUnique({
+      where: { id: chargeId },
+      include: { account: true },
+    });
+    if (!charge) throw new NotFoundError('Charge', chargeId);
+    return {
+      id: charge.account.id,
+      currency: charge.account.currency as Payment['currency'],
+    };
+  }
+
+  /** Debit plan for a payment with edits applied; 422 on currency mismatch. */
+  private planDebit(
+    existing: Prisma.PaymentGetPayload<object>,
+    input: UpdatePaymentInput,
+    account: { id: string; currency: Payment['currency'] }
+  ): PaymentDebit {
+    try {
+      return planPaymentDebit(
+        {
+          amount: input.amount ?? existing.amount,
+          currency: (input.currency ??
+            existing.currency) as Payment['currency'],
+          dueDate: existing.dueDate.toISOString(),
+          paidAt: existing.paidAt?.toISOString() ?? null,
+        },
+        account,
+        input.paidAt
+      );
+    } catch (error: unknown) {
+      if (error instanceof RangeError) {
+        throw new HttpError(422, { message: error.message });
+      }
+      throw error;
+    }
+  }
+
+  /** Manual tick: guarded PENDING -> PAID, then the auto debit, atomically. */
+  private async tick(
+    existing: Prisma.PaymentGetPayload<object>,
+    input: UpdatePaymentInput,
+    data: Prisma.PaymentUncheckedUpdateManyInput
+  ): Promise<Payment> {
+    const debit = this.planDebit(
+      existing,
+      input,
+      await this.chargeAccount(existing.chargeId)
+    );
+    const row = await prisma.$transaction(async (tx) => {
+      const guard = await tx.payment.updateMany({
+        where: {
+          id: existing.id,
+          transactionId: null,
+          status: { not: 'PAID' },
+        },
+        data: { ...data, paidAt: data.paidAt ?? parseISO(debit.date) },
+      });
+      if (guard.count === 0) {
+        throw new HttpError(409, {
+          message: `Payment ${existing.id} is already paid or reconciled`,
+        });
+      }
+      const transaction = await tx.transaction.create({
+        data: {
+          accountId: debit.accountId,
+          date: parseISO(debit.date),
+          amount: debit.amount,
+          note: AUTO_DEBIT_NOTE,
+          transferId: null,
+        },
+      });
+      return tx.payment.update({
+        where: { id: existing.id },
+        data: { transactionId: transaction.id },
+      });
+    });
+    return this.toPayment(row);
+  }
+
+  /** Edit of a ticked payment: the auto debit follows amount/date. */
+  private async syncDebit(
+    existing: Prisma.PaymentGetPayload<object>,
+    input: UpdatePaymentInput,
+    data: Prisma.PaymentUncheckedUpdateInput
+  ): Promise<Payment> {
+    const debit = this.planDebit(
+      { ...existing, paidAt: existing.paidAt },
+      input,
+      await this.chargeAccount(existing.chargeId)
+    );
+    const row = await prisma.$transaction(async (tx) => {
+      await tx.transaction.update({
+        where: { id: existing.transactionId as string },
+        data: { date: parseISO(debit.date), amount: debit.amount },
+      });
+      return tx.payment.update({ where: { id: existing.id }, data });
+    });
     return this.toPayment(row);
   }
 
   async remove(id: string): Promise<void> {
-    const existing = await prisma.payment.findUnique({ where: { id } });
+    const existing = await prisma.payment.findUnique({
+      where: { id },
+      include: { transaction: true },
+    });
     if (!existing) throw new NotFoundError('Payment', id);
-    await prisma.payment.delete({ where: { id } });
+    await prisma.$transaction(async (tx) => {
+      await tx.payment.delete({ where: { id } });
+      if (existing.transaction?.note === AUTO_DEBIT_NOTE) {
+        await tx.transaction.delete({ where: { id: existing.transaction.id } });
+      }
+    });
   }
 
   /**
@@ -139,7 +253,10 @@ export class PaymentService {
    * déjà cochée manuellement (rapprochement après coche permis).
    */
   async reconcile(id: string, transactionId: string): Promise<Payment> {
-    const payment = await prisma.payment.findUnique({ where: { id } });
+    const payment = await prisma.payment.findUnique({
+      where: { id },
+      include: { transaction: true },
+    });
     if (!payment) throw new NotFoundError('Payment', id);
 
     const transaction = await prisma.transaction.findUnique({
@@ -161,13 +278,18 @@ export class PaymentService {
     }
 
     try {
-      const row = await prisma.payment.update({
-        where: { id },
-        data: {
-          transactionId,
-          status: 'PAID',
-          paidAt: new Date(),
-        },
+      const data = { transactionId, status: 'PAID', paidAt: new Date() };
+      const old = payment.transaction;
+      if (!old || old.id === transactionId || old.note !== AUTO_DEBIT_NOTE) {
+        return this.toPayment(
+          await prisma.payment.update({ where: { id }, data })
+        );
+      }
+      // The auto debit is replaced by the real transaction: no double count.
+      const row = await prisma.$transaction(async (tx) => {
+        const updated = await tx.payment.update({ where: { id }, data });
+        await tx.transaction.delete({ where: { id: old.id } });
+        return updated;
       });
       return this.toPayment(row);
     } catch (error: unknown) {
@@ -188,7 +310,10 @@ export class PaymentService {
    * rien à délier (409 lisible).
    */
   async unlink(id: string): Promise<Payment> {
-    const payment = await prisma.payment.findUnique({ where: { id } });
+    const payment = await prisma.payment.findUnique({
+      where: { id },
+      include: { transaction: true },
+    });
     if (!payment) throw new NotFoundError('Payment', id);
     if (!payment.transactionId) {
       throw new HttpError(409, {
@@ -196,13 +321,19 @@ export class PaymentService {
       });
     }
 
-    const row = await prisma.payment.update({
-      where: { id },
-      data: {
-        transactionId: null,
-        status: 'PENDING',
-        paidAt: null,
-      },
+    const data = { transactionId: null, status: 'PENDING', paidAt: null };
+    const auto = payment.transaction?.note === AUTO_DEBIT_NOTE;
+    if (!auto) {
+      return this.toPayment(
+        await prisma.payment.update({ where: { id }, data })
+      );
+    }
+    const row = await prisma.$transaction(async (tx) => {
+      const updated = await tx.payment.update({ where: { id }, data });
+      await tx.transaction.delete({
+        where: { id: payment.transactionId as string },
+      });
+      return updated;
     });
     return this.toPayment(row);
   }

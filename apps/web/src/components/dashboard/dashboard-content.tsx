@@ -53,6 +53,11 @@ export function DashboardContent(): JSX.Element {
   // Charts scope: null = whole household, else one member's accounts.
   const [memberId, setMemberId] = useState<string | null>(null);
   const { data: members = [] } = useMembers();
+  // A scoped member that no longer exists falls back to the household.
+  const effectiveMemberId =
+    memberId !== null && members.some((m) => m.id === memberId)
+      ? memberId
+      : null;
 
   useEffect(() => {
     setMounted(true);
@@ -70,7 +75,7 @@ export function DashboardContent(): JSX.Element {
     monthPayments,
     totalCharges,
     now,
-  } = useDashboardData(selectedMonth, showClosed, memberId);
+  } = useDashboardData(selectedMonth, showClosed, effectiveMemberId);
 
   const { displayCurrency, convert } = useDisplayCurrency();
 
@@ -113,7 +118,7 @@ export function DashboardContent(): JSX.Element {
 
       <MemberScopeChips
         members={members}
-        value={memberId}
+        value={effectiveMemberId}
         onChange={setMemberId}
       />
 
@@ -163,7 +168,7 @@ export function DashboardContent(): JSX.Element {
           sankeyData={sankeyData}
           donutData={donutData}
           members={members}
-          memberId={memberId}
+          memberId={effectiveMemberId}
           onMemberChange={setMemberId}
           formatValue={formatDisplay}
           onClose={() => setFullscreenChart(null)}

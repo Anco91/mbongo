@@ -47,7 +47,9 @@ function TabContent({
         isHighlighted ? 'text-emerald-600' : 'text-slate-400'
       }`}
     >
-      <Icon className={`h-5 w-5 ${pending ? 'animate-pulse' : ''}`} />
+      <Icon
+        className={`h-5 w-5 ${pending ? 'animate-pulse [animation-delay:100ms]' : ''}`}
+      />
       {label}
     </span>
   );
