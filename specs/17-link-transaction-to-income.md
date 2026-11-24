@@ -143,3 +143,4 @@ Tests: 15 failed, 15 total   (13: Error: not implemented; 2 schema tests: stub a
 
 ## Handoffs
 
+- `docs/handoffs/20261124-2110-17-link-transaction-to-income.md`
