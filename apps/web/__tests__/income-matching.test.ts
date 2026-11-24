@@ -29,7 +29,9 @@ function income(overrides: Partial<Income> = {}): Income {
   };
 }
 
-function tx(overrides: Partial<MatchableTransaction> = {}): MatchableTransaction {
+function tx(
+  overrides: Partial<MatchableTransaction> = {}
+): MatchableTransaction {
   return {
     id: 'tx-1',
     accountId: 'acc-1',
@@ -75,7 +77,12 @@ describe('findUnmatchedIncome', () => {
       {
         incomeId: 'inc-1',
         budgetMonth: '2026-11',
-        settlement: { status: 'settled', expected: 4400, realized: 4400, gap: 0 },
+        settlement: {
+          status: 'settled',
+          expected: 4400,
+          realized: 4400,
+          gap: 0,
+        },
       },
     ]);
   });
@@ -105,7 +112,11 @@ describe('findUnmatchedIncome', () => {
         income({ id: 'inactive', active: false }),
         income({ id: 'future', startDate: '2027-01-01T00:00:00.000Z' }),
         income({ id: 'elsewhere', accountId: 'acc-2' }),
-        income({ id: 'yearly-other-month', frequency: 'yearly', startDate: '2025-03-10T00:00:00.000Z' }),
+        income({
+          id: 'yearly-other-month',
+          frequency: 'yearly',
+          startDate: '2025-03-10T00:00:00.000Z',
+        }),
       ]
     );
     expect(entry.proposals).toEqual([]);
@@ -113,7 +124,10 @@ describe('findUnmatchedIncome', () => {
 
   it('does not propose a source already confirmed for that month', () => {
     const result = findUnmatchedIncome(
-      [tx(), tx({ id: 'confirmed', incomeId: 'inc-1', budgetMonth: '2026-11' })],
+      [
+        tx(),
+        tx({ id: 'confirmed', incomeId: 'inc-1', budgetMonth: '2026-11' }),
+      ],
       [income()]
     );
     expect(result).toHaveLength(1);
@@ -147,7 +161,12 @@ describe('findUnmatchedIncome', () => {
         income({ id: 'near', amount: 4300 }),
       ]
     );
-    expect(entry.proposals.map((p) => p.incomeId)).toEqual(['a', 'b', 'near', 'far']);
+    expect(entry.proposals.map((p) => p.incomeId)).toEqual([
+      'a',
+      'b',
+      'near',
+      'far',
+    ]);
   });
 
   it('orders unmatched transactions by date, then by id', () => {

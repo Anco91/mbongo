@@ -57,13 +57,21 @@ describe('computeSettlement', () => {
   });
 
   it('settles when the gap is within the tolerance, both directions', () => {
-    expect(computeSettlement(100, [99.5], { tolerance: 0.5 }).status).toBe('settled');
-    expect(computeSettlement(100, [100.5], { tolerance: 0.5 }).status).toBe('settled');
+    expect(computeSettlement(100, [99.5], { tolerance: 0.5 }).status).toBe(
+      'settled'
+    );
+    expect(computeSettlement(100, [100.5], { tolerance: 0.5 }).status).toBe(
+      'settled'
+    );
   });
 
   it('does not settle when the gap exceeds the tolerance', () => {
-    expect(computeSettlement(100, [99.4], { tolerance: 0.5 }).status).toBe('partial');
-    expect(computeSettlement(100, [100.6], { tolerance: 0.5 }).status).toBe('discrepancy');
+    expect(computeSettlement(100, [99.4], { tolerance: 0.5 }).status).toBe(
+      'partial'
+    );
+    expect(computeSettlement(100, [100.6], { tolerance: 0.5 }).status).toBe(
+      'discrepancy'
+    );
   });
 
   it('keeps the real gap when settled within tolerance', () => {
@@ -75,14 +83,21 @@ describe('computeSettlement', () => {
   });
 
   it('treats a zero realized entry as realized, not open', () => {
-    expect(computeSettlement(100, [0])).toMatchObject({ status: 'partial', gap: -100 });
+    expect(computeSettlement(100, [0])).toMatchObject({
+      status: 'partial',
+      gap: -100,
+    });
   });
 
   it('throws RangeError on a negative or non-finite amount or tolerance', () => {
     expect(() => computeSettlement(-1, [])).toThrow(RangeError);
     expect(() => computeSettlement(100, [-5])).toThrow(RangeError);
     expect(() => computeSettlement(100, [Number.NaN])).toThrow(RangeError);
-    expect(() => computeSettlement(Number.POSITIVE_INFINITY, [])).toThrow(RangeError);
-    expect(() => computeSettlement(100, [100], { tolerance: -0.1 })).toThrow(RangeError);
+    expect(() => computeSettlement(Number.POSITIVE_INFINITY, [])).toThrow(
+      RangeError
+    );
+    expect(() => computeSettlement(100, [100], { tolerance: -0.1 })).toThrow(
+      RangeError
+    );
   });
 });

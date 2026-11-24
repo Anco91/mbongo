@@ -168,7 +168,11 @@ describe('ChargeService.update sub-category', () => {
   });
 
   it('keeps a legacy charge editable: null sub-category on a free category', async () => {
-    mockedFind.mockResolvedValue({ ...row, category: 'rent', subcategory: null });
+    mockedFind.mockResolvedValue({
+      ...row,
+      category: 'rent',
+      subcategory: null,
+    });
 
     await new ChargeService().update('charge-1', { label: 'Loyer' });
 
