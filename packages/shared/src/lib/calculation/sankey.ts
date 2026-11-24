@@ -9,6 +9,7 @@
  */
 
 import { Account } from '../../schemas/account';
+import { Income } from '../../schemas/income';
 import { Charge } from '../../schemas/charge';
 import { Payment } from '../../schemas/payment';
 import { Transaction } from '../../schemas/transaction';
@@ -60,6 +61,8 @@ export function computeSankeyFlows(params: {
   transfers: Transfer[];
   payments: Payment[];
   charges: Charge[];
+  incomes: Income[];
+  monthKey: string;
   rate?: number | null;
 }): SankeyData {
   const {

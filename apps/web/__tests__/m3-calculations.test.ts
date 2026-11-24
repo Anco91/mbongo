@@ -23,6 +23,7 @@ import {
   monthlyProvision,
   type Account,
   type Charge,
+  type Income,
   type Payment,
   type Transaction,
   type Transfer,
@@ -301,21 +302,23 @@ describe('Sankey Month Flows (sankey.ts)', () => {
     },
   ];
 
+  const salary: Income = {
+    id: 'inc-salary',
+    label: 'Salaire Anco',
+    amount: 5000,
+    currency: 'CHF',
+    accountId: 'acc-chf',
+    memberId: null,
+    frequency: 'monthly',
+    startDate: '2026-01-01',
+    endDate: null,
+    active: true,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+  };
+
   it('constructs incomes, transfers, and expense links', () => {
-    const transactions: Transaction[] = [
-      {
-        id: 't-inc',
-        accountId: 'acc-chf',
-        amount: 5000,
-        category: 'Revenus',
-        date: '2026-11-01T00:00:00.000Z',
-        note: 'Salaire Anco',
-        transferId: null,
-        transferRole: null,
-        createdAt: '2026-11-01T00:00:00.000Z',
-        updatedAt: '2026-11-01T00:00:00.000Z',
-      },
-    ];
+    const transactions: Transaction[] = [];
     const transfers: Transfer[] = [
       {
         id: 'tr-1',
@@ -342,6 +345,8 @@ describe('Sankey Month Flows (sankey.ts)', () => {
       transfers,
       payments: [],
       charges: [],
+      incomes: [salary],
+      monthKey: '2026-11',
       rate: 0.925,
     });
 
@@ -360,6 +365,8 @@ describe('Sankey Month Flows (sankey.ts)', () => {
       transfers: [],
       payments: [],
       charges: [],
+      incomes: [],
+      monthKey: '2026-11',
     });
     expect(flows.nodes).toEqual([]);
     expect(flows.links).toEqual([]);
@@ -390,6 +397,8 @@ describe('Sankey Month Flows (sankey.ts)', () => {
         transfers: [],
         payments,
         charges: [],
+        incomes: [],
+        monthKey: '2026-11',
         rate: 1,
       });
 
@@ -836,6 +845,8 @@ describe('Planned flows in charts (tasks 5.2, design D2)', () => {
       transfers: [],
       payments: [paidPayment, pendingPayment],
       charges,
+      incomes: [],
+      monthKey: '2026-11',
       rate: 1,
     });
 
@@ -852,6 +863,8 @@ describe('Planned flows in charts (tasks 5.2, design D2)', () => {
       transfers: [],
       payments: [pendingPayment],
       charges,
+      incomes: [],
+      monthKey: '2026-11',
       rate: 1,
     });
 
@@ -867,6 +880,8 @@ describe('Planned flows in charts (tasks 5.2, design D2)', () => {
       transfers: [],
       payments: [],
       charges,
+      incomes: [],
+      monthKey: '2026-11',
       rate: 1,
     });
     expect(flows.nodes).toEqual([]);

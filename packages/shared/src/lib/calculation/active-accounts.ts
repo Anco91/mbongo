@@ -10,6 +10,7 @@ import type { Transaction } from '../../schemas/transaction';
 import type { Transfer } from '../../schemas/transfer';
 import type { Charge } from '../../schemas/charge';
 import type { Payment } from '../../schemas/payment';
+import type { Income } from '../../schemas/income';
 
 export interface AccountScopedData {
   accounts: Account[];
@@ -17,6 +18,7 @@ export interface AccountScopedData {
   transfers: Transfer[];
   charges: Charge[];
   payments: Payment[];
+  incomes?: Income[];
 }
 
 export function excludeClosedAccounts(
