@@ -109,3 +109,4 @@ Proof of failure: `cd apps/web && npx jest __tests__/month-expected-income.test.
 - `specs/current/monthly-budget/spec.md` update: Advisor at review (SPEC-3).
 
 ## Handoffs
+- 2026-11-24: `docs/handoffs/20261124-1857-07-budget-remaining-recompute.md`
