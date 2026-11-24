@@ -29,7 +29,7 @@ const isoDate = z
 // ============================================================================
 
 /** Statuts possibles pour un transfert */
-export const transferStatusSchema = z.enum(['ESTIMATED', 'COMPLETED']);
+export const transferStatusSchema = z.enum(['ESTIMATED', 'COMPLETED', 'CLOSED']);
 
 export type TransferStatus = z.infer<typeof transferStatusSchema>;
 

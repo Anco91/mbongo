@@ -117,6 +117,11 @@ export class TransferService {
     return this.toTransfer(transfer);
   }
 
+  /** Close a transfer from any state; idempotent, never touches transactions. */
+  async close(id: string): Promise<Transfer> {
+    throw new Error('not implemented');
+  }
+
   private toTransfer(row: Prisma.TransferGetPayload<object>): Transfer {
     return {
       ...row,
