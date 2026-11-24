@@ -53,7 +53,12 @@ export function computeSettlement(
     return { status: 'open', expected, realized: 0, gap };
   }
 
-  return { status: resolveStatus(gap, tolerance), expected, realized: sum, gap };
+  return {
+    status: resolveStatus(gap, tolerance),
+    expected,
+    realized: sum,
+    gap,
+  };
 }
 
 /** Statut d'un élément réalisé (au moins un montant), à partir de l'écart arrondi. */
@@ -65,7 +70,9 @@ function resolveStatus(gap: number, tolerance: number): SettlementStatus {
 /** Montant positif et fini, sinon erreur de domaine. */
 function assertAmount(value: number, label: string): void {
   if (!Number.isFinite(value) || value < 0) {
-    throw new RangeError(`${label} must be a finite non-negative number, got ${value}`);
+    throw new RangeError(
+      `${label} must be a finite non-negative number, got ${value}`
+    );
   }
 }
 
