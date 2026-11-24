@@ -17,6 +17,7 @@ import {
   type UseMutationResult,
 } from '@tanstack/react-query';
 import { accountsRepository } from '@/repositories/accounts.repository';
+import { accountQueries } from '@/queries/accounts';
 import type {
   Account,
   AccountQuery,
@@ -24,29 +25,20 @@ import type {
   UpdateAccountInput,
 } from '@mbongo/shared';
 
-const ACCOUNTS_KEY = 'accounts';
-
 /**
  * List accounts (active ones for the current views, filterable).
  */
 export function useAccounts(
   query: AccountQuery = {}
 ): UseQueryResult<Account[], Error> {
-  return useQuery({
-    queryKey: [ACCOUNTS_KEY, query],
-    queryFn: () => accountsRepository.findMany(query),
-  });
+  return useQuery(accountQueries.list(query));
 }
 
 /**
  * Get a single account by ID.
  */
 export function useAccount(id: string): UseQueryResult<Account, Error> {
-  return useQuery({
-    queryKey: [ACCOUNTS_KEY, id],
-    queryFn: () => accountsRepository.findOne(id),
-    enabled: Boolean(id),
-  });
+  return useQuery(accountQueries.detail(id));
 }
 
 /**
@@ -62,7 +54,7 @@ export function useCreateAccount(): UseMutationResult<
   return useMutation({
     mutationFn: (input: CreateAccountInput) => accountsRepository.create(input),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: [ACCOUNTS_KEY] });
+      void queryClient.invalidateQueries({ queryKey: accountQueries.all() });
     },
   });
 }
@@ -81,8 +73,8 @@ export function useUpdateAccount(): UseMutationResult<
     mutationFn: ({ id, input }: { id: string; input: UpdateAccountInput }) =>
       accountsRepository.update(id, input),
     onSuccess: (account) => {
-      void queryClient.invalidateQueries({ queryKey: [ACCOUNTS_KEY] });
-      queryClient.setQueryData([ACCOUNTS_KEY, account.id], account);
+      void queryClient.invalidateQueries({ queryKey: accountQueries.all() });
+      queryClient.setQueryData(accountQueries.detail(account.id).queryKey, account);
     },
   });
 }
@@ -96,7 +88,7 @@ export function useCloseAccount(): UseMutationResult<Account, Error, string> {
   return useMutation({
     mutationFn: (id: string) => accountsRepository.close(id),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: [ACCOUNTS_KEY] });
+      void queryClient.invalidateQueries({ queryKey: accountQueries.all() });
     },
   });
 }

@@ -1,15 +1,23 @@
-/** Stub for 01-query-factories: the Executor replaces this file. */
+/**
+ * Transaction Queries
+ *
+ * Query factory for transactions: the only source of their query keys
+ * and `queryOptions`. Keys match the guards' server prefetch.
+ *
+ * @module Queries/Transactions
+ */
+
+import { queryOptions } from '@tanstack/react-query';
+import { transactionsRepository } from '@/repositories/transactions.repository';
 import type { TransactionQuery } from '@mbongo/shared';
 
-export const transactionQueries = {
-  all: (): readonly ['transactions'] => {
-    throw new Error('not implemented');
-  },
-  list: (query?: TransactionQuery): QueryStub => {
-    void query;
-    throw new Error('not implemented');
-  },
-};
+const KEY = 'transactions' as const;
 
-/** Minimal shape the locked tests read; the real factories return `queryOptions`. */
-type QueryStub = { queryKey: readonly unknown[]; enabled?: boolean };
+export const transactionQueries = {
+  all: () => [KEY] as const,
+  list: (query: TransactionQuery = {}) =>
+    queryOptions({
+      queryKey: [KEY, query] as const,
+      queryFn: () => transactionsRepository.findMany(query),
+    }),
+};

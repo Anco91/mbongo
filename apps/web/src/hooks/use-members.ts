@@ -18,22 +18,19 @@ import {
   type UseMutationResult,
 } from '@tanstack/react-query';
 import { membersRepository } from '@/repositories/members.repository';
+import { memberQueries } from '@/queries/members';
+import { accountQueries } from '@/queries/accounts';
 import type {
   Member,
   CreateMemberInput,
   UpdateMemberInput,
 } from '@mbongo/shared';
 
-const MEMBERS_KEY = 'members';
-
 /**
  * List household members.
  */
 export function useMembers(): UseQueryResult<Member[], Error> {
-  return useQuery({
-    queryKey: [MEMBERS_KEY],
-    queryFn: () => membersRepository.findMany(),
-  });
+  return useQuery(memberQueries.list());
 }
 
 /**
@@ -49,7 +46,7 @@ export function useCreateMember(): UseMutationResult<
   return useMutation({
     mutationFn: (input: CreateMemberInput) => membersRepository.create(input),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: [MEMBERS_KEY] });
+      void queryClient.invalidateQueries({ queryKey: memberQueries.all() });
     },
   });
 }
@@ -68,7 +65,7 @@ export function useUpdateMember(): UseMutationResult<
     mutationFn: ({ id, input }: { id: string; input: UpdateMemberInput }) =>
       membersRepository.update(id, input),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: [MEMBERS_KEY] });
+      void queryClient.invalidateQueries({ queryKey: memberQueries.all() });
     },
   });
 }
@@ -82,8 +79,8 @@ export function useDeleteMember(): UseMutationResult<void, Error, string> {
   return useMutation({
     mutationFn: (id: string) => membersRepository.remove(id),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: [MEMBERS_KEY] });
-      void queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      void queryClient.invalidateQueries({ queryKey: memberQueries.all() });
+      void queryClient.invalidateQueries({ queryKey: accountQueries.all() });
     },
   });
 }

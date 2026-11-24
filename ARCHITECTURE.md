@@ -26,6 +26,7 @@ incomes, transfers, monthly budgets, alerts). Mobile-first PWA.
 - `apps/web/src/app/api/` — route handlers, pure wiring onto controllers.
 - `apps/web/src/app/<route>/` — pages (routing only), English URLs; `error.tsx` / `loading.tsx` per route.
 - `apps/web/src/repositories/` — typed client for `/api`, one per resource, implements `contracts/*.http.ts`, parses responses with shared schemas.
+- `apps/web/src/queries/` — `<resource>Queries` factories (`all()`, `list()`, `detail()` → `queryOptions`): only source of query keys; members, accounts, transactions so far — consumed by hooks.
 - `apps/web/src/hooks/` — TanStack Query hooks per resource (only consumers of repositories).
 - `apps/web/src/components/{ui,form,patterns,charts}/` — domain-free primitives, form kit, shared patterns, chart renderers.
 - `apps/web/src/components/<domain>/` — `<Domain>View` → `<Domain>Guard` → `<Domain>Content` + rows/forms of that domain.
@@ -36,6 +37,7 @@ incomes, transfers, monthly budgets, alerts). Mobile-first PWA.
 - `packages/shared/src/`
 - `apps/web/src/server/`
 - `apps/web/src/repositories/`
+- `apps/web/src/queries/`
 - `apps/web/src/hooks/`
 - `apps/web/src/lib/`
 - `apps/web/src/components/ui/`
@@ -59,6 +61,7 @@ incomes, transfers, monthly budgets, alerts). Mobile-first PWA.
 | `apps/web/src/server/common/where-translator.ts` | infra | `createWhereTranslator` filter → Prisma where |
 | `apps/web/src/server/` | module | One folder per resource: service + controller |
 | `apps/web/src/repositories/` | client | Typed `/api` client per resource |
+| `apps/web/src/queries/` | client | `memberQueries`, `accountQueries`, `transactionQueries`: query keys + `queryOptions`; reuse, never hardcode keys |
 | `apps/web/src/hooks/` | client | TanStack Query hooks per resource |
 | `apps/web/src/lib/` | util | `api.ts` request, `format.ts`, `routes.ts`, month navigation/queries, filters, PWA |
 | `apps/web/src/components/ui/` | ui | Primitives: Button, Card, Badge, StatusBadge, TypeBadge, AccountChip, Sheet, Skeleton, Progress, icons |
@@ -113,6 +116,6 @@ incomes, transfers, monthly budgets, alerts). Mobile-first PWA.
 | 2026-11-24 | Local signature: services and controllers are classes with an exported singleton (`chargeService`, `chargesController`). | NestJS-like style already applied to all 9 resources (ARCH-4 framework-like provider). |
 | 2026-11-24 | Local signature: client data access = `repositories/<resources>.repository.ts` implementing `contracts/<resources>.http.ts`, consumed by `hooks/use-<resources>.ts`. | Existing, typed end to end by shared contracts. |
 | 2026-11-24 | Tests live in `apps/web/__tests__/` (Jest), not next to the code. | Existing layout; ~75 test files. |
-| 2026-11-24 | Debt FE-1: no `<resource>Queries` `queryOptions` factory yet; query keys live in hooks. Migrate per resource when a slice touches it. | Gap vs framework MUST. |
+| 2026-11-24 | Debt FE-1: `<resource>Queries` factories exist for members, accounts, transactions (spec 01); other resources still keep keys in hooks. Migrate per resource when a slice touches it. | Gap vs framework MUST. |
 | 2026-11-24 | Debt FE-2: one Guard per domain (`charges-guard.tsx`…) instead of one generic Guard. Migrate with FE-1. | Gap vs framework MUST. |
 | 2026-11-24 | Debt BE-2: filter is `schemas/filter.ts` + `createWhereTranslator` per service, not `listQuerySchema` + `toPrismaArgs`. Align when a slice touches filters. | Gap vs framework MUST. |
