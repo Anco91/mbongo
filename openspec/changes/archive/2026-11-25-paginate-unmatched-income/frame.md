@@ -1,6 +1,6 @@
 ---
 id: paginate-unmatched-income
-status: ready
+status: done
 branch: feat/paginate-unmatched-income
 tier: medium
 locked_at: ee4af6f
