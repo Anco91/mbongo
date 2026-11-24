@@ -1,6 +1,6 @@
 ---
 id: 01-query-factories
-status: ready
+status: done
 branch: feat/01-query-factories
 tier: medium
 locked_at: 357a27e36f95c9b98368a9e75dc12e4828ad2ffb
@@ -110,3 +110,4 @@ Proof of failure: `cd apps/web && npx jest __tests__/query-factories.test.ts` â†
 
 ## Handoffs
 
+- `docs/handoffs/20261124-1628-01-query-factories.md`

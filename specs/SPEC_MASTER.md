@@ -39,7 +39,7 @@ situation (second CHF salary) needs no model rewrite. Full context: `cdc.md` (ar
 <!-- Prior specs (M1–M5) are archived in `openspec/` and `docs/specs/`. -->
 | # | Sub-spec | Outcome | Status | Last handoff |
 |---|---|---|---|---|
-| 01 | `specs/01-query-factories.md` | FE-1 pilot: `queries/` factories for members, accounts, transactions; their hooks use them | ready | — |
+| 01 | `specs/01-query-factories.md` | FE-1 pilot: `queries/` factories for members, accounts, transactions; their hooks use them | done | `docs/handoffs/20261124-1628-01-query-factories.md` |
 | 02 | `specs/02-query-factories-charges.md` | FE-1: factories for charges, payments (hooks `use-charges`, `use-schedule`) | draft | — |
 | 03 | `specs/03-query-factories-rest.md` | FE-1: factories for incomes, transfers, monthly budgets, alerts, balances, exchange-rate | draft | — |
 | 04 | `specs/04-generic-guard.md` | FE-2: one generic Guard prefetching `queryOptions` | draft | — |
