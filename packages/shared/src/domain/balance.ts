@@ -86,3 +86,20 @@ export function isOverdraft(
 ): boolean {
   return balance < -account.overdraftLimit;
 }
+
+/**
+ * Écart du dernier relevé d'un compte, calculé à la date du relevé.
+ * Stub: l'Executor remplace le corps (change account-statement-gap).
+ */
+export function computeStatementGap(
+  _account: { id: string; openingBalance: number },
+  _transactions: Array<{ accountId: string; date: string; amount: number }>,
+  _snapshots: Array<{
+    accountId: string;
+    date: string;
+    balance: number;
+    createdAt: string;
+  }>
+): { snapshotDate: string; calculated: number; gap: number } | null {
+  throw new Error('not implemented');
+}
