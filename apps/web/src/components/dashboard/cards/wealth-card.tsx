@@ -8,7 +8,7 @@
 
 'use client';
 
-import type { ConsolidatedBalance } from '@mbongo/shared';
+import type { ConsolidatedBalance, NetWorthTerm } from '@mbongo/shared';
 import { useDisplayCurrency } from '@/components/providers/display-currency-provider';
 import { formatAmount, formatDate } from '@/lib/format';
 import { Card, CardContent } from '@/components/ui/card';
@@ -18,17 +18,39 @@ interface WealthCardProps {
   consolidated: ConsolidatedBalance;
   /** Taux courant affiché (pour la conversion parallèle). */
   rate: number | null;
+  /** Termes du patrimoine (un par compte actif), détaillés au survol/focus. */
+  terms: NetWorthTerm[];
+}
+
+function NetWorthTermRow({ term }: { term: NetWorthTerm }): JSX.Element {
+  const isOverdraft = term.kind === 'overdraft';
+  return (
+    <li className="flex items-baseline gap-1.5">
+      <span aria-hidden="true">{isOverdraft ? '−' : '+'}</span>
+      <span className="tabular-nums">
+        {formatAmount(Math.abs(term.balance), term.currency)}
+      </span>
+      <span className="truncate">
+        {term.name}
+        {isOverdraft && ' découvert'}
+      </span>
+    </li>
+  );
 }
 
 export function WealthCard({
   consolidated,
   rate,
+  terms,
 }: WealthCardProps): JSX.Element {
   const { displayCurrency, convert } = useDisplayCurrency();
   const { rateSource } = useDisplayCurrency();
 
   return (
-    <Card>
+    <Card
+      tabIndex={0}
+      className="group rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+    >
       <CardContent className="pt-5">
         <p className="text-xs text-slate-500">
           Patrimoine consolidé
@@ -58,6 +80,16 @@ export function WealthCard({
             </p>
           </div>
         </div>
+        {terms.length > 0 && (
+          <ul
+            aria-label="Détail du patrimoine"
+            className="mt-3 hidden space-y-1 border-t border-slate-100 pt-3 text-xs text-slate-600 group-focus-within:block group-hover:block"
+          >
+            {terms.map((term) => (
+              <NetWorthTermRow key={term.accountId} term={term} />
+            ))}
+          </ul>
+        )}
       </CardContent>
     </Card>
   );

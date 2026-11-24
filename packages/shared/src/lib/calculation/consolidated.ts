@@ -164,3 +164,46 @@ export function computeConsolidatedBalance(
     isAvailable: true,
   };
 }
+
+/** Un terme du patrimoine : le solde d'un compte actif, en devise native. */
+export interface NetWorthTerm {
+  accountId: string;
+  name: string;
+  currency: Account['currency'];
+  /** Solde signé, arrondi à 2 décimales, jamais 0. */
+  balance: number;
+  kind: 'asset' | 'overdraft';
+}
+
+/**
+ * Liste les termes du patrimoine consolidé : un par compte actif au solde non nul.
+ * Même règle de solde que `computeConsolidatedBalance`.
+ *
+ * @param accounts - Comptes du foyer
+ * @param balances - Map des soldes actuels par id de compte
+ */
+export function listNetWorthTerms(
+  accounts: Account[],
+  balances: Record<string, number>
+): NetWorthTerm[] {
+  const terms: NetWorthTerm[] = [];
+  for (const account of accounts) {
+    if (account.status !== 'ACTIVE') continue;
+    const balance = round2(balances[account.id] ?? account.openingBalance ?? 0);
+    if (balance === 0) continue;
+    terms.push({
+      accountId: account.id,
+      name: account.name,
+      currency: account.currency,
+      balance,
+      kind: balance > 0 ? 'asset' : 'overdraft',
+    });
+  }
+  // Actifs d'abord (solde décroissant), puis découverts (plus négatif d'abord).
+  return terms.sort((a, b) => {
+    if (a.kind !== b.kind) return a.kind === 'asset' ? -1 : 1;
+    const byBalance =
+      a.kind === 'asset' ? b.balance - a.balance : a.balance - b.balance;
+    return byBalance || a.name.localeCompare(b.name);
+  });
+}

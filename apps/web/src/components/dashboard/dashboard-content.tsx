@@ -59,6 +59,7 @@ export function DashboardContent(): JSX.Element {
     chargesById,
     consolidated,
     rate,
+    netWorthTerms,
     sankeyData,
     donutData,
     monthPayments,
@@ -87,7 +88,11 @@ export function DashboardContent(): JSX.Element {
       <UnmatchedIncomeBanner />
 
       {/* 1. Patrimoine consolidé — état du jour */}
-      <WealthCard consolidated={consolidated} rate={rate} />
+      <WealthCard
+        consolidated={consolidated}
+        rate={rate}
+        terms={netWorthTerms}
+      />
 
       {/* Budget preparation card — only for current month */}
       <BudgetPreparationCard

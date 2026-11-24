@@ -38,6 +38,16 @@ L'UI du dashboard SHALL afficher le total consolidé en EUR au taux courant (tau
 - **WHEN** le dashboard se charge avec un taux disponible
 - **THEN** le montant principal est affiché en CHF et le contre-total en EUR en parallèle
 
+### Requirement: Détail du patrimoine consolidé
+
+Au survol ou au focus clavier de la carte « Patrimoine consolidé », l'UI SHALL lister chaque terme du patrimoine : un compte actif par ligne, avec son nom, sa devise native et son solde signé. Les actifs sont triés par solde décroissant, puis les découverts du plus négatif au moins négatif ; les soldes nuls et les comptes clos sont exclus.
+
+#### Scenario: Survol avec un découvert
+
+- **GIVEN** un compte épargne à +1000 CHF et un compte courant à -500 EUR
+- **WHEN** l'utilisateur survole ou focalise la carte
+- **THEN** le panneau liste « + 1 000 CHF Épargne » puis « − 500 EUR Compte courant » marqué découvert
+
 ### Requirement: Sankey des flux du mois
 
 L'UI du dashboard SHALL afficher le Sankey des flux du mois choisi, coloré par type (revenus, comptes, dépenses). Chaque nœud SHALL porter son nom ET son montant agrégé, en carte comme en plein écran — le graphe se lit sans survol. La jambe revenus → comptes SHALL partir des revenus attendus du mois (montant confirmé s'il existe, sinon montant prévu) : un revenu confirmé est un flux réalisé, un revenu non confirmé est un flux « prévu ». Une transaction positive sans lien à une source de revenu ni transfert n'y figure pas tant qu'elle n'est pas rapprochée. Les échéances à venir du mois choisi SHALL être représentées comme des flux « prévus ». Les flux prévus (revenus et charges) SHALL être rendus distincts des flux réalisés par une opacité plus faible, sans motif rayé.

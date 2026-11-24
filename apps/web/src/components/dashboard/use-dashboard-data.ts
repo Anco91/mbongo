@@ -16,6 +16,7 @@ import {
   computeDonutExpenses,
   computeSankeyFlows,
   excludeClosedAccounts,
+  listNetWorthTerms,
   computeMonthlyBudget,
   monthRange,
   isInMonth,
@@ -23,6 +24,7 @@ import {
   type Charge,
   type Payment,
   type CategoryExpense,
+  type NetWorthTerm,
   type SankeyData,
 } from '@mbongo/shared';
 import { useAccounts } from '@/hooks/use-accounts';
@@ -41,6 +43,7 @@ interface DashboardData {
   chargesById: Map<string, Charge>;
   consolidated: ReturnType<typeof computeConsolidatedBalance>;
   rate: number | null;
+  netWorthTerms: NetWorthTerm[];
   sankeyData: SankeyData;
   donutData: CategoryExpense[];
   monthPayments: Payment[];
@@ -94,6 +97,12 @@ export function useDashboardData(
         rate != null && rateDate != null ? { rate, rateDate } : null
       ),
     [accounts, balances, transfers, rate, rateDate]
+  );
+
+  // Termes du patrimoine (détail au survol de la carte).
+  const netWorthTerms = useMemo(
+    () => listNetWorthTerms(accounts, balances),
+    [accounts, balances]
   );
 
   // Fenêtre mensuelle du mois choisi (curseur).
@@ -202,6 +211,7 @@ export function useDashboardData(
     chargesById,
     consolidated,
     rate,
+    netWorthTerms,
     sankeyData,
     donutData,
     monthPayments,
