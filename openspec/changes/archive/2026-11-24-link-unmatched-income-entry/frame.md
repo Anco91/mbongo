@@ -1,6 +1,6 @@
 ---
 id: link-unmatched-income-entry
-status: draft
+status: review
 branch: feat/link-unmatched-income-entry
 tier: small
 locked_at:
