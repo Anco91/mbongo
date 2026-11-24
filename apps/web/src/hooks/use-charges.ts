@@ -17,6 +17,8 @@ import {
   type UseMutationResult,
 } from '@tanstack/react-query';
 import { chargesRepository } from '@/repositories/charges.repository';
+import { chargeQueries } from '@/queries/charges';
+import { paymentQueries } from '@/queries/payments';
 import { paymentsRepository } from '@/repositories/payments.repository';
 import {
   Charge,
@@ -27,28 +29,6 @@ import {
   nextPayment,
 } from '@mbongo/shared';
 import { formatISO } from 'date-fns';
-
-// ============================================================================
-// Query Keys
-// ============================================================================
-
-/**
- * Query key for charges
- */
-const CHARGE_KEY = 'charges';
-
-/**
- * Generate query key for a single charge
- */
-const chargeKey = (id: string): [string, string] => [CHARGE_KEY, id];
-
-/**
- * Generate query key for charge payments
- */
-const chargePaymentsKey = (id: string): [string, { chargeId: string }] => [
-  'payments',
-  { chargeId: id },
-];
 
 // ============================================================================
 // Query Hooks
@@ -72,10 +52,7 @@ const chargePaymentsKey = (id: string): [string, { chargeId: string }] => [
 export function useCharges(
   query: ChargeQuery = {}
 ): UseQueryResult<Charge[], Error> {
-  return useQuery({
-    queryKey: [CHARGE_KEY, query],
-    queryFn: () => chargesRepository.findMany(query),
-  });
+  return useQuery(chargeQueries.list(query));
 }
 
 /**
@@ -90,11 +67,7 @@ export function useCharges(
  * ```
  */
 export function useCharge(id: string): UseQueryResult<Charge, Error> {
-  return useQuery({
-    queryKey: chargeKey(id),
-    queryFn: () => chargesRepository.findOne(id),
-    enabled: Boolean(id),
-  });
+  return useQuery(chargeQueries.detail(id));
 }
 
 /**
@@ -111,11 +84,7 @@ export function useCharge(id: string): UseQueryResult<Charge, Error> {
 export function useChargePayments(
   id: string
 ): UseQueryResult<Payment[], Error> {
-  return useQuery({
-    queryKey: chargePaymentsKey(id),
-    queryFn: () => paymentsRepository.findMany({ chargeId: { eq: id } }),
-    enabled: Boolean(id),
-  });
+  return useQuery(paymentQueries.byCharge(id));
 }
 
 /**
@@ -133,14 +102,8 @@ export function useNextPayment(
   id: string
 ): UseQueryResult<Payment | null, Error> {
   return useQuery({
-    queryKey: chargePaymentsKey(id),
-    queryFn: () =>
-      paymentsRepository.findMany({
-        chargeId: { eq: id },
-        status: { eq: 'PENDING' },
-      }),
+    ...paymentQueries.byCharge(id),
     select: (payments: Payment[]) => nextPayment(payments, new Date()),
-    enabled: Boolean(id),
   });
 }
 
@@ -178,8 +141,8 @@ export function useCreateCharge(): UseMutationResult<
       chargesRepository.create(input),
     onSuccess: async () => {
       // Invalidate all charges queries to trigger refetch
-      await queryClient.invalidateQueries({ queryKey: [CHARGE_KEY] });
-      await queryClient.invalidateQueries({ queryKey: ['payments'] });
+      await queryClient.invalidateQueries({ queryKey: chargeQueries.all() });
+      await queryClient.invalidateQueries({ queryKey: paymentQueries.all() });
     },
   });
 }
@@ -207,11 +170,13 @@ export function useUpdateCharge(
       chargesRepository.update(id, input),
     onSuccess: (_charge) => {
       // Invalidate single charge query
-      void queryClient.invalidateQueries({ queryKey: chargeKey(id) });
+      void queryClient.invalidateQueries({
+        queryKey: chargeQueries.detail(id).queryKey,
+      });
       // Invalidate charges list
-      void queryClient.invalidateQueries({ queryKey: [CHARGE_KEY] });
+      void queryClient.invalidateQueries({ queryKey: chargeQueries.all() });
       // Invalidate payments (schedule may have changed)
-      void queryClient.invalidateQueries({ queryKey: ['payments'] });
+      void queryClient.invalidateQueries({ queryKey: paymentQueries.all() });
     },
   });
 }
@@ -235,11 +200,13 @@ export function useDeleteCharge(): UseMutationResult<void, Error, string> {
     mutationFn: (chargeId: string) => chargesRepository.remove(chargeId),
     onSuccess: (_data, chargeId) => {
       // Remove from cache
-      queryClient.removeQueries({ queryKey: chargeKey(chargeId) });
+      queryClient.removeQueries({
+        queryKey: chargeQueries.detail(chargeId).queryKey,
+      });
       // Invalidate charges list
-      void queryClient.invalidateQueries({ queryKey: [CHARGE_KEY] });
+      void queryClient.invalidateQueries({ queryKey: chargeQueries.all() });
       // Invalidate payments (schedule removed)
-      void queryClient.invalidateQueries({ queryKey: ['payments'] });
+      void queryClient.invalidateQueries({ queryKey: paymentQueries.all() });
     },
   });
 }
@@ -272,7 +239,7 @@ export function useMarkPaymentAsPaid(): UseMutationResult<
     onSuccess: () => {
       // Invalidate every payments window (per-month queries included):
       // the per-charge key alone misses the windowed queries (design D5).
-      void queryClient.invalidateQueries({ queryKey: ['payments'] });
+      void queryClient.invalidateQueries({ queryKey: paymentQueries.all() });
     },
   });
 }
@@ -306,10 +273,7 @@ export async function prefetchCharges(
   queryClient: import('@tanstack/react-query').QueryClient,
   query: ChargeQuery = {}
 ): Promise<void> {
-  await queryClient.prefetchQuery({
-    queryKey: [CHARGE_KEY, query],
-    queryFn: () => chargesRepository.findMany(query),
-  });
+  await queryClient.prefetchQuery(chargeQueries.list(query));
 }
 
 /**
@@ -321,10 +285,7 @@ export async function prefetchCharge(
 ): Promise<void> {
   if (!id) return;
 
-  await queryClient.prefetchQuery({
-    queryKey: chargeKey(id),
-    queryFn: () => chargesRepository.findOne(id),
-  });
+  await queryClient.prefetchQuery(chargeQueries.detail(id));
 }
 
 /**
@@ -336,14 +297,5 @@ export async function prefetchChargePayments(
 ): Promise<void> {
   if (!id) return;
 
-  await queryClient.prefetchQuery({
-    queryKey: chargePaymentsKey(id),
-    queryFn: () => paymentsRepository.findMany({ chargeId: { eq: id } }),
-  });
+  await queryClient.prefetchQuery(paymentQueries.byCharge(id));
 }
-
-// ============================================================================
-// Exports
-// ============================================================================
-
-export { CHARGE_KEY, chargeKey, chargePaymentsKey };
