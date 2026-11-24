@@ -117,7 +117,8 @@ export function computeMonthExpectedIncome(
     });
 
   const sum = entries.reduce(
-    (acc, entry) => acc + (convert?.(entry.amount, entry.currency) ?? entry.amount),
+    (acc, entry) =>
+      acc + (convert?.(entry.amount, entry.currency) ?? entry.amount),
     0
   );
 
