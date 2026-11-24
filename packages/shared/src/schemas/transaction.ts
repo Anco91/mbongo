@@ -10,6 +10,7 @@
 import { z } from 'zod';
 import { isValid, parseISO } from 'date-fns';
 import { filterSchema } from './filter';
+import { AUTO_DEBIT_NOTE } from '../domain/payment-debit';
 
 // ============================================================================
 // Types de base
@@ -77,6 +78,12 @@ export const createTransactionSchema = transactionSchema
     // ces champs ne sont renseignés que par TransferService.
     transferId: z.string().min(1).nullable().default(null),
     transferRole: transferRoleSchema.nullable().default(null),
+    // La note réservée au débit automatique d'un paiement ne peut pas être
+    // saisie par un utilisateur.
+    note: transactionSchema.shape.note.refine(
+      (value) => value?.trim() !== AUTO_DEBIT_NOTE,
+      'Reserved note'
+    ),
   });
 
 /**
