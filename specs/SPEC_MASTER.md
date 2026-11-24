@@ -71,3 +71,4 @@ situation (second CHF salary) needs no model rewrite. Full context: `cdc.md` (ar
 | 25 | `specs/25-member-scope-donut-sankey.md` | Household-wide donut/Sankey plus a « Membre X » button per member (only that member's expenses), reachable from fullscreen. Generic for every member | draft | — |
 | 26 | `specs/26-richer-category-taxonomy.md` | Much richer categories and sub-categories modelled on real bank apps (missing: credits/loans, etc.). Research first, then extend `CHARGE_CATEGORIES` | draft | — |
 | 27 | `specs/27-clean-test-accounts.md` | Delete closed test accounts and closed transfers from dev.db. User authorised 2026-11-24; destructive: back up dev.db first, list rows before deleting | draft | — |
+| 28 | `specs/28-unmatched-income-closed-account.md` | « N revenus à lier » alert/banner counts an income whose account is closed: exclude closed accounts from `findUnmatchedIncome` consumers (banner + `/incomes/unmatched`). Related to 27 (test data) | draft | — |

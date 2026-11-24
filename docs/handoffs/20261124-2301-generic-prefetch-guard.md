@@ -17,9 +17,9 @@ Tool-call limit (SES-2) and usage limit reached. Spec written, not implemented.
 - Advisor: review, archive the change, row 04 done, PR, merge on green.
 - Rows 15 and 20 stay deferred (triage 2026-11-24).
 
-## New user requests (2026-11-24, now master rows 21-27, all draft)
+## New user requests (2026-11-24, now master rows 21-28, all draft)
 
-Priority order: 21 performance (page changes very slow, no loading feedback), 22 transfer between any accounts, 23-24 consolidated balance and Sankey fake joint income (need 22), 25 member scope for donut/Sankey, 26 richer taxonomy, 27 delete closed test accounts/transfers (human authorised; back up dev.db first). Must be generic across members, not tied to one person. Row 04 (generic-prefetch-guard) is ready but lower priority than 21.
+Priority order: 21 performance (page changes very slow, no loading feedback), 22 transfer between any accounts, 23-24 consolidated balance and Sankey fake joint income (need 22), 25 member scope for donut/Sankey, 26 richer taxonomy, 27 delete closed test accounts/transfers (human authorised; back up dev.db first). Must be generic across members, not tied to one person. 28 unmatched-income alert counts an income on a closed account: must be excluded (small, quick win, can be fast-track if ≤ 3 files). Row 04 (generic-prefetch-guard) is ready but lower priority than 21.
 
 ## Next action
 
