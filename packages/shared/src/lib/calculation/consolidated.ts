@@ -164,3 +164,27 @@ export function computeConsolidatedBalance(
     isAvailable: true,
   };
 }
+
+/** Un terme du patrimoine : le solde d'un compte actif, en devise native. */
+export interface NetWorthTerm {
+  accountId: string;
+  name: string;
+  currency: Account['currency'];
+  /** Solde signé, arrondi à 2 décimales, jamais 0. */
+  balance: number;
+  kind: 'asset' | 'overdraft';
+}
+
+/**
+ * Liste les termes du patrimoine consolidé : un par compte actif au solde non nul.
+ * Même règle de solde que `computeConsolidatedBalance`.
+ *
+ * @param accounts - Comptes du foyer
+ * @param balances - Map des soldes actuels par id de compte
+ */
+export function listNetWorthTerms(
+  accounts: Account[],
+  balances: Record<string, number>
+): NetWorthTerm[] {
+  throw new Error('not implemented');
+}
