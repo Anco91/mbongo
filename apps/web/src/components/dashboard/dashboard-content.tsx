@@ -31,6 +31,8 @@ import {
 } from './dashboard-fullscreen-charts';
 import { currentMonthKey, shiftMonthKey } from '@/lib/month-navigation';
 import { useDashboardData } from './use-dashboard-data';
+import { MemberScopeChips } from './member-scope-chips';
+import { useMembers } from '@/hooks/use-members';
 import { UnmatchedIncomeBanner } from './unmatched-income-banner';
 import {
   SkeletonCard,
@@ -48,6 +50,9 @@ export function DashboardContent(): JSX.Element {
   const [selectedMonth, setSelectedMonth] = useState(currentMonthKey);
   // Closed accounts are hidden from the charts by default.
   const [showClosed, setShowClosed] = useState(false);
+  // Charts scope: null = whole household, else one member's accounts.
+  const [memberId, setMemberId] = useState<string | null>(null);
+  const { data: members = [] } = useMembers();
 
   useEffect(() => {
     setMounted(true);
@@ -65,7 +70,7 @@ export function DashboardContent(): JSX.Element {
     monthPayments,
     totalCharges,
     now,
-  } = useDashboardData(selectedMonth, showClosed);
+  } = useDashboardData(selectedMonth, showClosed, memberId);
 
   const { displayCurrency, convert } = useDisplayCurrency();
 
@@ -105,6 +110,12 @@ export function DashboardContent(): JSX.Element {
 
       {/* 2 + 3 : zone swipe — geste horizontal natif PWA pour changer de mois */}
       <ShowClosedToggle checked={showClosed} onChange={setShowClosed} />
+
+      <MemberScopeChips
+        members={members}
+        value={memberId}
+        onChange={setMemberId}
+      />
 
       <SwipeZone onSwipe={changeMonth}>
         {mounted ? (
@@ -151,6 +162,9 @@ export function DashboardContent(): JSX.Element {
           chart={fullscreenChart}
           sankeyData={sankeyData}
           donutData={donutData}
+          members={members}
+          memberId={memberId}
+          onMemberChange={setMemberId}
           formatValue={formatDisplay}
           onClose={() => setFullscreenChart(null)}
         />

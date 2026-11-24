@@ -17,6 +17,7 @@ import {
   computeSankeyFlows,
   excludeClosedAccounts,
   listNetWorthTerms,
+  scopeToMember,
   computeMonthlyBudget,
   monthRange,
   isInMonth,
@@ -54,7 +55,8 @@ interface DashboardData {
 
 export function useDashboardData(
   selectedMonth: string,
-  showClosed = false
+  showClosed = false,
+  memberId: string | null = null
 ): DashboardData {
   const { data: accounts = [] } = useAccounts();
   const { data: transactions = [] } = useTransactions();
@@ -134,7 +136,7 @@ export function useDashboardData(
 
   // Charts only: closed accounts (and what points at them) are hidden unless
   // asked for. Balances, consolidated and totalCharges stay untouched.
-  const chartScope = useMemo(
+  const closedScope = useMemo(
     () =>
       showClosed
         ? {
@@ -162,6 +164,12 @@ export function useDashboardData(
       monthPayments,
       incomes,
     ]
+  );
+
+  // Member scope applies after the closed-accounts filter (charts only).
+  const chartScope = useMemo(
+    () => scopeToMember(closedScope, memberId),
+    [closedScope, memberId]
   );
 
   // Confirmed incomes match on budgetMonth, not on date: add the income-linked

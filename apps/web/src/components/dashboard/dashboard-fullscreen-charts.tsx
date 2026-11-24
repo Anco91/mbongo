@@ -14,7 +14,8 @@ import {
   DonutLegend,
   type DonutDatum,
 } from '@/components/charts/donut-categories-chart';
-import type { SankeyData } from '@mbongo/shared';
+import type { Member, SankeyData } from '@mbongo/shared';
+import { MemberScopeChips } from './member-scope-chips';
 import { JSX } from 'react';
 
 export type FullscreenChart = 'sankey' | 'donut';
@@ -24,6 +25,9 @@ interface DashboardFullscreenChartsProps {
   sankeyData: SankeyData;
   donutData: DonutDatum[];
   formatValue: (eur: number) => string;
+  members: Member[];
+  memberId: string | null;
+  onMemberChange: (memberId: string | null) => void;
   onClose: () => void;
 }
 
@@ -32,6 +36,9 @@ export function DashboardFullscreenCharts({
   sankeyData,
   donutData,
   formatValue,
+  members,
+  memberId,
+  onMemberChange,
   onClose,
 }: DashboardFullscreenChartsProps): JSX.Element {
   return (
@@ -41,6 +48,13 @@ export function DashboardFullscreenCharts({
       }
       onClose={onClose}
     >
+      <div className="px-4 pb-2">
+        <MemberScopeChips
+          members={members}
+          value={memberId}
+          onChange={onMemberChange}
+        />
+      </div>
       {chart === 'sankey' ? (
         <div className="h-full w-full px-4">
           <SankeyFlowsChart
