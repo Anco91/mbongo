@@ -13,6 +13,7 @@ import {
   createIncomeSchema,
   updateIncomeSchema,
   confirmIncomeSchema,
+  linkIncomeSchema,
 } from '@mbongo/shared';
 import {
   parseBody,
@@ -103,6 +104,19 @@ export class IncomesController {
     try {
       const body = await parseBody(request, confirmIncomeSchema);
       const transaction = await this.incomes.confirm(id, body);
+      return toSuccessResponse(transaction);
+    } catch (error) {
+      return toErrorResponse(error);
+    }
+  }
+
+  /**
+   * Link an existing transaction to an income and month - POST /api/incomes/{id}/link
+   */
+  async link(id: string, request: Request): Promise<NextResponse> {
+    try {
+      const body = await parseBody(request, linkIncomeSchema);
+      const transaction = await this.incomes.linkTransaction(id, body);
       return toSuccessResponse(transaction);
     } catch (error) {
       return toErrorResponse(error);

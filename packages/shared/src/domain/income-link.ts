@@ -7,8 +7,10 @@
  * @packageDocumentation
  */
 
+import { format, parseISO } from 'date-fns';
 import type { Income } from '../schemas/income';
 import type { MatchableTransaction } from './income-matching';
+import { isIncomeDueForMonth } from './income';
 
 /** Raison du refus d'un rattachement. */
 export type IncomeLinkError =
@@ -41,6 +43,17 @@ export interface IncomeLinkContext {
 export function checkIncomeLink(
   context: IncomeLinkContext
 ): IncomeLinkError | null {
-  void context;
-  throw new Error('not implemented');
+  const { income, transaction, month } = context;
+  if (transaction.amount <= 0) return 'amount-not-positive';
+  if (transaction.transferId) return 'transfer-leg';
+  if (transaction.incomeId) return 'already-linked';
+  if (context.hasPayment) return 'payment-linked';
+  if (transaction.accountId !== income.accountId) return 'account-mismatch';
+  if (!income.active) return 'income-inactive';
+  if (!isIncomeDueForMonth(income, month)) return 'income-not-due';
+  if (format(parseISO(transaction.date), 'yyyy-MM') !== month) {
+    return 'date-outside-month';
+  }
+  if (context.confirmedTransactionId !== null) return 'month-already-confirmed';
+  return null;
 }

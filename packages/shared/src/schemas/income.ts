@@ -70,8 +70,11 @@ export const confirmIncomeSchema = z.object({
   date: isoDate.optional(),
 });
 
-/** Rattachement d'une transaction existante à une source et un mois. STUB: spec 17. */
-export const linkIncomeSchema = z.object({});
+/** Rattachement d'une transaction existante à une source et un mois. */
+export const linkIncomeSchema = z.object({
+  transactionId: z.string().min(1),
+  month: monthKeySchema,
+});
 
 /** Filtres de `GET /api/incomes`. */
 export const incomeQuerySchema = z.object({
