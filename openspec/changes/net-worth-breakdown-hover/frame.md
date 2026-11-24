@@ -77,3 +77,5 @@ Proof of failure: `npx jest __tests__/net-worth-terms.test.ts` → 9 failed, `no
 |---|---|---|---|
 
 ## Handoffs
+
+- `docs/handoffs/20261124-2218-net-worth-breakdown-hover.md`
