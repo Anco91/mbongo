@@ -9,7 +9,7 @@
 import { JSX } from 'react';
 import Link from 'next/link';
 import { OwnerBadge } from '@/components/patterns';
-import { formatAmount } from '@/lib/format';
+import { formatAmount, formatDate } from '@/lib/format';
 import { ACCOUNT_TYPE_LABELS, type AccountCardView } from '@/lib/accounts';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -101,11 +101,7 @@ export function AccountCard({ view }: AccountCardProps): JSX.Element {
                     statementGap.gap,
                     account.currency
                   )}`}{' '}
-              (
-              {new Intl.DateTimeFormat('fr-CH').format(
-                new Date(statementGap.snapshotDate)
-              )}
-              )
+              ({formatDate(statementGap.snapshotDate)})
             </p>
           )}
           {account.deferredCard && (
