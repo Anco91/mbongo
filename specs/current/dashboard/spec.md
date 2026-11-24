@@ -87,6 +87,28 @@ L'UI du dashboard SHALL afficher le donut des dépenses du mois choisi avec le t
 - **WHEN** le donut s'affiche
 - **THEN** les catégories des charges à venir occupent une part prévue distincte et le total au centre est non nul
 
+### Requirement: Comptes clôturés dans les charts
+
+Le dashboard SHALL proposer une case « Afficher les comptes clôturés » au-dessus du Sankey et du donut. Par défaut elle est décochée : le Sankey et le donut SHALL exclure les transactions, transferts, charges et paiements liés à un compte clôturé. Cocher la case SHALL les réintégrer, la décocher les retirer, sans nouvelle requête. Patrimoine consolidé, soldes et alertes SHALL ignorer cette case. Le choix n'est pas persisté.
+
+#### Scenario: Compte clôturé masqué par défaut
+
+- **GIVEN** un compte clôturé qui porte des transactions sur le mois choisi
+- **WHEN** le dashboard se charge
+- **THEN** ses flux n'apparaissent ni dans le Sankey ni dans le donut
+
+#### Scenario: Réintégration
+
+- **GIVEN** la case décochée
+- **WHEN** l'utilisateur coche « Afficher les comptes clôturés »
+- **THEN** le Sankey et le donut incluent à nouveau les flux du compte clôturé
+- **AND** décocher la case les retire de nouveau
+
+#### Scenario: Patrimoine inchangé
+
+- **WHEN** l'utilisateur coche ou décoche la case
+- **THEN** le patrimoine consolidé, les soldes et les alertes ne changent pas
+
 ### Requirement: Échéances du mois
 
 L'UI du dashboard SHALL afficher les échéances du mois choisi (navigation mensuelle) : 3 visibles par défaut, les autres révélées par paquets (« afficher les autres ») avec le geste mobile natif, sans barre de pagination web. Chaque échéance SHALL porter le badge « qui paie » de son compte débité.

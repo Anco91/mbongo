@@ -1,6 +1,6 @@
 ---
 id: 06-closed-accounts-in-charts
-status: review
+status: done
 branch: feat/06-closed-accounts-in-charts
 tier: medium
 locked_at: ea04a48d857b05e875d3d7d024dd3461778fcf31
@@ -100,3 +100,4 @@ Proof of failure: `cd apps/web && npx jest __tests__/exclude-closed-accounts.tes
 - Per-month closure semantics (a closed account is hidden for all months when off).
 
 ## Handoffs
+- 2026-11-24: `docs/handoffs/20261124-1719-06-closed-accounts-in-charts.md`
