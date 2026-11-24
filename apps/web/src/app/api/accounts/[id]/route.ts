@@ -33,15 +33,6 @@ export const PATCH = async (
   accountsController.update(request, (await params).id);
 
 /**
- * POST /api/accounts/:id/close
- * Close an account (soft delete: status CLOSED + closedAt)
- */
-export const POST = async (
-  _request: Request,
-  { params }: Context
-): Promise<NextResponse> => accountsController.close((await params).id);
-
-/**
  * DELETE /api/accounts/:id
  * Delete an account (only when it has no related data)
  */
