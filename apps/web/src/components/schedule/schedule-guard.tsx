@@ -9,25 +9,23 @@
  * @module Components/Schedule/ScheduleGuard
  */
 
-import {
-  dehydrate,
-  HydrationBoundary,
-  QueryClient,
-} from '@tanstack/react-query';
 import { chargeService } from '@/server/charges/charge.service';
 import { paymentService } from '@/server/payments/payment.service';
 import { accountService } from '@/server/accounts/account.service';
 import { transactionService } from '@/server/transactions/transaction.service';
 import { addDays, startOfDay } from 'date-fns';
+import {
+  PrefetchGuard,
+  type PrefetchEntry,
+} from '@/components/patterns/prefetch-guard';
 import { JSX } from 'react';
 
 /**
  * ScheduleGuard Component
  *
  * This is a Server Component that:
- * 1. Creates a QueryClient instance
- * 2. Prefetches schedule data using the server-side services
- * 3. Provides the data to client components via HydrationBoundary
+ * 1. Declares the schedule entries (server-side services)
+ * 2. Delegates prefetch and hydration to PrefetchGuard
  *
  * The payment window covers the 60 next days PLUS the 60 past days: a
  * PENDING payment whose due date is already passed must stay visible with
@@ -35,12 +33,11 @@ import { JSX } from 'react';
  *
  * @returns JSX Element
  */
-export async function ScheduleGuard({
+export function ScheduleGuard({
   children,
 }: {
   children: React.ReactNode;
-}): Promise<JSX.Element> {
-  const qc = new QueryClient();
+}): JSX.Element {
   const today = startOfDay(new Date());
   const windowEnd = addDays(today, 60);
   const windowStart = addDays(today, -60);
@@ -54,26 +51,24 @@ export async function ScheduleGuard({
     dateTo: windowEnd.toISOString(),
   };
 
-  await Promise.all([
-    qc.prefetchQuery({
+  const entries: PrefetchEntry[] = [
+    {
       queryKey: ['payments', paymentQuery],
       queryFn: () => paymentService.findMany(paymentQuery),
-    }),
-    qc.prefetchQuery({
+    },
+    {
       queryKey: ['charges', {}],
       queryFn: () => chargeService.findMany({}),
-    }),
-    qc.prefetchQuery({
+    },
+    {
       queryKey: ['accounts', {}],
       queryFn: () => accountService.findMany({}),
-    }),
-    qc.prefetchQuery({
+    },
+    {
       queryKey: ['transactions', transactionQuery],
       queryFn: () => transactionService.findMany(transactionQuery),
-    }),
-  ]);
+    },
+  ];
 
-  return (
-    <HydrationBoundary state={dehydrate(qc)}>{children}</HydrationBoundary>
-  );
+  return <PrefetchGuard entries={entries}>{children}</PrefetchGuard>;
 }

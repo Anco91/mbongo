@@ -33,3 +33,7 @@ export { OwnerBadge, ownerLabel } from '@/components/patterns/owner-badge';
 export { ItemList } from '@/components/patterns/item-list';
 export { EditableItem, parseAmount } from '@/components/patterns/editable-item';
 export { CreatePanel } from '@/components/patterns/create-panel';
+export {
+  PrefetchGuard,
+  type PrefetchEntry,
+} from '@/components/patterns/prefetch-guard';

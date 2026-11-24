@@ -8,27 +8,24 @@
  * @module Components/Household/HouseholdGuard
  */
 
-import {
-  dehydrate,
-  HydrationBoundary,
-  QueryClient,
-} from '@tanstack/react-query';
 import { memberService } from '@/server/members/member.service';
+import {
+  PrefetchGuard,
+  type PrefetchEntry,
+} from '@/components/patterns/prefetch-guard';
 import { JSX } from 'react';
 
-export async function HouseholdGuard({
+export function HouseholdGuard({
   children,
 }: {
   children: React.ReactNode;
-}): Promise<JSX.Element> {
-  const qc = new QueryClient();
+}): JSX.Element {
+  const entries: PrefetchEntry[] = [
+    {
+      queryKey: ['members'],
+      queryFn: () => memberService.findMany(),
+    },
+  ];
 
-  await qc.prefetchQuery({
-    queryKey: ['members'],
-    queryFn: () => memberService.findMany(),
-  });
-
-  return (
-    <HydrationBoundary state={dehydrate(qc)}>{children}</HydrationBoundary>
-  );
+  return <PrefetchGuard entries={entries}>{children}</PrefetchGuard>;
 }

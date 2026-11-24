@@ -8,14 +8,13 @@
  * @module Components/Accounts/AccountsGuard
  */
 
-import {
-  dehydrate,
-  HydrationBoundary,
-  QueryClient,
-} from '@tanstack/react-query';
 import { accountService } from '@/server/accounts/account.service';
 import { transactionService } from '@/server/transactions/transaction.service';
 import { AccountQuery } from '@mbongo/shared';
+import {
+  PrefetchGuard,
+  type PrefetchEntry,
+} from '@/components/patterns/prefetch-guard';
 import { JSX } from 'react';
 
 /**
@@ -31,24 +30,20 @@ interface AccountsGuardProps {
  * Server Component that prefetches both data sets via the server-side
  * services (direct call, never a fetch to our own API — R5).
  */
-export async function AccountsGuard({
+export function AccountsGuard({
   query = {},
   children,
-}: AccountsGuardProps & { children: React.ReactNode }): Promise<JSX.Element> {
-  const qc = new QueryClient();
-
-  await Promise.all([
-    qc.prefetchQuery({
+}: AccountsGuardProps & { children: React.ReactNode }): JSX.Element {
+  const entries: PrefetchEntry[] = [
+    {
       queryKey: ['accounts', query],
       queryFn: () => accountService.findMany(query),
-    }),
-    qc.prefetchQuery({
+    },
+    {
       queryKey: ['transactions', {}],
       queryFn: () => transactionService.findMany({}),
-    }),
-  ]);
+    },
+  ];
 
-  return (
-    <HydrationBoundary state={dehydrate(qc)}>{children}</HydrationBoundary>
-  );
+  return <PrefetchGuard entries={entries}>{children}</PrefetchGuard>;
 }

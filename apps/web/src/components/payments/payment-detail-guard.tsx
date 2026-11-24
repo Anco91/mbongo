@@ -9,16 +9,15 @@
  * @module Components/Payments/PaymentDetailGuard
  */
 
-import {
-  dehydrate,
-  HydrationBoundary,
-  QueryClient,
-} from '@tanstack/react-query';
 import { paymentService } from '@/server/payments/payment.service';
 import { chargeService } from '@/server/charges/charge.service';
 import { accountService } from '@/server/accounts/account.service';
 import { transactionService } from '@/server/transactions/transaction.service';
 import { addDays, parseISO } from 'date-fns';
+import {
+  PrefetchGuard,
+  type PrefetchEntry,
+} from '@/components/patterns/prefetch-guard';
 import { JSX } from 'react';
 
 /**
@@ -35,8 +34,6 @@ export async function PaymentDetailGuard({
   id: string;
   children: React.ReactNode;
 }): Promise<JSX.Element> {
-  const qc = new QueryClient();
-
   const payment = await paymentService.findOne(id);
   const charge = await chargeService.findOne(payment.chargeId);
   const account = await accountService.findOne(charge.accountId);
@@ -49,26 +46,24 @@ export async function PaymentDetailGuard({
     dateTo: addDays(dueDate, 60).toISOString(),
   };
 
-  await Promise.all([
-    qc.prefetchQuery({
+  const entries: PrefetchEntry[] = [
+    {
       queryKey: ['payments', id],
       queryFn: () => paymentService.findOne(id),
-    }),
-    qc.prefetchQuery({
+    },
+    {
       queryKey: ['charges', charge.id],
       queryFn: () => chargeService.findOne(charge.id),
-    }),
-    qc.prefetchQuery({
+    },
+    {
       queryKey: ['accounts', account.id],
       queryFn: () => accountService.findOne(account.id),
-    }),
-    qc.prefetchQuery({
+    },
+    {
       queryKey: ['transactions', transactionQuery],
       queryFn: () => transactionService.findMany(transactionQuery),
-    }),
-  ]);
+    },
+  ];
 
-  return (
-    <HydrationBoundary state={dehydrate(qc)}>{children}</HydrationBoundary>
-  );
+  return <PrefetchGuard entries={entries}>{children}</PrefetchGuard>;
 }
