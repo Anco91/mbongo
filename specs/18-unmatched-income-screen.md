@@ -1,6 +1,6 @@
 ---
 id: 18-unmatched-income-screen
-status: ready
+status: done
 branch: feat/18-unmatched-income-screen
 tier: medium
 locked_at:
@@ -70,6 +70,7 @@ unmatched entries are not listed (accepted, logged in `design`-level Decisions b
 | `apps/web/src/hooks/use-incomes.ts` | Add `useUnmatchedIncome(): { items: UnmatchedIncome[]; incomes: Income[]; isLoading: boolean; error: Error \| null }`: `useQuery(transactionQueries.list(UNMATCHED_QUERY))` + `useQuery(incomeQueries.list({}))`, `useMemo(() => findUnmatchedIncome(transactions, incomes), …)`. Add `useLinkIncome()`: `useMutation` over `incomesRepository.link`, `onSuccess` invalidates `transactionQueries.all()`, `incomeQueries.all()`, `['dashboard']` (same trio as `useConfirmIncome`) |
 | `apps/web/src/lib/month-queries.ts` | Add `export const UNMATCHED_QUERY: TransactionQuery = { limit: 500 }` |
 | `apps/web/src/lib/routes.ts` | Add `'/incomes/unmatched': 'Revenus à lier'` to `MAIN_ROUTES` |
+| `specs/current/income-management/spec.md` | Advisor adds « Revenus à lier » requirement (SPEC-2/3) |
 | `docs/LEXIQUE.md` | Add rows: « Lier » (button, Revenus à lier), « Revenus à lier » (screen title), « Aucun revenu à lier » (empty state), « Montant conforme » (gap 0). Old term for all: — |
 
 ### Read (allow-list)

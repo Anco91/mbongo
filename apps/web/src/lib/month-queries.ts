@@ -18,6 +18,9 @@ import type { PaymentQuery, TransactionQuery } from '@mbongo/shared';
 /** Upper bound of the windowed payment/alert queries. */
 export const PAYMENTS_WINDOW_LIMIT = 500;
 
+/** Single-page query of the unmatched-income screen (API cap is 500). */
+export const UNMATCHED_QUERY: TransactionQuery = { limit: 500 };
+
 /**
  * Windowed payments query for a month ('YYYY-MM'): every due date of
  * the chosen month, regardless of status (realized and planned).

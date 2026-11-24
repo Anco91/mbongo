@@ -20,6 +20,10 @@ l'identique dans tous les écrans.
 | Marquer payée sans transaction | Marquer payée sans transaction | Régler une échéance sans pièce bancaire | Détail d'échéance |
 | Rapprochement | — | Le fait de relier une échéance à un débit | Réservé au code, jamais affiché |
 | Aucune échéance à venir | — | État vide de la vue échéances | `/schedule` |
+| Lier | — | Bouton qui rattache une entrée d'argent à une source de revenu | Revenus à lier |
+| Revenus à lier | — | Titre de l'écran des entrées d'argent sans source | `/incomes/unmatched` |
+| Aucun revenu à lier | — | État vide de l'écran Revenus à lier | `/incomes/unmatched` |
+| Montant conforme | — | Écart nul entre le montant prévu et reçu | Revenus à lier |
 | Impossible de charger … | Erreur lors du chargement de … | Échec de récupération de données | Panneaux d'erreur |
 | Réessayer | Réessayer | Relancer une requête en échec | Panneaux d'erreur |
 
