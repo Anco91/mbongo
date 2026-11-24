@@ -1,6 +1,6 @@
 ---
 id: 12-sankey-income-leg
-status: ready
+status: done
 branch: feat/12-sankey-income-leg
 tier: medium
 locked_at: c8fcbd6
@@ -86,7 +86,7 @@ Standards to read first (CTX-5): none beyond `ARCHITECTURE.md`.
 
 ## Tests
 
-Locked at 86d8502 (Advisor). Criteria 1-5 are pinned; criterion 6 is a visual check by the human (TEST-2).
+Locked at 86d8502 (Advisor), relocked at c8fcbd6 after the test change request below. Criteria 1-5 are pinned; criterion 6 is a visual check by the human (TEST-2).
 `m3-calculations.test.ts`: the first sankey case now takes its income from a source, and every
 `computeSankeyFlows` call passes `incomes` and `monthKey`.
 
@@ -123,6 +123,7 @@ All failures are assertion failures on the missing behaviour, none is a load or 
 
 | Test | Reason | Proposal | Decision |
 |---|---|---|---|
+| `m3-calculations.test.ts` « treats a positive amount as an income into the account » | Contradicts criterion 3 (positive without `incomeId` gives no link) | Remove the case | Accepted by the human 2026-11-24; relocked at c8fcbd6 |
 
 ## Out of scope
 
@@ -132,3 +133,4 @@ All failures are assertion failures on the missing behaviour, none is a load or 
 ## Handoffs
 
 - `docs/handoffs/20261124-1932-12-sankey-income-leg.md`
+- `docs/handoffs/20261124-1951-12-sankey-income-leg.md`

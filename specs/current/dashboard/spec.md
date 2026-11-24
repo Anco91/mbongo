@@ -40,7 +40,7 @@ L'UI du dashboard SHALL afficher le total consolidé en EUR au taux courant (tau
 
 ### Requirement: Sankey des flux du mois
 
-L'UI du dashboard SHALL afficher le Sankey des flux du mois choisi, coloré par type (revenus, comptes, dépenses). Chaque nœud SHALL porter son nom ET son montant agrégé, en carte comme en plein écran — le graphe se lit sans survol. Les échéances à venir du mois choisi SHALL être représentées comme des flux « prévus », rendus distincts des flux réalisés, en plus des transactions réalisées du mois.
+L'UI du dashboard SHALL afficher le Sankey des flux du mois choisi, coloré par type (revenus, comptes, dépenses). Chaque nœud SHALL porter son nom ET son montant agrégé, en carte comme en plein écran — le graphe se lit sans survol. La jambe revenus → comptes SHALL partir des revenus attendus du mois (montant confirmé s'il existe, sinon montant prévu) : un revenu confirmé est un flux réalisé, un revenu non confirmé est un flux « prévu ». Une transaction positive sans lien à une source de revenu ni transfert n'y figure pas tant qu'elle n'est pas rapprochée. Les échéances à venir du mois choisi SHALL être représentées comme des flux « prévus ». Les flux prévus (revenus et charges) SHALL être rendus distincts des flux réalisés par une opacité plus faible, sans motif rayé.
 
 #### Scenario: Flux avec données
 
@@ -59,6 +59,24 @@ L'UI du dashboard SHALL afficher le Sankey des flux du mois choisi, coloré par 
 - **GIVEN** un mois préparé avec des échéances à venir et aucune dépense réalisée
 - **WHEN** le dashboard se charge
 - **THEN** le Sankey affiche la jambe comptes → charges comme flux prévu, distinct du réalisé
+
+#### Scenario: Revenu attendu non confirmé
+
+- **GIVEN** une source de revenu active due ce mois, sans transaction confirmée
+- **WHEN** le dashboard se charge
+- **THEN** le Sankey affiche un flux prévu source → compte au montant prévu
+
+#### Scenario: Revenu confirmé
+
+- **GIVEN** cette source confirmée sur le mois (transaction liée à la source et au mois)
+- **WHEN** le dashboard se charge
+- **THEN** un seul flux réalisé au montant confirmé s'affiche, jamais prévu et confirmé à la fois
+
+#### Scenario: Transaction positive non rapprochée
+
+- **GIVEN** une transaction positive sans source de revenu ni transfert
+- **WHEN** le dashboard se charge
+- **THEN** elle ne produit aucun flux de revenu dans le Sankey
 
 ### Requirement: Donut des dépenses par catégorie
 

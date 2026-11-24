@@ -161,7 +161,7 @@ export function useDashboardData(
     const inScope = new Set(chartScope.accounts.map((a) => a.id));
     const inMonth = new Set(chartScope.transactions.map((t) => t.id));
     const linked = transactions.filter(
-      (t) => t.incomeId && !inMonth.has(t.id) && inScope.has(t.accountId)
+      (t) => t.incomeId && t.amount > 0 && !inMonth.has(t.id) && inScope.has(t.accountId)
     );
     return [...chartScope.transactions, ...linked];
   }, [chartScope, transactions]);
