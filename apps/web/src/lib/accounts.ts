@@ -9,7 +9,9 @@
 import {
   cardBilling,
   computeBalance,
+  computeStatementGap,
   type Account,
+  type BalanceSnapshot,
   type Transaction,
 } from '@mbongo/shared';
 
@@ -25,6 +27,10 @@ export const LIVRET_A_CEILING = 22950;
 
 export type CardBillingView = ReturnType<typeof cardBilling>;
 
+export type StatementGapView = NonNullable<
+  ReturnType<typeof computeStatementGap>
+>;
+
 export interface AccountCardView {
   account: Account;
   status: Account['status'];
@@ -32,12 +38,14 @@ export interface AccountCardView {
   savingsProgress: number | null;
   billing: CardBillingView | null;
   settlementName: string | null;
+  statementGap: StatementGapView | null;
 }
 
 /** Build the ready-to-render view of each account. */
 export function buildAccountCards(
   accounts: Account[],
   transactions: Transaction[],
+  snapshots: BalanceSnapshot[] = [],
   now: Date = new Date()
 ): AccountCardView[] {
   const accountsById = new Map(
@@ -70,6 +78,11 @@ export function buildAccountCards(
       savingsProgress,
       billing,
       settlementName: settlement?.name ?? null,
+      statementGap: computeStatementGap(
+        account,
+        accountTransactions,
+        snapshots
+      ),
     };
   });
 }

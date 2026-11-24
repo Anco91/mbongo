@@ -20,8 +20,15 @@ interface AccountCardProps {
 }
 
 export function AccountCard({ view }: AccountCardProps): JSX.Element {
-  const { account, status, balance, savingsProgress, billing, settlementName } =
-    view;
+  const {
+    account,
+    status,
+    balance,
+    savingsProgress,
+    billing,
+    settlementName,
+    statementGap,
+  } = view;
 
   return (
     <Link href={`/accounts/${account.id}/edit`} className="block">
@@ -80,6 +87,25 @@ export function AccountCard({ view }: AccountCardProps): JSX.Element {
                 </>
               )}
               {settlementName && <> — prélèvement sur {settlementName}</>}
+            </p>
+          )}
+          {statementGap && (
+            <p
+              className={`mt-1 text-xs ${
+                statementGap.gap === 0 ? 'text-slate-500' : 'text-amber-700'
+              }`}
+            >
+              {statementGap.gap === 0
+                ? 'Relevé conforme'
+                : `Écart relevé : ${formatAmount(
+                    statementGap.gap,
+                    account.currency
+                  )}`}{' '}
+              (
+              {new Intl.DateTimeFormat('fr-CH').format(
+                new Date(statementGap.snapshotDate)
+              )}
+              )
             </p>
           )}
           {account.deferredCard && (

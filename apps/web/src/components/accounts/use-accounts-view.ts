@@ -11,6 +11,7 @@ import { useMemo, useState } from 'react';
 import type { Member } from '@mbongo/shared';
 import { useAccounts } from '@/hooks/use-accounts';
 import { useTransactions } from '@/hooks/use-transactions';
+import { useSnapshots } from '@/hooks/use-snapshots';
 import { useMembers } from '@/hooks/use-members';
 import { buildAccountCards, type AccountCardView } from '@/lib/accounts';
 
@@ -31,6 +32,7 @@ export function useAccountsView(): AccountsView {
   const [showClosed, setShowClosed] = useState(false);
   const { data: accounts = [], isLoading, error, refetch } = useAccounts();
   const { data: transactions = [] } = useTransactions();
+  const { data: snapshots = [] } = useSnapshots();
   const { data: members = [] } = useMembers();
 
   // Closed accounts are hidden unless asked for (history preserved).
@@ -45,8 +47,8 @@ export function useAccountsView(): AccountsView {
   );
 
   const cards = useMemo(
-    () => buildAccountCards(visibleAccounts, transactions),
-    [visibleAccounts, transactions]
+    () => buildAccountCards(visibleAccounts, transactions, snapshots),
+    [visibleAccounts, transactions, snapshots]
   );
 
   return {
