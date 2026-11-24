@@ -81,6 +81,9 @@ export function useUpdatePayment(): UseMutationResult<
       paymentsRepository.update(id, input),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: paymentQueries.all() });
+      await queryClient.invalidateQueries({
+        queryKey: transactionQueries.all(),
+      });
     },
   });
 }
