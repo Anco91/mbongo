@@ -25,6 +25,7 @@ const baseCharge: Charge = {
   endDate: null,
   frequency: null,
   installments: 4,
+  subcategory: null,
   dueDay: null,
   provisioned: false,
   createdAt: '2024-01-01T00:00:00.000Z',
