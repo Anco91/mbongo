@@ -1,6 +1,6 @@
 ---
 id: 07-budget-remaining-recompute
-status: ready
+status: done
 branch: feat/07-budget-remaining-recompute
 tier: small
 locked_at: f315db31f847295635ef992fdb3e7f1b2e85a038
