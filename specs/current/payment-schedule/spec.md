@@ -59,12 +59,12 @@ L'UI de rapprochement SHALL proposer une liste de transactions candidates pour u
 
 ### Requirement: Coche manuelle sans transaction
 
-Le système SHALL permettre de marquer une échéance comme payée sans la rapprocher d'une transaction (paiement espèces, transaction non encore saisie). La coche SHALL passer l'échéance au statut `PAID` avec sa date de paiement, sans liaison. Le rapprochement SHALL rester possible après la coche.
+Le système SHALL permettre de marquer une échéance comme payée sans la rapprocher d'une transaction (paiement espèces, transaction non encore saisie). La coche SHALL passer l'échéance au statut `PAID` avec sa date de paiement et enregistrer le débit correspondant (−montant) sur le compte de la charge, lié à l'échéance, de sorte que les soldes et le patrimoine consolidé baissent. Pour rapprocher ensuite une autre transaction, l'utilisateur délie d'abord l'échéance.
 
 #### Scenario: Échéance cochée sans transaction
 
 - **WHEN** l'utilisateur coche l'échéance « Cadeau anniversaire » comme payée sans choisir de transaction
-- **THEN** l'échéance passe au statut `PAID` avec une date de paiement et aucune transaction liée
+- **THEN** l'échéance passe au statut `PAID` avec une date de paiement, un débit de son montant est enregistré sur le compte de la charge et lié à l'échéance
 
 ### Requirement: Dérapprochement automatique et cohérence
 
