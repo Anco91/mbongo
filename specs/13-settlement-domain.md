@@ -105,3 +105,5 @@ Tests: 12 failed, 12 total   (all: Error: not implemented)
 - ARCHITECTURE.md registry row: the Advisor adds it at review (CTX-3).
 
 ## Handoffs
+
+- `docs/handoffs/20261124-2005-13-settlement-domain.md`
