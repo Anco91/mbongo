@@ -44,4 +44,5 @@ Role: <advisor|executor|reviewer>
 Read: AGENTS.md, ARCHITECTURE.md, {{PATH}}
 Sub-spec: {{SUB_SPEC}} (master: specs/SPEC_MASTER.md)
 First action: <one sentence>
+Stop: none | done | human-gate: <reason>
 ```

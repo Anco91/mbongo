@@ -35,6 +35,7 @@ Short sessions with a written handoff are cheaper and more reliable. Cite rules 
   Read: AGENTS.md, ARCHITECTURE.md, <exact handoff path>
   Sub-spec: <exact sub-spec path> (master: specs/SPEC_MASTER.md)
   First action: <one sentence>
+  Stop: none | done | human-gate: <reason>
   ```
   Why: the human pastes it into a new session; the exact paths remove any guess about which handoff
   and which spec to read.
@@ -55,3 +56,13 @@ Short sessions with a written handoff are cheaper and more reliable. Cite rules 
 - **SES-8 MUST** — A new session reads only what CTX-1 lists. It does not re-read old handoffs except
   the one named in the resume block.
   Why: old handoffs are history, not context.
+
+## Automatic continuation
+
+- **SES-9 SHOULD** — A running session cannot clear or restart itself. For an unattended run, the human
+  starts `.agents-fw/scripts/relay.sh` once, with `AGENTS_FW_RELAY_CMD` set to the host's headless
+  command (it reads the prompt on stdin). The script feeds each session the latest handoff's
+  `NEXT SESSION` block and stops on `Stop: done`, `Stop: human-gate: <reason>`, a `.agents-fw/STOP`
+  file, a session that writes no new handoff, or `--max` sessions (default 10). Never use a
+  permission-bypass flag in that command; allow the needed tools by name.
+  Why: fresh sessions are cheaper (SES-6); the relay makes them automatic without a human paste.

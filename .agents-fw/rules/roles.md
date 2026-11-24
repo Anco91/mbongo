@@ -1,9 +1,10 @@
 # Role rules (ROLE)
 
-Three roles, defined by capability. One human validates. Cite rules by ID.
+Four roles, defined by capability. The human checks only GIT-7 gates. Cite rules by ID.
 
 | Role | Model profile | Writes | Never writes |
 |---|---|---|---|
+| PM | solid generalist, decision-oriented | `design.md` decisions, master index, status reports, dispatch | production code, locked tests |
 | Advisor | strong reasoning, used in short bursts | sub-specs, Frame, tests, `ARCHITECTURE.md`, handoffs | production code |
 | Executor | cheap "Flash" model, reliable tool calling | production code inside the Frame, new proposed tests | locked tests, files outside the Frame |
 | Reviewer | another model family than the Executor | review notes | code |
@@ -22,12 +23,13 @@ Three roles, defined by capability. One human validates. Cite rules by ID.
   behaviour.
 
 - **ROLE-3 MUST** — The Executor never edits or deletes a locked test. If it believes a test is
-  wrong, it stops, writes a row in "Test change requests" (test, reason, proposal) and hands off.
+  wrong, it stops, writes a row in "Test change requests" (test, reason, proposal) and hands off to the
+  PM/Advisor (AUTO-5), not to the human.
   Only the Advisor edits a locked test, then re-locks (new `locked_at`).
   Why: a test that bends to the code no longer constrains the code. `test-lock.sh` checks this.
 
-- **ROLE-4 MUST** — An Executor that needs a file outside the Frame stops and asks (handoff with a
-  blocker). It does not add the file itself.
+- **ROLE-4 MUST** — An Executor that needs a file outside the Frame stops (handoff with a
+  blocker for the PM/Advisor, AUTO-5). It does not add the file itself.
   Why: an unplanned file is usually duplicated code or a missed registry item.
 
 - **ROLE-5 SHOULD** — The Reviewer is a model of another family than the Executor. Without one, the
@@ -60,3 +62,9 @@ Three roles, defined by capability. One human validates. Cite rules by ID.
   gap as a blocking `ROLE-10` finding. Reference code in `.agents-fw/standards/reference` is a model,
   not a replacement: the project's own style wins when they differ.
   Why: code that works but reads differently from the rest makes the project harder to navigate.
+
+- **ROLE-11 MUST** — The PM is the entry point of an autonomous run (`procedures/pm-loop.md`): it picks
+  the next row, runs the kickoff, dispatches the Executor by tier, collects the review, merges on
+  green (GIT-7) and reports in five lines. It decides (AUTO-1) and never writes production code or
+  locked tests.
+  Why: someone must own the direction so the human is not the tie-breaker.
