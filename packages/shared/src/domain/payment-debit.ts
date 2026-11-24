@@ -6,9 +6,9 @@
  * @packageDocumentation
  */
 
-/** Fields of a payment used to book its debit. */
 import type { Currency } from '../schemas/currency';
 
+/** Fields of a payment used to book its debit. */
 export interface PaymentDebitSource {
   amount: number;
   currency: Currency;
@@ -49,4 +49,38 @@ export function planPaymentDebit(
     date: paidAt ?? payment.paidAt ?? payment.dueDate,
     amount: -payment.amount,
   };
+}
+
+/** Reserved `note` of a transaction booked by a manual payment tick. */
+export const AUTO_DEBIT_NOTE = '__payment-auto-debit__';
+
+/** What to do with the auto debit when a payment is edited. */
+export type PaymentDebitAction = 'create' | 'delete' | 'update' | 'none';
+
+/**
+ * Decides how an edit of a payment affects its auto debit. A real
+ * (reconciled) transaction is never touched: only `hasAutoDebit` payments
+ * are deleted or updated. Pure.
+ */
+export function paymentDebitAction(
+  existing: { status: string; hasAutoDebit: boolean },
+  input: {
+    status?: string;
+    amount?: number;
+    currency?: Currency;
+    paidAt?: string | null;
+  }
+): PaymentDebitAction {
+  if (existing.status !== 'PAID') {
+    return input.status === 'PAID' && !existing.hasAutoDebit
+      ? 'create'
+      : 'none';
+  }
+  if (!existing.hasAutoDebit) return 'none';
+  if (input.status !== undefined && input.status !== 'PAID') return 'delete';
+  const changed =
+    input.amount !== undefined ||
+    input.currency !== undefined ||
+    input.paidAt !== undefined;
+  return changed ? 'update' : 'none';
 }

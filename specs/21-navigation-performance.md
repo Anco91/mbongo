@@ -7,7 +7,7 @@ tier: small
 
 Why: switching tabs feels very slow with no sign anything happened.
 What changes: the dev server compiles with Turbopack (route compile drops from seconds to ~0.4 s) and the tab bar shows an immediate pending state on the tapped tab.
-No change to data or business rules.
+No change to data or business rules. The pending state is a visible but purely presentational feedback (no behaviour change in any capability); it is mostly visible in dev, where routes compile on demand, since production links are prefetched.
 
 ## Profile (2026-11-25)
 

@@ -59,7 +59,7 @@ L'UI de rapprochement SHALL proposer une liste de transactions candidates pour u
 
 ### Requirement: Coche manuelle sans transaction
 
-Le système SHALL permettre de marquer une échéance comme payée sans la rapprocher d'une transaction (paiement espèces, transaction non encore saisie). La coche SHALL passer l'échéance au statut `PAID` avec sa date de paiement et enregistrer le débit correspondant (−montant) sur le compte de la charge, lié à l'échéance, de sorte que les soldes et le patrimoine consolidé baissent. Pour rapprocher ensuite une autre transaction, l'utilisateur délie d'abord l'échéance.
+Le système SHALL permettre de marquer une échéance comme payée sans la rapprocher d'une transaction (paiement espèces, transaction non encore saisie). La coche SHALL passer l'échéance au statut `PAID` avec sa date de paiement et enregistrer le débit correspondant (−montant) sur le compte de la charge, lié à l'échéance, de sorte que les soldes et le patrimoine consolidé baissent. Ce débit SHALL suivre l'échéance : repasser l'échéance à un autre statut que `PAID`, la délier ou la supprimer SHALL supprimer ce débit, et modifier son montant, sa devise ou sa date de paiement SHALL modifier le débit. Rapprocher une transaction réelle SHALL remplacer ce débit (jamais de double comptage). Une coche simultanée SHALL être refusée (409).
 
 #### Scenario: Échéance cochée sans transaction
 
@@ -74,6 +74,12 @@ La suppression d'une transaction rapprochée SHALL dérapprocher l'échéance co
 
 - **WHEN** la transaction rapprochée de l'échéance « Loyer GE » est supprimée
 - **THEN** la liaison disparaît et l'échéance revient au statut `PENDING`, sans date de paiement
+
+#### Scenario: Coche annulée
+
+- **GIVEN** une échéance cochée sans transaction (débit enregistré)
+- **WHEN** l'utilisateur la repasse en attente
+- **THEN** le débit est supprimé et le solde du compte remonte
 
 #### Scenario: Dérapprochement volontaire
 
