@@ -104,3 +104,5 @@ Proof of failure: `cd apps/web && npx jest __tests__/charge-category.test.ts __t
 - Applying `20261124230000_add_charge_subcategory` to `dev.db` is a human gate (GIT-7). Mention it in the handoff and the PR.
 
 ## Handoffs
+
+- `docs/handoffs/20261124-2233-charge-subcategories.md`
