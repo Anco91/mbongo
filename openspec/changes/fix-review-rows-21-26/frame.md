@@ -3,7 +3,7 @@ id: fix-review-rows-21-26
 status: ready
 branch: fix/review-rows-21-26
 tier: medium
-locked_at: PENDING
+locked_at: 989f203
 locked_tests:
   - apps/web/__tests__/payment-debit-sync.test.ts
 ---
