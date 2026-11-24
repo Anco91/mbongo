@@ -46,6 +46,7 @@ export * from './domain/card-billing';
 export * from './domain/payment-status';
 export * from './domain/alerts';
 export * from './domain/income';
+export * from './domain/settlement';
 export * from './domain/budget';
 export * from './lib/calculation/sankey';
 export * from './lib/calculation/donut';
