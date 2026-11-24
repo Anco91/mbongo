@@ -24,23 +24,33 @@ export interface SameCurrencySettlement {
 
 /** First refusal reason for the pair, or null when the transfer is allowed. */
 export function checkTransferAccounts(
-  _source: TransferAccountRef,
-  _target: TransferAccountRef
+  source: TransferAccountRef,
+  target: TransferAccountRef
 ): string | null {
-  throw new Error('not implemented');
+  if (source.id === target.id) {
+    return 'Target account must be different from source account';
+  }
+  if (source.status === 'CLOSED') return 'Source account is closed';
+  if (target.status === 'CLOSED') return 'Target account is closed';
+  return null;
 }
 
 /** True when both accounts share a currency (no rate, no fee). */
 export function isSameCurrencyTransfer(
-  _source: TransferAccountRef,
-  _target: TransferAccountRef
+  source: TransferAccountRef,
+  target: TransferAccountRef
 ): boolean {
-  throw new Error('not implemented');
+  return source.currency === target.currency;
 }
 
 /** Settlement of a same-currency transfer: received = sent, rate 1, fees 0. */
 export function settleSameCurrencyTransfer(
-  _amountSent: number
+  amountSent: number
 ): SameCurrencySettlement {
-  throw new Error('not implemented');
+  return {
+    rateEstimated: 1,
+    rateEffective: 1,
+    amountReceived: amountSent,
+    fees: 0,
+  };
 }
