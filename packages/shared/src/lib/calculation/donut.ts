@@ -18,6 +18,8 @@ export interface CategoryExpense {
   nativeEur: number;
   nativeChf: number;
   color: string;
+  /** Part « prévue » : échéances PENDING du mois, distincte du réalisé. */
+  planned?: boolean;
 }
 
 const DEFAULT_CATEGORY_COLORS: Record<string, string> = {
@@ -66,30 +68,39 @@ export function computeDonutExpenses(params: {
     chargeMap.set(c.id, c);
   }
 
-  // Stocker par nom de catégorie : { eur: number, chf: number }
+  // Stocker par nom de catégorie + planned : { eur: number, chf: number }
+  // (le prévu reste une part distincte du réalisé, design D2)
   const totals = new Map<string, { eur: number; chf: number }>();
 
-  function addExpense(cat: string, amount: number, currency: string): void {
+  function addExpense(
+    cat: string,
+    amount: number,
+    currency: string,
+    planned: boolean
+  ): void {
     if (amount <= 0) return;
-    const existing = totals.get(cat) ?? { eur: 0, chf: 0 };
+    const key = `${cat}:::${planned}`;
+    const existing = totals.get(key) ?? { eur: 0, chf: 0 };
     if (currency === 'CHF') {
       existing.chf += amount;
     } else {
       existing.eur += amount;
     }
-    totals.set(cat, existing);
+    totals.set(key, existing);
   }
 
-  // 1. Échéances payées du mois (non rapprochées d'une transaction ci-dessous)
+  // 1. Échéances du mois : réalisées (PAID) et prévues (PENDING), non
+  // rapprochées d'une transaction ci-dessous
   const reconciledTxIds = new Set<string>();
   for (const p of payments) {
-    if (p.status !== 'PAID') continue;
-    if (p.transactionId) {
+    if (p.status === 'CANCELLED' || p.status === 'FAILED') continue;
+    const planned = p.status !== 'PAID';
+    if (p.status === 'PAID' && p.transactionId) {
       reconciledTxIds.add(p.transactionId);
     }
     const charge = chargeMap.get(p.chargeId);
     const category = charge?.category ?? 'Autres';
-    addExpense(category, p.amount, p.currency);
+    addExpense(category, p.amount, p.currency, planned);
   }
 
   // 2. Transactions du mois (dépenses pures non liées à un transfert ou déjà comptées via échéance)
@@ -102,13 +113,16 @@ export function computeDonutExpenses(params: {
       t.category === null || t.category === '' ? 'Autres' : t.category;
     const absAmount = Math.abs(t.amount);
     // Supposer EUR par défaut si non spécifié sur transaction (dépend du compte)
-    addExpense(category, absAmount, 'EUR');
+    addExpense(category, absAmount, 'EUR', false);
   }
 
   const result: CategoryExpense[] = [];
+  const nameColors = new Map<string, string>();
   let colorIndex = 0;
 
-  for (const [name, amounts] of totals.entries()) {
+  for (const [key, amounts] of totals.entries()) {
+    const name = key.slice(0, key.lastIndexOf(':::'));
+    const planned = key.endsWith(':::true');
     const nativeEur = round2(amounts.eur);
     const nativeChf = round2(amounts.chf);
     const consolidatedEur = round2(
@@ -116,9 +130,14 @@ export function computeDonutExpenses(params: {
     );
 
     if (consolidatedEur > 0) {
-      const color =
-        DEFAULT_CATEGORY_COLORS[name] ?? PALETTE[colorIndex % PALETTE.length];
-      colorIndex += 1;
+      // Une couleur par catégorie : la part prévue partage celle du réalisé.
+      let color = nameColors.get(name);
+      if (!color) {
+        color =
+          DEFAULT_CATEGORY_COLORS[name] ?? PALETTE[colorIndex % PALETTE.length];
+        colorIndex += 1;
+        nameColors.set(name, color);
+      }
 
       result.push({
         name,
@@ -126,6 +145,7 @@ export function computeDonutExpenses(params: {
         nativeEur,
         nativeChf,
         color,
+        ...(planned ? { planned: true } : {}),
       });
     }
   }

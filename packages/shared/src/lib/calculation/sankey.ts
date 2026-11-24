@@ -25,6 +25,8 @@ export interface SankeyLink {
   value: number; // Valeur consolidée EUR
   nativeAmount?: number;
   nativeCurrency?: string;
+  /** Flux « prévu » : échéance PENDING du mois, distincte du réalisé. */
+  planned?: boolean;
 }
 
 export interface SankeyData {
@@ -92,13 +94,15 @@ export function computeSankeyFlows(params: {
     chargeMap.set(c.id, c);
   }
 
-  // Clé source->target pour agréger les liens
+  // Clé source->target->planned pour agréger les liens (le prévu doit
+  // rester distinct du réalisé, design D2)
   type RawLink = {
     source: string;
     target: string;
     value: number;
     nativeAmount: number;
     nativeCurrency: string;
+    planned: boolean;
   };
   const aggregatedLinks = new Map<string, RawLink>();
 
@@ -106,7 +110,8 @@ export function computeSankeyFlows(params: {
     sourceName: string,
     targetName: string,
     amount: number,
-    currency: string
+    currency: string,
+    planned = false
   ): void {
     if (amount <= 0 || sourceName === targetName) return;
 
@@ -114,7 +119,7 @@ export function computeSankeyFlows(params: {
       currency === 'CHF' ? counterValue(amount, effectiveRate) : amount;
     if (consolidated <= 0) return;
 
-    const key = `${sourceName}:::${targetName}`;
+    const key = `${sourceName}:::${targetName}:::${planned}`;
     const existing = aggregatedLinks.get(key);
     if (existing) {
       existing.value = round2(existing.value + consolidated);
@@ -126,6 +131,7 @@ export function computeSankeyFlows(params: {
         value: round2(consolidated),
         nativeAmount: round2(amount),
         nativeCurrency: currency,
+        planned,
       });
     }
   }
@@ -157,18 +163,22 @@ export function computeSankeyFlows(params: {
     addLink(srcName, tgtName, receivedEur, 'EUR');
   }
 
-  // 3. Dépenses d'échéances payées : compte → catégorie
+  // 3. Dépenses d'échéances : réalisées (PAID) et prévues (PENDING) —
+  // compte → catégorie, le prévu portant planned: true (design D2)
   const reconciledTxIds = new Set<string>();
   for (const p of payments) {
-    if (p.status !== 'PAID') continue;
-    if (p.transactionId) reconciledTxIds.add(p.transactionId);
+    if (p.status === 'CANCELLED' || p.status === 'FAILED') continue;
+    const planned = p.status !== 'PAID';
+    if (p.status === 'PAID' && p.transactionId) {
+      reconciledTxIds.add(p.transactionId);
+    }
 
     const charge = chargeMap.get(p.chargeId);
     const account = charge ? accountMap.get(charge.accountId) : undefined;
     const accountName = account ? account.name : 'Compte débité';
     const categoryName = charge?.category ?? 'Charges';
 
-    addLink(accountName, categoryName, p.amount, p.currency);
+    addLink(accountName, categoryName, p.amount, p.currency, planned);
   }
 
   // 4. Dépenses de transactions (hors transferts et hors réconciliations) : compte → catégorie
@@ -201,6 +211,7 @@ export function computeSankeyFlows(params: {
       value: raw.value,
       nativeAmount: raw.nativeAmount,
       nativeCurrency: raw.nativeCurrency,
+      ...(raw.planned ? { planned: true } : {}),
     });
   }
 

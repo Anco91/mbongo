@@ -11,6 +11,7 @@
 import {
   createAccountSchema,
   updateAccountSchema,
+  createChargeSchema,
   createPaymentSchema,
   updatePaymentSchema,
   updateChargeSchema,
@@ -135,5 +136,113 @@ describe('updateChargeSchema accepts calendar fields (edit rule)', () => {
   it('accepts a partial calendar edit (amount only)', () => {
     const result = updateChargeSchema.safeParse({ amount: 508.6 });
     expect(result.success).toBe(true);
+  });
+});
+
+describe('dueDaySchema (createChargeSchema)', () => {
+  const base = {
+    label: 'Loyer GE',
+    type: 'FIXED_RECURRING' as const,
+    amount: 1850,
+    currency: 'CHF' as const,
+    accountId: 'account-ubs-courant',
+    category: 'Logement',
+    startDate: '2026-11-01',
+    endDate: null,
+    frequency: 'monthly' as const,
+    installments: null,
+    provisioned: false,
+  };
+
+  it('coerces a form string to a number ("5" → 5)', () => {
+    const result = createChargeSchema.safeParse({ ...base, dueDay: '5' });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.dueDay).toBe(5);
+  });
+
+  it('rejects out-of-bounds days (0, 32)', () => {
+    expect(createChargeSchema.safeParse({ ...base, dueDay: 0 }).success).toBe(
+      false
+    );
+    expect(createChargeSchema.safeParse({ ...base, dueDay: 32 }).success).toBe(
+      false
+    );
+  });
+
+  it('rejects an empty string (coerced to 0 → min(1))', () => {
+    const result = createChargeSchema.safeParse({ ...base, dueDay: '' });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].path).toEqual(['dueDay']);
+    }
+  });
+
+  it('defaults to null when absent', () => {
+    const result = createChargeSchema.safeParse(base);
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.dueDay).toBeNull();
+  });
+
+  it('rejects a due day on a non-monthly frequency', () => {
+    const result = createChargeSchema.safeParse({
+      ...base,
+      frequency: 'yearly',
+      dueDay: 5,
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].path).toEqual(['dueDay']);
+    }
+  });
+
+  it('accepts a due day on a monthly frequency', () => {
+    expect(createChargeSchema.safeParse({ ...base, dueDay: 31 }).success).toBe(
+      true
+    );
+  });
+});
+
+describe('createChargeSchema — required fields by charge type', () => {
+  const base = {
+    label: 'Charge',
+    amount: 100,
+    currency: 'CHF' as const,
+    accountId: 'account-ubs-courant',
+    category: 'Divers',
+    startDate: '2026-11-01',
+    endDate: null,
+    frequency: null,
+    installments: null,
+    dueDay: null,
+    provisioned: false,
+  };
+
+  const failingPaths = (input: object): string[] => {
+    const result = createChargeSchema.safeParse(input);
+    return result.success
+      ? []
+      : result.error.issues.map((issue) => issue.path.join('.'));
+  };
+
+  it('requires a frequency for a recurring charge', () => {
+    expect(failingPaths({ ...base, type: 'FIXED_RECURRING' })).toContain(
+      'frequency'
+    );
+  });
+
+  it('requires a frequency and an end date for a temporary charge', () => {
+    const paths = failingPaths({ ...base, type: 'TEMPORARY' });
+
+    expect(paths).toEqual(expect.arrayContaining(['frequency', 'endDate']));
+  });
+
+  it('requires an installment count for an installment charge', () => {
+    expect(failingPaths({ ...base, type: 'INSTALLMENT' })).toContain(
+      'installments'
+    );
+  });
+
+  it('accepts a one-off charge without recurrence fields', () => {
+    expect(failingPaths({ ...base, type: 'ONE_OFF' })).toEqual([]);
   });
 });

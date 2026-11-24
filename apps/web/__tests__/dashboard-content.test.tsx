@@ -30,6 +30,7 @@ jest.mock('@/hooks/use-charges', () => ({
 
 jest.mock('@/hooks/use-schedule', () => ({
   usePayments: jest.fn(),
+  useMonthPayments: jest.fn(),
 }));
 
 jest.mock('@/hooks/use-transfers', () => ({
@@ -51,10 +52,15 @@ jest.mock('@/hooks/use-monthly-budget', () => ({
 import { useAccounts } from '@/hooks/use-accounts';
 import { useTransactions } from '@/hooks/use-transactions';
 import { useCharges } from '@/hooks/use-charges';
-import { usePayments } from '@/hooks/use-schedule';
+import { useMonthPayments } from '@/hooks/use-schedule';
 import { useTransfers } from '@/hooks/use-transfers';
 import { useExchangeRate } from '@/hooks/use-exchange-rate';
 import { DisplayCurrencyProvider } from '@/components/providers/display-currency-provider';
+import {
+  currentMonthKey,
+  monthLabel,
+  shiftMonthKey,
+} from '@/lib/month-navigation';
 
 const accounts = [
   {
@@ -150,6 +156,7 @@ const transfers = [
 
 describe('DashboardContent', () => {
   beforeEach(() => {
+    (useMonthPayments as jest.Mock).mockReturnValue({ data: [] });
     (useAccounts as jest.Mock).mockReturnValue({ data: accounts });
     (useTransactions as jest.Mock).mockReturnValue({ data: [] });
     (useCharges as jest.Mock).mockReturnValue({ data: charges });
@@ -163,7 +170,7 @@ describe('DashboardContent', () => {
   });
 
   it('renders consolidated wealth in EUR and CHF in parallel', () => {
-    (usePayments as jest.Mock).mockReturnValue({ data: [] });
+    (useMonthPayments as jest.Mock).mockReturnValue({ data: [] });
 
     render(
       createElement(
@@ -181,7 +188,7 @@ describe('DashboardContent', () => {
   });
 
   it('renders the provisions card with monthly smoothing and total', () => {
-    (usePayments as jest.Mock).mockReturnValue({ data: [] });
+    (useMonthPayments as jest.Mock).mockReturnValue({ data: [] });
 
     render(
       createElement(
@@ -248,7 +255,7 @@ describe('DashboardContent', () => {
         updatedAt: '2026-01-01T00:00:00.000Z',
       },
     ];
-    (usePayments as jest.Mock).mockReturnValue({ data: payments });
+    (useMonthPayments as jest.Mock).mockReturnValue({ data: payments });
 
     render(
       createElement(
@@ -267,7 +274,7 @@ describe('DashboardContent', () => {
   });
 
   it('renders chart skeletons before hydration, without an empty state', () => {
-    (usePayments as jest.Mock).mockReturnValue({ data: [] });
+    (useMonthPayments as jest.Mock).mockReturnValue({ data: [] });
 
     const markup = renderToString(
       createElement(
@@ -282,7 +289,7 @@ describe('DashboardContent', () => {
   });
 
   it('renders section titles for Sankey and Donut', () => {
-    (usePayments as jest.Mock).mockReturnValue({ data: [] });
+    (useMonthPayments as jest.Mock).mockReturnValue({ data: [] });
 
     render(
       createElement(
@@ -294,5 +301,79 @@ describe('DashboardContent', () => {
 
     expect(screen.getByText('Flux du mois')).toBeTruthy();
     expect(screen.getByText('Dépenses par catégorie')).toBeTruthy();
+  });
+});
+
+describe('DashboardContent — fenêtre du mois choisi (tasks 2.2, design D5)', () => {
+  beforeEach(() => {
+    (useAccounts as jest.Mock).mockReturnValue({ data: accounts });
+    (useTransactions as jest.Mock).mockReturnValue({ data: [] });
+    (useCharges as jest.Mock).mockReturnValue({ data: charges });
+    (useTransfers as jest.Mock).mockReturnValue({ data: transfers });
+    (useExchangeRate as jest.Mock).mockReturnValue({
+      rate: 0.93,
+      rateDate: '2026-11-01',
+      source: 'fallback',
+      isLoading: false,
+    });
+  });
+
+  it('feeds the charts with the windowed payments of the chosen month', () => {
+    // One PENDING rent for the current month — the charts must be alive
+    // before any payment is made.
+    (useMonthPayments as jest.Mock).mockReturnValue({
+      data: [
+        {
+          id: 'p-planned',
+          chargeId: 'c2',
+          amount: 1850,
+          currency: 'CHF',
+          dueDate: `${currentMonthKey()}-05T00:00:00.000Z`,
+          status: 'PENDING',
+          paidAt: null,
+          transactionId: null,
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    });
+
+    render(
+      createElement(
+        DisplayCurrencyProvider,
+        null,
+        createElement(DashboardContent)
+      )
+    );
+
+    // The donut is not empty: no empty state, and the month total is > 0
+    // (1850 CHF × 0.93 = 1720.50 € — prévu + réalisé).
+    expect(
+      screen.queryByText('Aucune dépense catégorisée ce mois-ci')
+    ).toBeNull();
+    expect(
+      screen.getByText(
+        new RegExp(
+          `${monthLabel(currentMonthKey()).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} · 1[\\s\\u00A0\\u202F]?720[.,]50`
+        )
+      )
+    ).toBeTruthy();
+    // The month payments card lists the pending occurrence.
+    expect(screen.getByText('Loyer GE')).toBeTruthy();
+  });
+
+  it('issues a new windowed query when the month changes', () => {
+    render(
+      createElement(
+        DisplayCurrencyProvider,
+        null,
+        createElement(DashboardContent)
+      )
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mois précédent' }));
+
+    const lastCall = (useMonthPayments as jest.Mock).mock.calls.at(-1);
+    expect(lastCall?.[0]).toBe(shiftMonthKey(currentMonthKey(), -1));
   });
 });

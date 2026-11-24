@@ -45,3 +45,10 @@ export function chargeAmountLabel(charge: Charge): string {
   }
   return '';
 }
+
+/** Options of the "Jour de prélèvement" selector (1–31), display order. */
+export const DUE_DAY_OPTIONS: ReadonlyArray<{ value: string; label: string }> =
+  Array.from({ length: 31 }, (_, i) => {
+    const day = i + 1;
+    return { value: String(day), label: String(day) };
+  });

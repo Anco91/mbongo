@@ -10,7 +10,7 @@ import { render, screen } from '@testing-library/react';
 import { createElement } from 'react';
 import { DashboardContent } from '@/components/dashboard/dashboard-content';
 import { DisplayCurrencyProvider } from '@/components/providers/display-currency-provider';
-import { usePayments } from '@/hooks/use-schedule';
+import { useMonthPayments } from '@/hooks/use-schedule';
 import { useTransactions } from '@/hooks/use-transactions';
 
 jest.mock('@/hooks/use-accounts', () => ({
@@ -44,6 +44,7 @@ jest.mock('@/hooks/use-monthly-budget', () => ({
 
 jest.mock('@/hooks/use-schedule', () => ({
   usePayments: jest.fn(),
+  useMonthPayments: jest.fn(),
 }));
 
 jest.mock('@/hooks/use-transactions', () => ({
@@ -57,21 +58,13 @@ const currentMonthPrefix = (): string => {
 
 describe('DashboardContent — filtrage mensuel des inputs', () => {
   it("n'affiche que les échéances du mois courant", () => {
-    (usePayments as jest.Mock).mockReturnValue({
+    (useMonthPayments as jest.Mock).mockReturnValue({
       data: [
         {
           id: 'p-current',
           chargeId: 'c1',
           dueDate: `${currentMonthPrefix()}-10`,
           amount: 100,
-          currency: 'EUR',
-          status: 'PENDING',
-        },
-        {
-          id: 'p-other',
-          chargeId: 'c1',
-          dueDate: '2020-05-10',
-          amount: 200,
           currency: 'EUR',
           status: 'PENDING',
         },
@@ -87,7 +80,11 @@ describe('DashboardContent — filtrage mensuel des inputs', () => {
       )
     );
 
+    // The windowed query itself scopes the month: the hook is called
+    // with the current month key.
+    expect(useMonthPayments as jest.Mock).toHaveBeenCalledWith(
+      currentMonthPrefix()
+    );
     expect(screen.getByText('Échéance')).toBeTruthy();
-    expect(screen.queryByText('p-other')).toBeFalsy();
   });
 });

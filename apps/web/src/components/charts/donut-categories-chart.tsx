@@ -18,6 +18,8 @@ export interface DonutDatum {
   name: string;
   value: number;
   color: string;
+  /** Part « prévue » (échéances à venir) — rendue en opacité réduite (design D2). */
+  planned?: boolean;
 }
 
 interface DonutCategoriesChartProps {
@@ -53,7 +55,12 @@ export function DonutCategoriesChart({
             stroke="none"
           >
             {data.map((d) => (
-              <Cell key={d.name} fill={d.color} />
+              <Cell
+                key={`${d.name}-${d.planned ? 'planned' : 'realized'}`}
+                fill={d.color}
+                fillOpacity={d.planned ? 0.45 : 1}
+                data-planned={d.planned ? 'true' : undefined}
+              />
             ))}
           </Pie>
           {showCenterTotal && total > 0 && (
@@ -92,11 +99,26 @@ interface DonutLegendProps {
   layout?: 'grid' | 'wrap';
 }
 
+/** One legend row per category: the planned and realized shares merge. */
+function mergeLegendRows(data: DonutDatum[]): DonutDatum[] {
+  const merged = new Map<string, DonutDatum>();
+  for (const d of data) {
+    const existing = merged.get(d.name);
+    if (existing) {
+      merged.set(d.name, { ...existing, value: existing.value + d.value });
+    } else {
+      merged.set(d.name, { ...d });
+    }
+  }
+  return [...merged.values()];
+}
+
 export function DonutLegend({
-  data,
+  data: rawData,
   formatValue,
   layout = 'grid',
 }: DonutLegendProps): JSX.Element {
+  const data = mergeLegendRows(rawData);
   if (layout === 'grid') {
     return (
       <div className="grid flex-1 grid-cols-2 gap-x-3 gap-y-1.5">

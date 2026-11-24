@@ -64,7 +64,7 @@ L'UI SHALL présenter les alertes via une icône cloche dans le header, accompag
 
 ### Requirement: État lu des alertes
 
-Chaque alerte SHALL être marquée comme lue quand l'utilisateur la consulte (vue dédiée ouverte) ou la rejette explicitement. L'état lu SHALL être conservé par appareil et Shall faire disparaître le badge quand toutes les alertes actives sont lues. Une alerte dont la condition se déclenche à nouveau SHALL réapparaître comme non lue.
+Chaque alerte SHALL être marquée comme lue quand l'utilisateur la consulte (vue dédiée ouverte) ou la rejette explicitement. L'état lu SHALL être conservé par appareil et partagé entre toutes les vues montées : le badge SHALL faire disparaître le compteur dès que toutes les alertes actives sont lues, sans rechargement de la page. Une alerte dont la condition se déclenche à nouveau SHALL réapparaître comme non lue.
 
 #### Scenario: Badge décrémenté
 
@@ -77,3 +77,9 @@ Chaque alerte SHALL être marquée comme lue quand l'utilisateur la consulte (vu
 - **GIVEN** une alerte lue
 - **WHEN** sa condition se déclenche à nouveau (nouvelle échéance proche, nouveau dépassement)
 - **THEN** le badge réapparaît avec cette alerte comptée comme non lue
+
+#### Scenario: Badge effacé sans rechargement
+
+- **GIVEN** 2 alertes actives non lues et le header affiché
+- **WHEN** l'utilisateur ouvre la vue dédiée puis revient au dashboard
+- **THEN** le badge de la cloche est effacé sans rechargement de la page

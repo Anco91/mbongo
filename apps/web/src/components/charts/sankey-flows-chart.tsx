@@ -174,7 +174,8 @@ export function layoutSankeyLabels(
   return placed;
 }
 
-/** Pure renderer: link path colored by its source node type. */
+/** Pure renderer: link path colored by its source node type.
+ *  Planned links (échéances à venir, design D2) are dashed and fainter. */
 function renderSankeyLink(
   props: SankeyLinkProps,
   typesByName: Record<string, SankeyNodeType>
@@ -192,6 +193,9 @@ function renderSankeyLink(
   const color = sankeyNodeColor(
     typesByName[payload?.source?.name ?? ''] ?? 'account'
   );
+  const planned = Boolean(
+    (payload as { planned?: boolean } | undefined)?.planned
+  );
 
   const d = `M${sourceX},${sourceY}C${sourceControlX},${sourceY} ${targetControlX},${targetY} ${targetX},${targetY}`;
 
@@ -199,8 +203,9 @@ function renderSankeyLink(
     <path
       d={d}
       stroke={color}
-      strokeOpacity={0.5}
+      strokeOpacity={planned ? 0.3 : 0.5}
       strokeWidth={Math.max(linkWidth, 1)}
+      strokeDasharray={planned ? '6 4' : undefined}
       fill="none"
     />
   );

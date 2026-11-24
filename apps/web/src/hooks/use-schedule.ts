@@ -9,6 +9,7 @@
 
 'use client';
 
+import { useMemo } from 'react';
 import {
   useMutation,
   useQuery,
@@ -18,6 +19,7 @@ import {
 } from '@tanstack/react-query';
 import { paymentsRepository } from '@/repositories/payments.repository';
 import { transactionsRepository } from '@/repositories/transactions.repository';
+import { monthPaymentsQuery } from '@/lib/month-queries';
 import type {
   Payment,
   PaymentQuery,
@@ -35,6 +37,21 @@ const TRANSACTIONS_KEY = 'transactions';
 export function usePayments(
   query: PaymentQuery = {}
 ): UseQueryResult<Payment[], Error> {
+  return useQuery({
+    queryKey: [PAYMENTS_KEY, query],
+    queryFn: () => paymentsRepository.findMany(query),
+  });
+}
+
+/**
+ * Payments of ONE month ('YYYY-MM'), windowed on the due date with the
+ * same typed query the server guards prefetch (design D5) — no global
+ * truncation at 100 rows, no key overwrite at refetch.
+ */
+export function useMonthPayments(
+  monthKey: string
+): UseQueryResult<Payment[], Error> {
+  const query = useMemo(() => monthPaymentsQuery(monthKey), [monthKey]);
   return useQuery({
     queryKey: [PAYMENTS_KEY, query],
     queryFn: () => paymentsRepository.findMany(query),

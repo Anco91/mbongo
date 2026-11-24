@@ -14,9 +14,11 @@ import {
   addYears,
   compareAsc,
   endOfMonth,
+  getDaysInMonth,
   isAfter,
   isBefore,
   parseISO,
+  setDate,
   startOfMonth,
 } from 'date-fns';
 import { Charge } from '../schemas/charge';
@@ -150,6 +152,10 @@ function generateRecurringPayments(
   from: Date,
   frequency: Frequency
 ): CreatePaymentInput[] {
+  if (frequency === 'monthly') {
+    return generateMonthlyPayments(charge, startDate, endDate, from);
+  }
+
   const payments: CreatePaymentInput[] = [];
   let due = startDate;
 
@@ -163,6 +169,41 @@ function generateRecurringPayments(
   while (!isAfter(due, horizon)) {
     payments.push(makePayment(charge, due, charge.amount));
     due = steps[frequency](due, 1);
+  }
+
+  return payments;
+}
+
+/**
+ * Génère les paiements d'une récurrence mensuelle (design D4).
+ *
+ * La récurrence est ancrée sur le jour de prélèvement choisi
+ * (`charge.dueDay`), à défaut sur le jour de la date de début (legacy).
+ * Le mois d'ancrage — celui de `startDate`, ou le mois courant si
+ * `startDate` lui est antérieur — est TOUJOURS généré, même si le jour
+ * est déjà passé : le statut « dû » en est dérivé (aucune boucle de saut,
+ * changement de comportement assumé par le change). Le jour est clampé à
+ * la longueur du mois (le 31 tombe le 28/29 en février).
+ */
+function generateMonthlyPayments(
+  charge: Charge,
+  startDate: Date,
+  endDate: Date | null,
+  from: Date
+): CreatePaymentInput[] {
+  const payments: CreatePaymentInput[] = [];
+  const day = charge.dueDay ?? startDate.getDate();
+  const anchorMonth = startOfMonth(isAfter(startDate, from) ? startDate : from);
+  const horizon = endDate ?? addYears(from, 5);
+
+  let month = anchorMonth;
+  let guard = 0;
+  while (guard < 12 * 6) {
+    const due = resolveDueDay(month, day);
+    if (isAfter(due, horizon)) break;
+    payments.push(makePayment(charge, due, charge.amount));
+    month = addMonths(month, 1);
+    guard += 1;
   }
 
   return payments;
@@ -187,6 +228,23 @@ function generateInstallmentPayments(
 // ============================================================================
 // Utilities
 // ============================================================================
+
+/**
+ * Adapt le jour de prélèvement à la longueur du mois : le 31 tombe le 28
+ * (ou le 29 en année bissextile) en février, le 30 en avril…
+ *
+ * @param month - Date représentant le mois cible
+ * @param day - Jour choisi (1–31)
+ * @returns Date locale au jour clampé du mois
+ */
+export function resolveDueDay(month: Date, day: number): Date {
+  const monthStart = startOfMonth(month);
+  const clamped = Math.min(
+    Math.max(Math.trunc(day), 1),
+    getDaysInMonth(monthStart)
+  );
+  return setDate(monthStart, clamped);
+}
 
 /**
  * Crée un paiement planifié

@@ -269,11 +269,10 @@ export function useMarkPaymentAsPaid(): UseMutationResult<
         status: 'PAID',
         paidAt: formatISO(new Date()),
       }),
-    onSuccess: (_payment, { chargeId }) => {
-      // Invalidate payments for this charge
-      void queryClient.invalidateQueries({
-        queryKey: chargePaymentsKey(chargeId),
-      });
+    onSuccess: () => {
+      // Invalidate every payments window (per-month queries included):
+      // the per-charge key alone misses the windowed queries (design D5).
+      void queryClient.invalidateQueries({ queryKey: ['payments'] });
     },
   });
 }
