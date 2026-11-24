@@ -33,6 +33,29 @@ function isUniqueViolation(error: unknown): boolean {
   );
 }
 
+/** Prisma "record not found" (already deleted by a concurrent request). */
+function isRecordGone(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    (error as { code?: string }).code === 'P2025'
+  );
+}
+
+/** Runs a debit-cleanup step; a concurrently deleted record becomes a 409. */
+async function goneAs409<T>(id: string, run: () => Promise<T>): Promise<T> {
+  try {
+    return await run();
+  } catch (error: unknown) {
+    if (isRecordGone(error)) {
+      throw new HttpError(409, {
+        message: `Payment ${id} was modified concurrently, retry`,
+      });
+    }
+    throw error;
+  }
+}
+
 export class PaymentService {
   async findMany(query: PaymentQuery): Promise<Payment[]> {
     const rows = await prisma.payment.findMany({
@@ -83,6 +106,33 @@ export class PaymentService {
       input
     );
     const { transactionId, ...rest } = input;
+    if (
+      transactionId !== undefined &&
+      transactionId !== existing.transactionId
+    ) {
+      throw new HttpError(422, {
+        message: 'Use the reconcile/unlink endpoints to change the link',
+      });
+    }
+    if (
+      hasAutoDebit &&
+      input.chargeId !== undefined &&
+      input.chargeId !== existing.chargeId
+    ) {
+      throw new HttpError(422, {
+        message: 'Cannot change the charge of a payment with an auto debit',
+      });
+    }
+    if (
+      hasAutoDebit &&
+      existing.status === 'PAID' &&
+      input.paidAt === null &&
+      action !== 'delete'
+    ) {
+      throw new HttpError(422, {
+        message: 'Cannot clear paidAt of a paid payment with an auto debit',
+      });
+    }
     const data = {
       ...rest,
       dueDate: input.dueDate ? parseISO(input.dueDate) : undefined,
@@ -90,28 +140,25 @@ export class PaymentService {
     };
 
     if (action === 'create') {
-      if (transactionId) {
-        throw new HttpError(422, {
-          message: 'Use the reconcile endpoint to link a transaction',
-        });
-      }
       return this.tick(existing, input, data);
     }
     if (action === 'delete') {
-      const row = await prisma.$transaction(async (tx) => {
-        const updated = await tx.payment.update({
-          where: { id },
-          data: {
-            ...data,
-            paidAt: input.paidAt ?? null,
-            transactionId: null,
-          },
-        });
-        await tx.transaction.delete({
-          where: { id: existing.transactionId as string },
-        });
-        return updated;
-      });
+      const row = await goneAs409(id, () =>
+        prisma.$transaction(async (tx) => {
+          const updated = await tx.payment.update({
+            where: { id },
+            data: {
+              ...data,
+              paidAt: input.paidAt ?? null,
+              transactionId: null,
+            },
+          });
+          await tx.transaction.delete({
+            where: { id: existing.transactionId as string },
+          });
+          return updated;
+        })
+      );
       return this.toPayment(row);
     }
     if (action === 'update') {
@@ -120,7 +167,7 @@ export class PaymentService {
 
     const row = await prisma.payment.update({
       where: { id },
-      data: { ...data, transactionId },
+      data,
     });
     return this.toPayment(row);
   }
@@ -219,13 +266,15 @@ export class PaymentService {
       input,
       await this.chargeAccount(existing.chargeId)
     );
-    const row = await prisma.$transaction(async (tx) => {
-      await tx.transaction.update({
-        where: { id: existing.transactionId as string },
-        data: { date: parseISO(debit.date), amount: debit.amount },
-      });
-      return tx.payment.update({ where: { id: existing.id }, data });
-    });
+    const row = await goneAs409(existing.id, () =>
+      prisma.$transaction(async (tx) => {
+        await tx.transaction.update({
+          where: { id: existing.transactionId as string },
+          data: { date: parseISO(debit.date), amount: debit.amount },
+        });
+        return tx.payment.update({ where: { id: existing.id }, data });
+      })
+    );
     return this.toPayment(row);
   }
 
@@ -235,12 +284,16 @@ export class PaymentService {
       include: { transaction: true },
     });
     if (!existing) throw new NotFoundError('Payment', id);
-    await prisma.$transaction(async (tx) => {
-      await tx.payment.delete({ where: { id } });
-      if (existing.transaction?.note === AUTO_DEBIT_NOTE) {
-        await tx.transaction.delete({ where: { id: existing.transaction.id } });
-      }
-    });
+    await goneAs409(id, () =>
+      prisma.$transaction(async (tx) => {
+        await tx.payment.delete({ where: { id } });
+        if (existing.transaction?.note === AUTO_DEBIT_NOTE) {
+          await tx.transaction.delete({
+            where: { id: existing.transaction.id },
+          });
+        }
+      })
+    );
   }
 
   /**
@@ -328,13 +381,15 @@ export class PaymentService {
         await prisma.payment.update({ where: { id }, data })
       );
     }
-    const row = await prisma.$transaction(async (tx) => {
-      const updated = await tx.payment.update({ where: { id }, data });
-      await tx.transaction.delete({
-        where: { id: payment.transactionId as string },
-      });
-      return updated;
-    });
+    const row = await goneAs409(id, () =>
+      prisma.$transaction(async (tx) => {
+        const updated = await tx.payment.update({ where: { id }, data });
+        await tx.transaction.delete({
+          where: { id: payment.transactionId as string },
+        });
+        return updated;
+      })
+    );
     return this.toPayment(row);
   }
 

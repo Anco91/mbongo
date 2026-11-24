@@ -6,9 +6,9 @@
  * @packageDocumentation
  */
 
-/** Fields of a payment used to book its debit. */
 import type { Currency } from '../schemas/currency';
 
+/** Fields of a payment used to book its debit. */
 export interface PaymentDebitSource {
   amount: number;
   currency: Currency;
