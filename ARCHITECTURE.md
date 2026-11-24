@@ -112,7 +112,7 @@ incomes, transfers, monthly budgets, alerts). Mobile-first PWA.
 | Date | Decision | Reason |
 |---|---|---|
 | 2026-11-24 | agents-framework is the single source of truth for rules and process. Former rules (old `AGENTS.md` body, `CONVENTIONS.md`, `skills/`, `.vibe/`, `.kilo/`, `.kiro/`, openspec/tdd/superpowers skills) archived in `.agents-fw/backup/20261124-160106/`. | Adoption of the framework; one rule set. |
-| 2026-11-24 | Former specs stay as read-only archive: `openspec/`, `docs/specs/`. New work uses `specs/` (SPEC_MASTER + sub-specs). | No migration cost; history kept. |
+| 2026-11-24 | Former specs stay as read-only archive: `openspec/changes/archive/`, `docs/specs/`; `openspec/specs/` moved to `specs/current/` (living behaviour specs, SPEC-1..3). New work uses `specs/` (SPEC_MASTER + sub-specs). | No migration cost; history kept. |
 | 2026-11-24 | Local signature: services and controllers are classes with an exported singleton (`chargeService`, `chargesController`). | NestJS-like style already applied to all 9 resources (ARCH-4 framework-like provider). |
 | 2026-11-24 | Local signature: client data access = `repositories/<resources>.repository.ts` implementing `contracts/<resources>.http.ts`, consumed by `hooks/use-<resources>.ts`. | Existing, typed end to end by shared contracts. |
 | 2026-11-24 | Tests live in `apps/web/__tests__/` (Jest), not next to the code. | Existing layout; ~75 test files. |

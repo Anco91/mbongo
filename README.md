@@ -5,7 +5,7 @@ charges, CHF→EUR transfers, monthly budget and money-flow charts. Mobile-first
 
 - Product context: `cdc.md`
 - Architecture, stack, reuse registry, decisions: `ARCHITECTURE.md`
-- Specs (current work): `specs/SPEC_MASTER.md` — archived specs: `openspec/`, `docs/specs/`
+- Specs (current work): `specs/SPEC_MASTER.md` — current behaviour: `specs/current/` — archived specs: `openspec/changes/archive/`, `docs/specs/`
 - Visible wording: `docs/LEXIQUE.md`
 
 ## Getting started

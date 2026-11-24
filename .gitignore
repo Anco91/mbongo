@@ -114,3 +114,4 @@ prisma/dev.db-journal
 
 # agents-framework session gauge state
 .agents-fw/.state/
+.claude/worktrees/
