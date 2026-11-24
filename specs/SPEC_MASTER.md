@@ -54,7 +54,7 @@ situation (second CHF salary) needs no model rewrite. Full context: `cdc.md` (ar
 | 08 | `specs/08-net-worth-breakdown-hover.md` | Hover on « Patrimoine consolidé » lists each term (+ 1000 CHF Épargne X, − 500 EUR Compte courant X découvert…) | draft | — |
 | 09 | `specs/09-transfers-archive.md` | Transfers page: close/hide settled transfers (design to decide: archive flag vs closed status) | draft | — |
 | 10 | `specs/10-charge-subcategories.md` | Sub-categories under categories (Abonnements → mobile, internet, sport; Assurances → auto, LAMal, garantie…), reflected in donut | draft | — |
-| 11 | `specs/11-repair-first-month-payments.md` | One-off script regenerating missing anchor-month payments of existing charges in dev.db (human OK 2026-11-24; stale data from before fix 8b4f424, not a code bug) | draft | — |
+| 11 | `specs/11-repair-first-month-payments.md` | One-off script regenerating missing anchor-month payments of existing charges in dev.db (human OK 2026-11-24; stale data from before fix 8b4f424, not a code bug) | ready | — |
 | 12 | `specs/12-sankey-income-leg.md` | Sankey income leg = expected income (as 07) + planned-link rendering; stripes cause unverified (`sankey-flows-chart.tsx`, `sankey.ts`) | draft | — |
 | 13 | `specs/13-settlement-domain.md` | Pure shared functions: settlement of an expected item against realized amounts (open/partial/settled/discrepancy + gap); no schema change. Human chose matching model (a), no ledger | draft | — |
 | 14 | `specs/14-unmatched-income-matching.md` | Positive transactions without `incomeId` are never added to remaining-to-live; they are listed as unmatched and proposed for linking to an income source. Transfer TARGET legs excluded. Needs 13 | draft | — |
