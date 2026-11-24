@@ -193,7 +193,7 @@ describe('mergeCategorySegments', () => {
       name: string;
       value: number;
       planned?: boolean;
-      subcategories?: { name: string; value: number }[];
+      subcategories?: Array<{ name: string; value: number }>;
     }>([
       { name: 'Logement', value: 900 },
       { name: 'Vie courante', value: 40 },

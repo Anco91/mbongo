@@ -118,13 +118,15 @@ describe('resolveChargeSubcategory', () => {
   });
 
   it('keeps the stored value when the category is re-sent unchanged', () => {
-    expect(resolveChargeSubcategory(existing, { category: 'Abonnements' })).toBe(
-      'Mobile'
-    );
+    expect(
+      resolveChargeSubcategory(existing, { category: 'Abonnements' })
+    ).toBe('Mobile');
   });
 
   it('resets to null when the category changes without a sub-category', () => {
-    expect(resolveChargeSubcategory(existing, { category: 'Logement' })).toBeNull();
+    expect(
+      resolveChargeSubcategory(existing, { category: 'Logement' })
+    ).toBeNull();
   });
 
   it('takes the explicit value, including when the category changes too', () => {
@@ -140,7 +142,9 @@ describe('resolveChargeSubcategory', () => {
   });
 
   it('clears the value on an explicit null', () => {
-    expect(resolveChargeSubcategory(existing, { subcategory: null })).toBeNull();
+    expect(
+      resolveChargeSubcategory(existing, { subcategory: null })
+    ).toBeNull();
   });
 });
 
