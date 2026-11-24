@@ -11,13 +11,25 @@
 
 'use client';
 
-import type { JSX } from 'react';
+import { useState, type JSX } from 'react';
 import Link from 'next/link';
-import { useTransfers, useCompleteTransfer } from '@/hooks/use-transfers';
+import {
+  useTransfers,
+  useCompleteTransfer,
+  useCloseTransfer,
+} from '@/hooks/use-transfers';
 import { useAccounts } from '@/hooks/use-accounts';
-import { counterValue, effectiveRate, transferFees } from '@mbongo/shared';
+import {
+  counterValue,
+  effectiveRate,
+  transferFees,
+  filterVisibleTransfers,
+  isTransferClosed,
+  type Transfer,
+} from '@mbongo/shared';
 import { formatAmount, formatDate } from '@/lib/format';
 import { ShowMoreList } from '@/components/patterns';
+import { ShowClosedToggle } from '@/components/patterns/show-closed-toggle';
 import { StatusBadge } from '@/components/ui';
 import { LoadingState, ErrorPanel } from '@/components/patterns/async-state';
 import { Form, TextInput, AmountInput } from '@/components/form';
@@ -29,6 +41,7 @@ import { IconArrowRight, IconClock } from '@/components/ui/icons';
 export function TransfersContent(): JSX.Element {
   const { data: transfers = [], isLoading, error, refetch } = useTransfers();
   const { data: accounts = [] } = useAccounts();
+  const [showClosed, setShowClosed] = useState(false);
 
   if (isLoading) {
     return <LoadingState label="Chargement des transferts…" />;
@@ -61,9 +74,15 @@ export function TransfersContent(): JSX.Element {
         </p>
       </div>
 
+      <ShowClosedToggle
+        label="Afficher les transferts clos"
+        checked={showClosed}
+        onChange={setShowClosed}
+      />
+
       {/* Ordre inchangé (date desc côté API) : la pagination ne révèle que la suite. */}
       <ShowMoreList
-        items={transfers}
+        items={filterVisibleTransfers(transfers, showClosed)}
         renderItem={(transfer) => (
           <Card key={transfer.id}>
             <CardHeader className="pb-2">
@@ -72,11 +91,12 @@ export function TransfersContent(): JSX.Element {
                   {accountName(transfer.sourceAccountId)} →{' '}
                   {accountName(transfer.targetAccountId)}
                 </CardTitle>
-                <StatusBadge
-                  status={
-                    transfer.status === 'COMPLETED' ? 'Réalisé' : 'Estimé'
-                  }
-                />
+                <div className="flex items-center gap-2">
+                  <StatusBadge status={statusLabel(transfer.status)} />
+                  {!isTransferClosed(transfer) && (
+                    <CloseTransferButton transferId={transfer.id} />
+                  )}
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-3 pt-0">
@@ -133,7 +153,7 @@ export function TransfersContent(): JSX.Element {
                       </p>
                     )}
                   </div>
-                ) : (
+                ) : transfer.status === 'ESTIMATED' ? (
                   <div className="rounded-lg bg-slate-50 p-2.5 opacity-90">
                     <p className="text-slate-500">Phase 2 · Réalisé</p>
                     <p className="mt-1 text-[11px] italic text-slate-400">
@@ -141,7 +161,7 @@ export function TransfersContent(): JSX.Element {
                     </p>
                     <CompleteTransferForm transferId={transfer.id} />
                   </div>
-                )}
+                ) : null}
               </div>
             </CardContent>
           </Card>
@@ -165,6 +185,31 @@ export function TransfersContent(): JSX.Element {
         </Button>
       </Link>
     </div>
+  );
+}
+
+function statusLabel(status: Transfer['status']): string {
+  if (status === 'COMPLETED') return 'Réalisé';
+  if (status === 'CLOSED') return 'Clos';
+  return 'Estimé';
+}
+
+function CloseTransferButton({
+  transferId,
+}: {
+  transferId: string;
+}): JSX.Element {
+  const { mutate: close, isPending } = useCloseTransfer();
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      disabled={isPending}
+      onClick={() => close(transferId)}
+    >
+      Clore
+    </Button>
   );
 }
 

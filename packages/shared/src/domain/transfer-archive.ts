@@ -11,7 +11,7 @@ import type { Transfer } from '../schemas/transfer';
 
 /** Vrai si le transfert est clos. */
 export function isTransferClosed(transfer: Pick<Transfer, 'status'>): boolean {
-  throw new Error('not implemented');
+  return transfer.status === 'CLOSED';
 }
 
 /**
@@ -22,5 +22,7 @@ export function filterVisibleTransfers(
   transfers: Transfer[],
   showClosed: boolean
 ): Transfer[] {
-  throw new Error('not implemented');
+  return showClosed
+    ? [...transfers]
+    : transfers.filter((transfer) => !isTransferClosed(transfer));
 }

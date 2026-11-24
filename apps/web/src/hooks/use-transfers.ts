@@ -75,3 +75,17 @@ export function useCompleteTransfer(): UseMutationResult<
     },
   });
 }
+
+/**
+ * Close a transfer (archive it from any state), then refresh the list.
+ */
+export function useCloseTransfer(): UseMutationResult<Transfer, Error, string> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => transfersRepository.closeTransfer(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: transferQueries.all() });
+    },
+  });
+}

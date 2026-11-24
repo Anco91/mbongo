@@ -55,6 +55,14 @@ export class TransfersController {
       return toErrorResponse(error);
     }
   }
+
+  async close(id: string): Promise<NextResponse> {
+    try {
+      return toSuccessResponse(await this.transfers.close(id));
+    } catch (error) {
+      return toErrorResponse(error);
+    }
+  }
 }
 
 const globalForTransfersController = globalThis as unknown as {

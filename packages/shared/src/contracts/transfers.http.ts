@@ -10,4 +10,5 @@ export interface TransferHttp {
   findOne(id: string): Promise<Transfer>;
   create(input: CreateTransferInput): Promise<Transfer>;
   completeTransfer(id: string, input: UpdateTransferInput): Promise<Transfer>;
+  closeTransfer(id: string): Promise<Transfer>;
 }

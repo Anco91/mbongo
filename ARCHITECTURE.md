@@ -75,7 +75,8 @@ incomes, transfers, monthly budgets, alerts). Mobile-first PWA.
 | `packages/shared/src/domain/balance.ts` → `computeStatementGap` | domain | Gap of an account's latest bank statement vs balance computed at the statement day (same account, day granularity, cent-rounded); null without statement. Shown on the account card (spec 16) |
 | `packages/shared/src/lib/calculation/consolidated.ts` → `listNetWorthTerms` | domain | One term per active account with a non-zero balance (native currency, asset/overdraft, sorted); same balance rule as `computeConsolidatedBalance`. Shown on hover/focus of `WealthCard` |
 | `packages/shared/src/lib/calculation/active-accounts.ts` | domain | `excludeClosedAccounts`: drops closed accounts and what points at them before chart calculations |
-| `apps/web/src/components/patterns/show-closed-toggle.tsx` | ui | `ShowClosedToggle`: « Afficher les comptes clôturés » checkbox (dashboard, accounts) |
+| `packages/shared/src/domain/transfer-archive.ts` → `isTransferClosed`, `filterVisibleTransfers` | domain | Closed (`CLOSED`) transfers hidden by default in the transfers list; order kept, input untouched |
+| `apps/web/src/components/patterns/show-closed-toggle.tsx` | ui | `ShowClosedToggle`: checkbox, default label « Afficher les comptes clôturés », optional `label` (dashboard, accounts, transfers) |
 | `apps/web/src/components/charts/` | ui | Sankey, donut, fullscreen chart |
 | `apps/web/src/components/providers/` | ui | QueryProvider, DisplayCurrencyProvider, service worker register |
 

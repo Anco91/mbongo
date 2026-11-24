@@ -83,6 +83,9 @@ export class TransferService {
   async update(id: string, input: UpdateTransferInput): Promise<Transfer> {
     const existing = await prisma.transfer.findUnique({ where: { id } });
     if (!existing) throw new NotFoundError('Transfer', id);
+    if (existing.status === 'CLOSED') {
+      throw new HttpError(409, 'Transfer is closed');
+    }
     if (existing.status === 'COMPLETED') {
       throw new HttpError(409, 'Transfer is already completed');
     }
@@ -119,7 +122,14 @@ export class TransferService {
 
   /** Close a transfer from any state; idempotent, never touches transactions. */
   async close(id: string): Promise<Transfer> {
-    throw new Error('not implemented');
+    const existing = await prisma.transfer.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundError('Transfer', id);
+    if (existing.status === 'CLOSED') return this.toTransfer(existing);
+    const closed = await prisma.transfer.update({
+      where: { id },
+      data: { status: 'CLOSED' },
+    });
+    return this.toTransfer(closed);
   }
 
   private toTransfer(row: Prisma.TransferGetPayload<object>): Transfer {

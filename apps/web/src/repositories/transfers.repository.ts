@@ -38,4 +38,10 @@ export const transfersRepository: TransferHttp = {
       await request('PATCH', `/transfers/${id}`, { body })
     );
   },
+
+  async closeTransfer(id: string): Promise<Transfer> {
+    return transferSchema.parse(
+      await request('POST', `/transfers/${id}/close`)
+    );
+  },
 };
