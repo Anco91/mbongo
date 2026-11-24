@@ -19,6 +19,7 @@ import {
 import { incomesRepository } from '@/repositories/incomes.repository';
 import { incomeQueries } from '@/queries/incomes';
 import { transactionQueries } from '@/queries/transactions';
+import { accountQueries } from '@/queries/accounts';
 import {
   Income,
   CreateIncomeInput,
@@ -63,17 +64,26 @@ export function useUnmatchedIncome(): {
 } {
   const transactions = useQuery(transactionQueries.list(UNMATCHED_QUERY));
   const incomes = useQuery(incomeQueries.list({}));
+  const accounts = useQuery(accountQueries.list());
 
-  const items = useMemo(
-    () => findUnmatchedIncome(transactions.data ?? [], incomes.data ?? []),
-    [transactions.data, incomes.data]
-  );
+  const items = useMemo(() => {
+    const closedIds = new Set(
+      (accounts.data ?? [])
+        .filter((account) => account.status === 'CLOSED')
+        .map((account) => account.id)
+    );
+    const openTransactions = (transactions.data ?? []).filter(
+      (t) => !closedIds.has(t.accountId)
+    );
+    return findUnmatchedIncome(openTransactions, incomes.data ?? []);
+  }, [transactions.data, incomes.data, accounts.data]);
 
   return {
     items,
     incomes: incomes.data ?? [],
-    isLoading: transactions.isLoading || incomes.isLoading,
-    error: transactions.error ?? incomes.error,
+    isLoading:
+      transactions.isLoading || incomes.isLoading || accounts.isLoading,
+    error: transactions.error ?? incomes.error ?? accounts.error,
   };
 }
 
