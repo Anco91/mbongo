@@ -1,23 +1,35 @@
-/** Stub for 02-query-factories-charges: the Executor replaces this file. */
+/**
+ * Payment Queries
+ *
+ * Query factory for payments: the only source of their query keys and
+ * `queryOptions`. Keys match the guards' server prefetch.
+ *
+ * @module Queries/Payments
+ */
+
+import { queryOptions } from '@tanstack/react-query';
+import { paymentsRepository } from '@/repositories/payments.repository';
 import type { PaymentQuery } from '@mbongo/shared';
 
-export const paymentQueries = {
-  all: (): readonly ['payments'] => {
-    throw new Error('not implemented');
-  },
-  list: (query?: PaymentQuery): QueryStub => {
-    void query;
-    throw new Error('not implemented');
-  },
-  detail: (id: string): QueryStub => {
-    void id;
-    throw new Error('not implemented');
-  },
-  byCharge: (chargeId: string): QueryStub => {
-    void chargeId;
-    throw new Error('not implemented');
-  },
-};
+const KEY = 'payments' as const;
 
-/** Minimal shape the locked tests read; the real factories return `queryOptions`. */
-type QueryStub = { queryKey: readonly unknown[]; enabled?: boolean };
+export const paymentQueries = {
+  all: () => [KEY] as const,
+  list: (query: PaymentQuery = {}) =>
+    queryOptions({
+      queryKey: [KEY, query] as const,
+      queryFn: () => paymentsRepository.findMany(query),
+    }),
+  detail: (id: string) =>
+    queryOptions({
+      queryKey: [KEY, id] as const,
+      queryFn: () => paymentsRepository.findOne(id),
+      enabled: Boolean(id),
+    }),
+  byCharge: (chargeId: string) =>
+    queryOptions({
+      queryKey: [KEY, { chargeId }] as const,
+      queryFn: () => paymentsRepository.findMany({ chargeId: { eq: chargeId } }),
+      enabled: Boolean(chargeId),
+    }),
+};
