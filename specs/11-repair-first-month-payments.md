@@ -1,6 +1,6 @@
 ---
 id: 11-repair-first-month-payments
-status: ready
+status: done
 branch: feat/11-repair-first-month-payments
 tier: small
 locked_at:
