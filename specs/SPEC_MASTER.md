@@ -25,7 +25,12 @@ situation (second CHF salary) needs no model rewrite. Full context: `cdc.md` (ar
 |---|---|
 | Charge | A recurring or one-off expense; generates scheduled payments |
 | Payment (échéance) | One scheduled occurrence of a charge; can be linked to a bank debit |
-| Reconciliation (rapprochement) | Linking a payment to a transaction; code-only term, shown as « Lier au débit » |
+| Expected item | What the month plans: an income source for a month, a charge payment, a transfer leg |
+| Realized | A real transaction on an account |
+| Reconciliation (rapprochement) | Linking an expected item to at most one realized transaction (payment, income source+month, transfer leg); code-only term, shown as « Lier au débit » for payments |
+| Settlement | Status of an expected item once matched: open, partial, settled, discrepancy, with the gap between expected and realized |
+| Unmatched | A realized transaction with no expected item (unplanned income, or a salary not yet linked to its source) |
+| Statement reconciliation | Snapshot balance (from a bank statement) compared with the balance computed from transactions |
 | Provisioned charge | Annual charge smoothed monthly (« Charges lissées chaque mois ») |
 | Snapshot | Real balance of an account at a date, from a statement |
 | Transfer | CHF→EUR money move with rate and fees |
@@ -51,4 +56,7 @@ situation (second CHF salary) needs no model rewrite. Full context: `cdc.md` (ar
 | 10 | `specs/10-charge-subcategories.md` | Sub-categories under categories (Abonnements → mobile, internet, sport; Assurances → auto, LAMal, garantie…), reflected in donut | draft | — |
 | 11 | `specs/11-repair-first-month-payments.md` | One-off script regenerating missing anchor-month payments of existing charges in dev.db (human OK 2026-11-24; stale data from before fix 8b4f424, not a code bug) | draft | — |
 | 12 | `specs/12-sankey-income-leg.md` | Sankey income leg = expected income (as 07) + planned-link rendering; stripes cause unverified (`sankey-flows-chart.tsx`, `sankey.ts`) | draft | — |
-| 13 | `specs/13-income-reconciliation.md` | Count one-off positive transactions without `incomeId`: needs accounting model first (expected vs realized, reconciliation/settlement of a transaction against a source). Concepts to settle with the human before any spec | draft | — |
+| 13 | `specs/13-settlement-domain.md` | Pure shared functions: settlement of an expected item against realized amounts (open/partial/settled/discrepancy + gap); no schema change. Blocked on human answer: matching model (a) vs double-entry ledger (b) | draft | — |
+| 14 | `specs/14-unmatched-income-matching.md` | Positive transactions without `incomeId` are never added to remaining-to-live; they are listed as unmatched and proposed for linking to an income source. Transfer TARGET legs excluded. Needs 13 | draft | — |
+| 15 | `specs/15-transfer-leg-check.md` | Per transfer: SOURCE leg = −amountSent (CHF), TARGET leg = +amountReceived (EUR), rate and fees explain the gap. Check each leg against the Transfer record, never sum the legs. Needs 13 | draft | — |
+| 16 | `specs/16-statement-reconciliation.md` | Snapshot balance vs balance computed from transactions per account, with the gap shown. Needs 13 | draft | — |
