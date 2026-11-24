@@ -203,9 +203,8 @@ function renderSankeyLink(
     <path
       d={d}
       stroke={color}
-      strokeOpacity={planned ? 0.3 : 0.5}
+      strokeOpacity={planned ? 0.25 : 0.5}
       strokeWidth={Math.max(linkWidth, 1)}
-      strokeDasharray={planned ? '6 4' : undefined}
       fill="none"
     />
   );

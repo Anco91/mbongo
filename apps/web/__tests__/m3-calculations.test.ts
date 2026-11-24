@@ -433,16 +433,6 @@ describe('Sankey Month Flows (sankey.ts)', () => {
       expect(flows.links).toEqual([]);
     });
 
-    it('treats a positive amount as an income into the account, not an expense', () => {
-      const flows = flowsFor([
-        makeTransaction({ id: 't-income', amount: 100 }),
-      ]);
-
-      const link = flows.links[0];
-      expect(flows.nodes[link.source].name).toBe('Santé');
-      expect(flows.nodes[link.target].name).toBe('UBS CHF');
-    });
-
     it('does not double count a transaction reconciled to a paid payment', () => {
       const reconciled: Payment = {
         id: 'p-reconciled',

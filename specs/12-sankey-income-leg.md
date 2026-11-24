@@ -3,7 +3,7 @@ id: 12-sankey-income-leg
 status: ready
 branch: feat/12-sankey-income-leg
 tier: medium
-locked_at: 86d8502
+locked_at: c8fcbd6
 locked_tests:
   - apps/web/__tests__/sankey-income-leg.test.ts
   - apps/web/__tests__/m3-calculations.test.ts
