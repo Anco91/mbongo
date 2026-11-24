@@ -1,6 +1,6 @@
 ---
 id: 13-settlement-domain
-status: ready
+status: done
 branch: feat/13-settlement-domain
 tier: small
 locked_at: bc19af3
