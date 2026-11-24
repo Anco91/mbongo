@@ -11,7 +11,7 @@
 
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   createTransferSchema,
@@ -66,6 +66,33 @@ export function buildTransferFormSchema(
   });
 }
 
+/** Rate of a same-currency transfer (no conversion, rate field hidden). */
+const SAME_CURRENCY_RATE = 1;
+
+/**
+ * Resolver wrapper: a same-currency pair has no rate field, so the rate is
+ * set to SAME_CURRENCY_RATE before validation (the hidden 0 must not block
+ * submit). Other pairs are validated unchanged. Pure function.
+ */
+export function buildTransferFormResolver(
+  accounts: Account[]
+): Resolver<CreateTransferInput> {
+  const resolve = zodResolver(buildTransferFormSchema(accounts));
+  return (values, context, options) => {
+    const source = accounts.find((a) => a.id === values.sourceAccountId);
+    const target = accounts.find((a) => a.id === values.targetAccountId);
+    const sameCurrency =
+      source !== undefined &&
+      target !== undefined &&
+      isSameCurrencyTransfer(source, target);
+    return resolve(
+      sameCurrency ? { ...values, rateEstimated: SAME_CURRENCY_RATE } : values,
+      context,
+      options
+    );
+  };
+}
+
 /**
  * TransferCreateForm Component
  */
@@ -80,7 +107,7 @@ export function TransferCreateForm(): JSX.Element {
   } = useCreateTransfer();
 
   const form = useForm<CreateTransferInput>({
-    resolver: zodResolver(buildTransferFormSchema(accounts)),
+    resolver: buildTransferFormResolver(accounts),
     defaultValues: {
       sourceAccountId: '',
       targetAccountId: '',
@@ -118,9 +145,8 @@ export function TransferCreateForm(): JSX.Element {
     rateEstimated > 0;
   const preview = hasPreview ? counterValue(amountSent, rateEstimated) : null;
 
-  const onSubmit = form.handleSubmit((data) =>
-    createTransfer(sameCurrency ? { ...data, rateEstimated: 1 } : data)
-  );
+  // The resolver already normalises the rate for same-currency pairs.
+  const onSubmit = form.handleSubmit((data) => createTransfer(data));
 
   if (isSuccess) {
     return (
