@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(ls -R:*)",
+      "Bash(find .:*)",
+      "Read(./.env)",
+      "Read(./.env.*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          { "type": "command", "command": ".agents-fw/scripts/session-gauge.sh --hook" }
+        ]
+      }
+    ]
+  }
+}
