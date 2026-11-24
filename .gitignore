@@ -111,3 +111,6 @@ temp/
 prisma/dev.db
 prisma/dev.db-journal
 .aider*
+
+# agents-framework session gauge state
+.agents-fw/.state/
