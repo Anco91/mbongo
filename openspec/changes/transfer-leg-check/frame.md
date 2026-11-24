@@ -3,7 +3,7 @@ id: transfer-leg-check
 status: ready
 branch: feat/transfer-leg-check
 tier: small
-locked_at: PENDING
+locked_at: 2172023
 locked_tests:
   - apps/web/__tests__/transfer-legs.test.ts
 ---
