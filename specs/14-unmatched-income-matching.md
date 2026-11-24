@@ -1,6 +1,6 @@
 ---
 id: 14-unmatched-income-matching
-status: ready
+status: done
 branch: feat/14-unmatched-income-matching
 tier: medium
 locked_at: c724afa
@@ -122,3 +122,5 @@ Tests: 13 failed, 13 total   (all: Error: not implemented)
 
 ## Handoffs
 
+
+- `docs/handoffs/20261124-2105-14-unmatched-income-matching.md`

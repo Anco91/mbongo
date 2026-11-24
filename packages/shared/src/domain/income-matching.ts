@@ -12,12 +12,22 @@ import { format, parseISO } from 'date-fns';
 import type { Income } from '../schemas/income';
 import type { Transaction } from '../schemas/transaction';
 import { isIncomeDueForMonth } from './income';
-import { computeSettlement, type Settlement, type SettlementOptions } from './settlement';
+import {
+  computeSettlement,
+  type Settlement,
+  type SettlementOptions,
+} from './settlement';
 
 /** Champs d'une transaction utiles au rapprochement. */
 export type MatchableTransaction = Pick<
   Transaction,
-  'id' | 'accountId' | 'date' | 'amount' | 'transferId' | 'incomeId' | 'budgetMonth'
+  | 'id'
+  | 'accountId'
+  | 'date'
+  | 'amount'
+  | 'transferId'
+  | 'incomeId'
+  | 'budgetMonth'
 >;
 
 /** Source de revenu proposée pour une transaction, avec l'écart prévu/réalisé. */
@@ -51,7 +61,11 @@ export function findUnmatchedIncome(
   options?: SettlementOptions
 ): UnmatchedIncome[] {
   const confirmed = new Set(
-    transactions.flatMap((t) => (t.incomeId && t.budgetMonth ? [confirmationKey(t.incomeId, t.budgetMonth)] : []))
+    transactions.flatMap((t) =>
+      t.incomeId && t.budgetMonth
+        ? [confirmationKey(t.incomeId, t.budgetMonth)]
+        : []
+    )
   );
 
   return transactions
@@ -67,7 +81,11 @@ export function findUnmatchedIncome(
         proposals: proposeIncomes(t, budgetMonth, incomes, confirmed, options),
       };
     })
-    .sort((a, b) => compareText(a.date, b.date) || compareText(a.transactionId, b.transactionId));
+    .sort(
+      (a, b) =>
+        compareText(a.date, b.date) ||
+        compareText(a.transactionId, b.transactionId)
+    );
 }
 
 function isUnmatched(t: MatchableTransaction): boolean {
@@ -103,6 +121,7 @@ function proposeIncomes(
     }))
     .sort(
       (a, b) =>
-        Math.abs(a.settlement.gap) - Math.abs(b.settlement.gap) || compareText(a.incomeId, b.incomeId)
+        Math.abs(a.settlement.gap) - Math.abs(b.settlement.gap) ||
+        compareText(a.incomeId, b.incomeId)
     );
 }
