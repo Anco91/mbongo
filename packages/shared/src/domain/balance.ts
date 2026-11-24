@@ -86,3 +86,52 @@ export function isOverdraft(
 ): boolean {
   return balance < -account.overdraftLimit;
 }
+
+const DAY_LENGTH = 10;
+
+/** Jour calendaire (YYYY-MM-DD) d'une date ISO. */
+function toDay(date: string): string {
+  return date.slice(0, DAY_LENGTH);
+}
+
+/**
+ * Écart du dernier relevé d'un compte, calculé à la date du relevé.
+ *
+ * Compare le dernier relevé (date la plus récente, départage par `createdAt`)
+ * au solde calculé avec les transactions du compte jusqu'au jour du relevé
+ * inclus. Écart = relevé − calculé, arrondi au centime.
+ *
+ * @returns `null` si le compte n'a aucun relevé
+ */
+export function computeStatementGap(
+  account: { id: string; openingBalance: number },
+  transactions: Array<{ accountId: string; date: string; amount: number }>,
+  snapshots: Array<{
+    accountId: string;
+    date: string;
+    balance: number;
+    createdAt: string;
+  }>
+): { snapshotDate: string; calculated: number; gap: number } | null {
+  const latest = snapshots
+    .filter((snapshot) => snapshot.accountId === account.id)
+    .reduce<(typeof snapshots)[number] | null>((best, snapshot) => {
+      if (!best) return snapshot;
+      const byDate = toDay(snapshot.date).localeCompare(toDay(best.date));
+      if (byDate !== 0) return byDate > 0 ? snapshot : best;
+      return snapshot.createdAt > best.createdAt ? snapshot : best;
+    }, null);
+  if (!latest) return null;
+
+  const snapshotDay = toDay(latest.date);
+  const calculated = computeBalance(
+    account,
+    transactions.filter(
+      (tx) => tx.accountId === account.id && toDay(tx.date) <= snapshotDay
+    )
+  );
+  const gap =
+    Math.round(computeSnapshotGap(latest, calculated) * 100) / 100 + 0; // + 0 turns -0 into 0
+
+  return { snapshotDate: snapshotDay, calculated, gap };
+}

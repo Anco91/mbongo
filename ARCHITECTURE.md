@@ -61,7 +61,7 @@ incomes, transfers, monthly budgets, alerts). Mobile-first PWA.
 | `apps/web/src/server/common/where-translator.ts` | infra | `createWhereTranslator` filter → Prisma where |
 | `apps/web/src/server/` | module | One folder per resource: service + controller |
 | `apps/web/src/repositories/` | client | Typed `/api` client per resource |
-| `apps/web/src/queries/` | client | `memberQueries`, `accountQueries`, `transactionQueries`, `chargeQueries`, `paymentQueries`, `incomeQueries`, `transferQueries`, `monthlyBudgetQueries`, `exchangeRateQueries`: query keys + `queryOptions`; reuse, never hardcode keys |
+| `apps/web/src/queries/` | client | `memberQueries`, `accountQueries`, `transactionQueries`, `chargeQueries`, `paymentQueries`, `incomeQueries`, `transferQueries`, `monthlyBudgetQueries`, `exchangeRateQueries`, `snapshotQueries`: query keys + `queryOptions`; reuse, never hardcode keys |
 | `apps/web/src/hooks/` | client | TanStack Query hooks per resource |
 | `apps/web/src/lib/` | util | `api.ts` request, `format.ts`, `routes.ts`, month navigation/queries, filters, PWA |
 | `apps/web/src/components/ui/` | ui | Primitives: Button, Card, Badge, StatusBadge, TypeBadge, AccountChip, Sheet, Skeleton, Progress, icons |
@@ -72,6 +72,7 @@ incomes, transfers, monthly budgets, alerts). Mobile-first PWA.
 | `packages/shared/src/domain/income-matching.ts` → `findUnmatchedIncome` | domain | Positive transactions with no `incomeId`/`transferId`, each with ranked source proposals (due, same account, not yet confirmed, `computeSettlement` gap); read-only, link comes in spec 17 |
 | `packages/shared/src/domain/income-link.ts` → `checkIncomeLink` | domain | First refusal reason (or null) to link an existing transaction to an income source + month: positive, no transfer/source/payment, same account, due, date in month, month free. Replayed by `incomeService.linkTransaction` (`POST /api/incomes/{id}/link`) |
 | `apps/web/src/components/incomes/` → `UnmatchedIncomeView/Guard/Content/Row`, `useUnmatchedIncome`, `useLinkIncome`, `UNMATCHED_QUERY` | ui | `/incomes/unmatched`: unmatched positives with proposals and « Lier » (spec 18); renders `findUnmatchedIncome` as returned |
+| `packages/shared/src/domain/balance.ts` → `computeStatementGap` | domain | Gap of an account's latest bank statement vs balance computed at the statement day (same account, day granularity, cent-rounded); null without statement. Shown on the account card (spec 16) |
 | `packages/shared/src/lib/calculation/active-accounts.ts` | domain | `excludeClosedAccounts`: drops closed accounts and what points at them before chart calculations |
 | `apps/web/src/components/patterns/show-closed-toggle.tsx` | ui | `ShowClosedToggle`: « Afficher les comptes clôturés » checkbox (dashboard, accounts) |
 | `apps/web/src/components/charts/` | ui | Sankey, donut, fullscreen chart |
