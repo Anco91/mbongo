@@ -51,3 +51,4 @@ export * from './lib/calculation/sankey';
 export * from './lib/calculation/donut';
 export * from './lib/calculation/consolidated';
 export * from './lib/calculation/month';
+export * from './lib/calculation/active-accounts';

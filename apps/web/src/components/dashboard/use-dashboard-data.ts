@@ -15,6 +15,7 @@ import {
   computeConsolidatedBalance,
   computeDonutExpenses,
   computeSankeyFlows,
+  excludeClosedAccounts,
   computeMonthlyBudget,
   monthRange,
   isInMonth,
@@ -47,7 +48,10 @@ interface DashboardData {
   now: Date;
 }
 
-export function useDashboardData(selectedMonth: string): DashboardData {
+export function useDashboardData(
+  selectedMonth: string,
+  showClosed = false
+): DashboardData {
   const { data: accounts = [] } = useAccounts();
   const { data: transactions = [] } = useTransactions();
   const { data: charges = [] } = useCharges();
@@ -117,35 +121,53 @@ export function useDashboardData(selectedMonth: string): DashboardData {
     return total;
   }, [charges, payments, selectedMonth]);
 
-  const sankeyData = useMemo(
+  // Charts only: closed accounts (and what points at them) are hidden unless
+  // asked for. Balances, consolidated and totalCharges stay untouched.
+  const chartScope = useMemo(
     () =>
-      computeSankeyFlows({
-        accounts,
-        transactions: monthTransactions,
-        transfers: monthTransfers,
-        payments: monthPayments,
-        charges,
-        rate: consolidated.rate,
-      }),
+      showClosed
+        ? {
+            accounts,
+            transactions: monthTransactions,
+            transfers: monthTransfers,
+            charges,
+            payments: monthPayments,
+          }
+        : excludeClosedAccounts({
+            accounts,
+            transactions: monthTransactions,
+            transfers: monthTransfers,
+            charges,
+            payments: monthPayments,
+          }),
     [
+      showClosed,
       accounts,
       monthTransactions,
       monthTransfers,
-      monthPayments,
       charges,
-      consolidated.rate,
+      monthPayments,
     ]
+  );
+
+  const sankeyData = useMemo(
+    () =>
+      computeSankeyFlows({
+        ...chartScope,
+        rate: consolidated.rate,
+      }),
+    [chartScope, consolidated.rate]
   );
 
   const donutData = useMemo(
     () =>
       computeDonutExpenses({
-        payments: monthPayments,
-        charges,
-        transactions: monthTransactions,
+        payments: chartScope.payments,
+        charges: chartScope.charges,
+        transactions: chartScope.transactions,
         rate: consolidated.rate,
       }),
-    [monthPayments, charges, monthTransactions, consolidated.rate]
+    [chartScope, consolidated.rate]
   );
 
   const now = useMemo(() => new Date(), []);

@@ -19,6 +19,8 @@ export interface AccountsView {
   members: Member[];
   selectedMember: string;
   setSelectedMember: (memberId: string) => void;
+  showClosed: boolean;
+  setShowClosed: (value: boolean) => void;
   isLoading: boolean;
   error: Error | null;
   refetch: () => void;
@@ -26,24 +28,25 @@ export interface AccountsView {
 
 export function useAccountsView(): AccountsView {
   const [selectedMember, setSelectedMember] = useState<string>('all');
+  const [showClosed, setShowClosed] = useState(false);
   const { data: accounts = [], isLoading, error, refetch } = useAccounts();
   const { data: transactions = [] } = useTransactions();
   const { data: members = [] } = useMembers();
 
-  // Closed accounts disappear from the current view (history preserved).
-  const activeAccounts = useMemo(
+  // Closed accounts are hidden unless asked for (history preserved).
+  const visibleAccounts = useMemo(
     () =>
       accounts.filter(
         (account) =>
-          account.status === 'ACTIVE' &&
+          (showClosed || account.status === 'ACTIVE') &&
           (selectedMember === 'all' || account.memberId === selectedMember)
       ),
-    [accounts, selectedMember]
+    [accounts, selectedMember, showClosed]
   );
 
   const cards = useMemo(
-    () => buildAccountCards(activeAccounts, transactions),
-    [activeAccounts, transactions]
+    () => buildAccountCards(visibleAccounts, transactions),
+    [visibleAccounts, transactions]
   );
 
   return {
@@ -51,6 +54,8 @@ export function useAccountsView(): AccountsView {
     members,
     selectedMember,
     setSelectedMember,
+    showClosed,
+    setShowClosed,
     isLoading,
     error,
     refetch: () => {

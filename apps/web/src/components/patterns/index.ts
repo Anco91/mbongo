@@ -25,6 +25,7 @@ export {
   type FilterChipItem,
 } from '@/components/patterns/filter-chips';
 export { MemberFilterChips } from '@/components/patterns/member-filter-chips';
+export { ShowClosedToggle } from '@/components/patterns/show-closed-toggle';
 export { SectionTitle } from '@/components/patterns/section-title';
 export { ExpandButton } from '@/components/patterns/expand-button';
 export { DeleteButton } from '@/components/patterns/delete-button';
