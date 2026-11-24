@@ -16,6 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { startOfMonth, format } from 'date-fns';
 import {
   createChargeSchema,
+  listSubcategories,
   type CreateChargeInput,
   type Charge,
 } from '@mbongo/shared';
@@ -35,6 +36,7 @@ import {
   currencyOptions,
   yesNoOptions,
 } from '@/components/form';
+import { ChargeCategoryFields } from '@/components/charges/charge-category-fields';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { JSX } from 'react';
@@ -63,16 +65,6 @@ const CHARGE_TYPES = [
   },
 ] as const;
 
-const CATEGORIES = [
-  'Logement',
-  'Santé',
-  'Impôts & taxes',
-  'Assurances',
-  'Abonnements',
-  'Médias',
-  'Divers',
-].map((c) => ({ value: c, label: c }));
-
 const FREQUENCIES = [
   { value: 'monthly', label: 'Mensuelle' },
   { value: 'yearly', label: 'Annuelle' },
@@ -85,12 +77,25 @@ const FREQUENCIES = [
  */
 const resolver: Resolver<CreateChargeInput> = (values, context, options) =>
   zodResolver(createChargeSchema)(
-    values.type === 'FIXED_RECURRING' && values.frequency === 'monthly'
-      ? values
-      : { ...values, dueDay: null },
+    {
+      ...(values.type === 'FIXED_RECURRING' && values.frequency === 'monthly'
+        ? values
+        : { ...values, dueDay: null }),
+      subcategory: clearForeignSubcategory(values.category, values.subcategory),
+    },
     context,
     options
   );
+
+/** Empty or foreign sub-category (hidden/stale selector) becomes null. */
+function clearForeignSubcategory(
+  category: string,
+  subcategory: string | null | undefined
+): string | null {
+  return subcategory && listSubcategories(category).includes(subcategory)
+    ? subcategory
+    : null;
+}
 
 /**
  * ChargeCreateForm Component
@@ -121,6 +126,7 @@ export function ChargeCreateForm({
       currency: 'CHF',
       accountId: '',
       category: 'Logement',
+      subcategory: null,
       // Le premier jour du mois courant par défaut (spec charge-management).
       startDate: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
       endDate: null,
@@ -189,7 +195,7 @@ export function ChargeCreateForm({
         {activeType && (
           <p className="-mt-1 text-[11px] text-slate-400">{activeType.hint}</p>
         )}
-        <SelectInput name="category" label="Catégorie" options={CATEGORIES} />
+        <ChargeCategoryFields />
       </FormSection>
 
       <FormSection title="Montant & compte">

@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { isValid, parseISO } from 'date-fns';
 import { filterSchema } from './filter';
 import { currencySchema } from './currency';
+import { checkChargeSubcategory } from '../domain/charge-category';
 
 // ============================================================================
 // Types de base
@@ -67,6 +68,7 @@ export const chargeSchema = z.object({
   currency: currencySchema,
   accountId: z.string().min(1),
   category: z.string().min(1, 'Category is required'),
+  subcategory: z.string().min(1).nullable().default(null),
   startDate: isoDate,
   endDate: isoDate.nullable().default(null),
   frequency: frequencySchema.nullable().default(null),
@@ -117,6 +119,17 @@ export const createChargeSchema = chargeSchema
         code: 'custom',
         path: ['dueDay'],
         message: 'Due day is only allowed for monthly charges',
+      });
+    }
+    const subcategoryIssue = checkChargeSubcategory(
+      charge.category,
+      charge.subcategory
+    );
+    if (subcategoryIssue) {
+      context.addIssue({
+        code: 'custom',
+        path: ['subcategory'],
+        message: subcategoryIssue,
       });
     }
   });

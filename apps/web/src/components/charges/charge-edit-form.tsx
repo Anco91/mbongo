@@ -16,6 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { parseISO } from 'date-fns';
 import {
   updateChargeSchema,
+  listSubcategories,
   type Charge,
   type UpdateChargeInput,
 } from '@mbongo/shared';
@@ -40,6 +41,7 @@ import {
   yesNoOptions,
 } from '@/components/form';
 import { DeleteButton } from '@/components/patterns';
+import { ChargeCategoryFields } from '@/components/charges/charge-category-fields';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { JSX } from 'react';
@@ -51,16 +53,6 @@ const CHARGE_TYPES = [
   { value: 'ONE_OFF', label: 'Ponctuelle' },
   { value: 'UPCOMING', label: 'À venir (engagée)' },
 ] as const;
-
-const CATEGORIES = [
-  'Logement',
-  'Santé',
-  'Impôts & taxes',
-  'Assurances',
-  'Abonnements',
-  'Médias',
-  'Divers',
-].map((c) => ({ value: c, label: c }));
 
 const FREQUENCIES = [
   { value: 'monthly', label: 'Mensuelle' },
@@ -88,10 +80,19 @@ export function ChargeEditForm({
   // (spec charge-management — due day is monthly-only).
   const resolver: Resolver<UpdateChargeInput> = (values, context, options) =>
     zodResolver(updateChargeSchema)(
-      values.type === 'FIXED_RECURRING' &&
+      {
+        ...(values.type === 'FIXED_RECURRING' &&
         (values.frequency ?? charge?.frequency) === 'monthly'
-        ? values
-        : { ...values, dueDay: null },
+          ? values
+          : { ...values, dueDay: null }),
+        subcategory:
+          values.subcategory &&
+          listSubcategories(values.category ?? charge?.category ?? '').includes(
+            values.subcategory
+          )
+            ? values.subcategory
+            : null,
+      },
       context,
       options
     );
@@ -154,7 +155,7 @@ export function ChargeEditForm({
           label="Type de charge"
           options={CHARGE_TYPES}
         />
-        <SelectInput name="category" label="Catégorie" options={CATEGORIES} />
+        <ChargeCategoryFields />
       </FormSection>
 
       <FormSection title="Montant & compte">
@@ -250,6 +251,7 @@ function defaultsOf(charge: Charge): UpdateChargeInput {
     currency: charge.currency,
     accountId: charge.accountId,
     category: charge.category,
+    subcategory: charge.subcategory,
     startDate: charge.startDate.slice(0, 10),
     endDate: charge.endDate ? charge.endDate.slice(0, 10) : null,
     frequency: charge.frequency,
