@@ -18,7 +18,7 @@ import {
   type UseQueryResult,
 } from '@tanstack/react-query';
 import { paymentsRepository } from '@/repositories/payments.repository';
-import { transactionsRepository } from '@/repositories/transactions.repository';
+import { transactionQueries } from '@/queries/transactions';
 import { monthPaymentsQuery } from '@/lib/month-queries';
 import type {
   Payment,
@@ -29,7 +29,6 @@ import type {
 } from '@mbongo/shared';
 
 const PAYMENTS_KEY = 'payments';
-const TRANSACTIONS_KEY = 'transactions';
 
 /**
  * List payments (filtered by the query — status, dueDate window, charge).
@@ -75,10 +74,7 @@ export function usePayment(id: string): UseQueryResult<Payment, Error> {
 export function useTransactions(
   query: TransactionQuery = {}
 ): UseQueryResult<Transaction[], Error> {
-  return useQuery({
-    queryKey: [TRANSACTIONS_KEY, query],
-    queryFn: () => transactionsRepository.findMany(query),
-  });
+  return useQuery(transactionQueries.list(query));
 }
 
 /**
@@ -121,7 +117,9 @@ export function useReconcilePayment(): UseMutationResult<
     }) => paymentsRepository.reconcile(id, transactionId),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: [PAYMENTS_KEY] });
-      await queryClient.invalidateQueries({ queryKey: [TRANSACTIONS_KEY] });
+      await queryClient.invalidateQueries({
+        queryKey: transactionQueries.all(),
+      });
     },
   });
 }
@@ -136,7 +134,9 @@ export function useUnlinkPayment(): UseMutationResult<Payment, Error, string> {
     mutationFn: (id: string) => paymentsRepository.unlink(id),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: [PAYMENTS_KEY] });
-      await queryClient.invalidateQueries({ queryKey: [TRANSACTIONS_KEY] });
+      await queryClient.invalidateQueries({
+        queryKey: transactionQueries.all(),
+      });
     },
   });
 }

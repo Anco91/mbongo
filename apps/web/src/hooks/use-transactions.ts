@@ -11,7 +11,7 @@
 
 import { useMemo } from 'react';
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
-import { transactionsRepository } from '@/repositories/transactions.repository';
+import { transactionQueries } from '@/queries/transactions';
 import { monthTransactionsQuery } from '@/lib/month-queries';
 import type { Transaction, TransactionQuery } from '@mbongo/shared';
 
@@ -21,10 +21,7 @@ import type { Transaction, TransactionQuery } from '@mbongo/shared';
 export function useTransactions(
   query: TransactionQuery = {}
 ): UseQueryResult<Transaction[], Error> {
-  return useQuery({
-    queryKey: ['transactions', query],
-    queryFn: () => transactionsRepository.findMany(query),
-  });
+  return useQuery(transactionQueries.list(query));
 }
 
 /**
@@ -35,8 +32,5 @@ export function useMonthTransactions(
   monthKey: string
 ): UseQueryResult<Transaction[], Error> {
   const query = useMemo(() => monthTransactionsQuery(monthKey), [monthKey]);
-  return useQuery({
-    queryKey: ['transactions', query],
-    queryFn: () => transactionsRepository.findMany(query),
-  });
+  return useQuery(transactionQueries.list(query));
 }
