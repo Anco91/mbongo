@@ -22,7 +22,7 @@ hook in `use-schedule.ts`) read and invalidate through them. Keys keep their exa
 
 1. Given the guards/pages that still hardcode `['accounts', {}]`, `['members']`, `['transactions', q]`,
    when a hook reads through the factory, then it hits the same cache entry (locked test).
-2. Given a mutation of members, accounts or incomes-independent code in these hooks, when it
+2. Given a mutation of members or accounts, when it
    succeeds, then it invalidates through `<resource>Queries.all()`, never a string literal.
 3. Given no change to a guard, page, repository or component, when `npx jest` runs in `apps/web`,
    then the 72 existing suites still pass and `npm run typecheck` is clean.
