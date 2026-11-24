@@ -8,14 +8,13 @@
  * @module Components/Transfers/TransfersGuard
  */
 
-import {
-  dehydrate,
-  HydrationBoundary,
-  QueryClient,
-} from '@tanstack/react-query';
 import { transferService } from '@/server/transfers/transfer.service';
 import { accountService } from '@/server/accounts/account.service';
 import { TransferQuery } from '@mbongo/shared';
+import {
+  PrefetchGuard,
+  type PrefetchEntry,
+} from '@/components/patterns/prefetch-guard';
 import { JSX } from 'react';
 
 /**
@@ -31,24 +30,20 @@ interface TransfersGuardProps {
  * Server Component that prefetches data via the server-side services
  * (direct call, never a fetch to our own API — R5).
  */
-export async function TransfersGuard({
+export function TransfersGuard({
   query = {},
   children,
-}: TransfersGuardProps & { children: React.ReactNode }): Promise<JSX.Element> {
-  const qc = new QueryClient();
-
-  await Promise.all([
-    qc.prefetchQuery({
+}: TransfersGuardProps & { children: React.ReactNode }): JSX.Element {
+  const entries: PrefetchEntry[] = [
+    {
       queryKey: ['transfers', query],
       queryFn: () => transferService.findMany(query),
-    }),
-    qc.prefetchQuery({
+    },
+    {
       queryKey: ['accounts', {}],
       queryFn: () => accountService.findMany({}),
-    }),
-  ]);
+    },
+  ];
 
-  return (
-    <HydrationBoundary state={dehydrate(qc)}>{children}</HydrationBoundary>
-  );
+  return <PrefetchGuard entries={entries}>{children}</PrefetchGuard>;
 }

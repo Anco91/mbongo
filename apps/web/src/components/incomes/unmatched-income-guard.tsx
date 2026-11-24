@@ -7,35 +7,30 @@
  * @module Components/Incomes/UnmatchedIncomeGuard
  */
 
-import {
-  dehydrate,
-  HydrationBoundary,
-  QueryClient,
-} from '@tanstack/react-query';
 import { transactionService } from '@/server/transactions/transaction.service';
 import { incomeService } from '@/server/incomes/income.service';
 import { UNMATCHED_QUERY } from '@/lib/month-queries';
+import {
+  PrefetchGuard,
+  type PrefetchEntry,
+} from '@/components/patterns/prefetch-guard';
 import { JSX } from 'react';
 
-export async function UnmatchedIncomeGuard({
+export function UnmatchedIncomeGuard({
   children,
 }: {
   children: React.ReactNode;
-}): Promise<JSX.Element> {
-  const qc = new QueryClient();
-
-  await Promise.all([
-    qc.prefetchQuery({
+}): JSX.Element {
+  const entries: PrefetchEntry[] = [
+    {
       queryKey: ['transactions', UNMATCHED_QUERY],
       queryFn: () => transactionService.findMany(UNMATCHED_QUERY),
-    }),
-    qc.prefetchQuery({
+    },
+    {
       queryKey: ['incomes', {}],
       queryFn: () => incomeService.findMany({}),
-    }),
-  ]);
+    },
+  ];
 
-  return (
-    <HydrationBoundary state={dehydrate(qc)}>{children}</HydrationBoundary>
-  );
+  return <PrefetchGuard entries={entries}>{children}</PrefetchGuard>;
 }

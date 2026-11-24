@@ -7,13 +7,12 @@
  * @module Components/Charges/ChargesGuard
  */
 
-import {
-  dehydrate,
-  HydrationBoundary,
-  QueryClient,
-} from '@tanstack/react-query';
 import { chargeService } from '@/server/charges/charge.service';
 import { ChargeQuery } from '@mbongo/shared';
+import {
+  PrefetchGuard,
+  type PrefetchEntry,
+} from '@/components/patterns/prefetch-guard';
 import { JSX } from 'react';
 
 /**
@@ -27,9 +26,8 @@ interface ChargesGuardProps {
  * ChargesGuard Component
  *
  * This is a Server Component that:
- * 1. Creates a QueryClient instance
- * 2. Prefetches charges data using the server-side chargeService
- * 3. Provides the data to client components via HydrationBoundary
+ * 1. Declares the charges entry (server-side chargeService)
+ * 2. Delegates prefetch and hydration to PrefetchGuard
  *
  * @param props - Component props
  * @returns JSX Element
@@ -44,22 +42,17 @@ interface ChargesGuardProps {
  * }
  * ```
  */
-export async function ChargesGuard({
+export function ChargesGuard({
   query = {},
   children,
-}: ChargesGuardProps & { children: React.ReactNode }): Promise<JSX.Element> {
-  // Create a new QueryClient for each request
-  const qc = new QueryClient();
+}: ChargesGuardProps & { children: React.ReactNode }): JSX.Element {
+  // Server-side service: calls the database directly, not the API
+  const entries: PrefetchEntry[] = [
+    {
+      queryKey: ['charges', query],
+      queryFn: () => chargeService.findMany(query),
+    },
+  ];
 
-  // Prefetch charges data using server-side service
-  // This calls the database directly, not the API
-  await qc.prefetchQuery({
-    queryKey: ['charges', query],
-    queryFn: () => chargeService.findMany(query),
-  });
-
-  // Render the client-side view with hydration
-  return (
-    <HydrationBoundary state={dehydrate(qc)}>{children}</HydrationBoundary>
-  );
+  return <PrefetchGuard entries={entries}>{children}</PrefetchGuard>;
 }
