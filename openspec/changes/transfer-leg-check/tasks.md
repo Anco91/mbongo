@@ -1,0 +1,2 @@
+- [ ] 1. `packages/shared/src/domain/transfer-legs.ts`, export from `index.ts`, registry line in `ARCHITECTURE.md`
+- [ ] 2. jest, typecheck, lint
