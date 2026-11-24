@@ -42,6 +42,7 @@ export type TransferLegIssue =
   | 'TARGET_ACCOUNT'
   | 'TARGET_AMOUNT'
   | 'TARGET_UNEXPECTED'
+  | 'AMOUNT_RECEIVED_MISSING'
   | 'FEES_GAP';
 
 // ============================================================================
@@ -86,7 +87,7 @@ function targetIssues(
     return legs.length > 0 ? ['TARGET_UNEXPECTED'] : [];
   }
   if (legs.length === 0) {
-    return transfer.status === 'COMPLETED' ? ['TARGET_MISSING'] : [];
+    return transfer.status !== 'ESTIMATED' ? ['TARGET_MISSING'] : [];
   }
   const issues: TransferLegIssue[] =
     legs.length > 1 ? ['TARGET_DUPLICATE'] : [];
@@ -97,6 +98,12 @@ function targetIssues(
       issues.push('TARGET_AMOUNT');
   }
   return issues;
+}
+
+function receivedIssues(transfer: TransferLegsSource): TransferLegIssue[] {
+  return transfer.status === 'COMPLETED' && transfer.amountReceived === null
+    ? ['AMOUNT_RECEIVED_MISSING']
+    : [];
 }
 
 function feesIssues(transfer: TransferLegsSource): TransferLegIssue[] {
@@ -138,6 +145,7 @@ export function checkTransferLegs(
     ...new Set([
       ...sourceIssues(transfer, sources),
       ...targetIssues(transfer, targets),
+      ...receivedIssues(transfer),
       ...feesIssues(transfer),
     ]),
   ];

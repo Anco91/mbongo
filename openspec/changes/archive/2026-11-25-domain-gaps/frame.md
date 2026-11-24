@@ -1,9 +1,9 @@
 ---
 id: domain-gaps
-status: ready
+status: done
 branch: fix/transfer-legs-autodebit-marker
 tier: small
-locked_at: PENDING
+locked_at: a8778a6
 locked_tests:
   - apps/web/__tests__/transfer-legs.test.ts
   - apps/web/__tests__/auto-debit-marker.test.ts
