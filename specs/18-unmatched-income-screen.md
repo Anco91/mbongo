@@ -136,3 +136,5 @@ None (TEST-2). Domain rules are locked by `income-matching.test.ts` (14) and `in
 
 ## Handoffs
 
+
+- `docs/handoffs/20261124-2121-18-unmatched-income-screen.md`
