@@ -1,7 +1,7 @@
 import 'server-only';
 import { prisma } from '@/server/db';
 import { NotFoundError, HttpError } from '@/server/common/http';
-import { createWhereTranslator } from '@/server/common/where-translator';
+import { buildTransactionFindArgs } from '@/server/transactions/transaction-query';
 import {
   Transaction,
   TransactionQuery,
@@ -11,36 +11,18 @@ import {
 import { Prisma } from '@prisma/client';
 import { parseISO } from 'date-fns';
 
-const transactionWhereTranslator =
-  createWhereTranslator<Prisma.TransactionWhereInput>({
-    accountId: { ops: ['eq', 'in'] },
-    category: { ops: ['eq', 'contains', 'in'] },
-    transferId: { ops: ['eq', 'in'] },
-    transferRole: { ops: ['eq', 'in'] },
-    dateFrom: {
-      ops: ['gte'],
-      target: 'date',
-      transform: (v) => (typeof v === 'string' ? parseISO(v) : v),
-    },
-    dateTo: {
-      ops: ['lte'],
-      target: 'date',
-      transform: (v) => (typeof v === 'string' ? parseISO(v) : v),
-    },
-    date: {
-      ops: ['eq', 'gte', 'lte', 'gt', 'lt'],
-      transform: (v) => (typeof v === 'string' ? parseISO(v) : v),
-    },
-  });
-
 export class TransactionService {
   async findMany(query: TransactionQuery): Promise<Transaction[]> {
-    const rows = await prisma.transaction.findMany({
-      where: transactionWhereTranslator(query as Record<string, unknown>),
-      orderBy: { date: 'desc' },
-      take: query.limit,
-      cursor: query.cursor ? { id: query.cursor } : undefined,
-    });
+    let args: ReturnType<typeof buildTransactionFindArgs>;
+    try {
+      args = buildTransactionFindArgs(query);
+    } catch (error: unknown) {
+      if (error instanceof RangeError) {
+        throw new HttpError(400, error.message);
+      }
+      throw error;
+    }
+    const rows = await prisma.transaction.findMany(args);
     return rows.map((row) => this.toTransaction(row));
   }
 

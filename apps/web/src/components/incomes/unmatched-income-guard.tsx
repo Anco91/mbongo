@@ -1,7 +1,7 @@
 /**
  * Unmatched Income Guard Component
  *
- * Server container: prefetches the transactions window and the income
+ * Server container: prefetches the first page of unmatched income and the income
  * sources used by the unmatched-income screen.
  *
  * @module Components/Incomes/UnmatchedIncomeGuard
@@ -9,7 +9,8 @@
 
 import { transactionService } from '@/server/transactions/transaction.service';
 import { incomeService } from '@/server/incomes/income.service';
-import { UNMATCHED_QUERY } from '@/lib/month-queries';
+import { unmatchedIncomeQuery } from '@/lib/month-queries';
+import { transactionQueries } from '@/queries/transactions';
 import {
   PrefetchGuard,
   type PrefetchEntry,
@@ -23,8 +24,12 @@ export function UnmatchedIncomeGuard({
 }): JSX.Element {
   const entries: PrefetchEntry[] = [
     {
-      queryKey: ['transactions', UNMATCHED_QUERY],
-      queryFn: () => transactionService.findMany(UNMATCHED_QUERY),
+      // Same key as the infinite hook; first page in infinite-data shape.
+      queryKey: transactionQueries.unmatchedIncome().queryKey,
+      queryFn: async () => ({
+        pages: [await transactionService.findMany(unmatchedIncomeQuery())],
+        pageParams: [undefined],
+      }),
     },
     {
       queryKey: ['incomes', {}],

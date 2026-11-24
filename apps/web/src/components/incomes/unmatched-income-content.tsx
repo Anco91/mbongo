@@ -13,10 +13,20 @@ import { type JSX } from 'react';
 import { useUnmatchedIncome } from '@/hooks/use-incomes';
 import { EmptyState, ErrorPanel } from '@/components/patterns/async-state';
 import { LoadingState } from '@/components/patterns/async-state';
+import { Button } from '@/components/ui/button';
 import { UnmatchedIncomeRow } from '@/components/incomes/unmatched-income-row';
 
 export function UnmatchedIncomeContent(): JSX.Element {
-  const { items, incomes, isLoading, error } = useUnmatchedIncome();
+  const {
+    items,
+    incomes,
+    isLoading,
+    error,
+    nextPageError,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useUnmatchedIncome();
 
   if (isLoading) {
     return <LoadingState />;
@@ -31,7 +41,7 @@ export function UnmatchedIncomeContent(): JSX.Element {
     );
   }
 
-  if (items.length === 0) {
+  if (items.length === 0 && !hasNextPage) {
     return <EmptyState>Aucun revenu à lier</EmptyState>;
   }
 
@@ -44,6 +54,21 @@ export function UnmatchedIncomeContent(): JSX.Element {
           incomes={incomes}
         />
       ))}
+      {nextPageError && (
+        <p role="alert" className="text-sm text-red-600">
+          Impossible de charger la suite : {nextPageError.message}
+        </p>
+      )}
+      {hasNextPage && (
+        <Button
+          variant="outline"
+          className="w-full"
+          disabled={isFetchingNextPage}
+          onClick={fetchNextPage}
+        >
+          Afficher plus
+        </Button>
+      )}
     </div>
   );
 }
