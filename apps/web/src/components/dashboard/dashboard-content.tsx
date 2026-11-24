@@ -31,6 +31,7 @@ import {
 } from './dashboard-fullscreen-charts';
 import { currentMonthKey, shiftMonthKey } from '@/lib/month-navigation';
 import { useDashboardData } from './use-dashboard-data';
+import { UnmatchedIncomeBanner } from './unmatched-income-banner';
 import {
   SkeletonCard,
   SkeletonLine,
@@ -82,6 +83,9 @@ export function DashboardContent(): JSX.Element {
 
   return (
     <div className="space-y-4">
+      {/* 0. Revenus à lier — bandeau, rien si aucune entrée en attente */}
+      <UnmatchedIncomeBanner />
+
       {/* 1. Patrimoine consolidé — état du jour */}
       <WealthCard consolidated={consolidated} rate={rate} />
 
