@@ -102,9 +102,29 @@ export function computeMonthExpectedIncome(
   monthKey: string,
   convert?: CurrencyConverter
 ): MonthExpectedIncomeResult {
-  void incomes;
-  void confirmed;
-  void monthKey;
-  void convert;
-  throw new Error('not implemented');
+  const entries: ExpectedIncomeEntry[] = incomes
+    .filter((income) => isIncomeDueForMonth(income, monthKey))
+    .map((income) => {
+      const match = confirmed.find(
+        (c) => c.incomeId === income.id && c.budgetMonth === monthKey
+      );
+      return {
+        incomeId: income.id,
+        amount: match ? match.amount : income.amount,
+        currency: income.currency,
+        confirmed: match !== undefined,
+      };
+    });
+
+  const sum = entries.reduce(
+    (acc, entry) => acc + (convert?.(entry.amount, entry.currency) ?? entry.amount),
+    0
+  );
+
+  return { total: roundToCents(sum), entries };
+}
+
+/** Arrondi à 2 décimales (montants monétaires). */
+function roundToCents(value: number): number {
+  return Math.round(value * 100) / 100;
 }

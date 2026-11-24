@@ -59,7 +59,7 @@ Standards to read first (CTX-5): none beyond `ARCHITECTURE.md`.
 
 | Path | Change |
 |---|---|
-| `apps/web/src/components/budget/steps/recap-step.tsx` | replace the `computeMonthIncome` block (and `incomeEntries`, `accountsById`, `MonthIncomeEntry` import) by `useIncomes({ active: true })` + `computeMonthExpectedIncome(incomes, confirmedEntries, month, convert)`, `confirmedEntries` derived from `useMonthTransactions(month)` (`incomeId`, `budgetMonth`, `amount`); tile label « Revenus prévus »; update the header comment (D1 superseded) |
+| `apps/web/src/components/budget/steps/recap-step.tsx` | replace the `computeMonthIncome` block (and `incomeEntries`, `accountsById`, `MonthIncomeEntry` import) by `useIncomes({ active: 'true' })` (`IncomeQuery.active` is the string enum `'true' | 'false'`) + `computeMonthExpectedIncome(incomes, confirmedEntries, month, convert)`, `confirmedEntries` derived from `useMonthTransactions(month)` (`incomeId`, `budgetMonth`, `amount`); tile label « Revenus prévus »; update the header comment (D1 superseded) |
 | `ARCHITECTURE.md` | register `computeMonthExpectedIncome` in the registry; add a Decisions row: recap income = expected income, supersedes archived D1/D8, human decision 2026-11-24 (CTX-3) |
 
 ### Read (allow-list)

@@ -67,6 +67,7 @@ incomes, transfers, monthly budgets, alerts). Mobile-first PWA.
 | `apps/web/src/components/ui/` | ui | Primitives: Button, Card, Badge, StatusBadge, TypeBadge, AccountChip, Sheet, Skeleton, Progress, icons |
 | `apps/web/src/components/form/` | ui | Form kit: Form, TextInput, SelectInput, ToggleInput, AmountInput, FormActions, FormError, FormSuccess |
 | `apps/web/src/components/patterns/` | ui | AppShell, AppHeader, TabNav, AsyncState, ItemList, EditableItem, CreatePanel, DetailSheet, DetailRow, DeleteButton, FilterChips, MonthCursor, ShowMoreList, SwipeZone, RouteError… |
+| `packages/shared/src/domain/income.ts` → `computeMonthExpectedIncome` | domain | Expected income of a month: due sources, confirmed amount replaces planned; recap « Revenus prévus » |
 | `packages/shared/src/lib/calculation/active-accounts.ts` | domain | `excludeClosedAccounts`: drops closed accounts and what points at them before chart calculations |
 | `apps/web/src/components/patterns/show-closed-toggle.tsx` | ui | `ShowClosedToggle`: « Afficher les comptes clôturés » checkbox (dashboard, accounts) |
 | `apps/web/src/components/charts/` | ui | Sankey, donut, fullscreen chart |
@@ -118,6 +119,7 @@ incomes, transfers, monthly budgets, alerts). Mobile-first PWA.
 | 2026-11-24 | Local signature: services and controllers are classes with an exported singleton (`chargeService`, `chargesController`). | NestJS-like style already applied to all 9 resources (ARCH-4 framework-like provider). |
 | 2026-11-24 | Local signature: client data access = `repositories/<resources>.repository.ts` implementing `contracts/<resources>.http.ts`, consumed by `hooks/use-<resources>.ts`. | Existing, typed end to end by shared contracts. |
 | 2026-11-24 | Tests live in `apps/web/__tests__/` (Jest), not next to the code. | Existing layout; ~75 test files. |
+| 2026-11-24 | Recap income = expected income (`computeMonthExpectedIncome`): due active sources at confirmed amount, else planned. Supersedes archived D1/D8 (« revenus = transactions positives du mois »). Human decision 2026-11-24: a budget is built on expected income. Dashboard/Sankey income leg unchanged. | Budget prepared on expected income; spec 07. |
 | 2026-11-24 | Debt FE-1: `<resource>Queries` factories exist for members, accounts, transactions (spec 01), charges, payments (spec 02), incomes, transfers, monthly budgets, exchange-rate (spec 03); alerts and balances own no key. Guards and pages still hardcode some keys until slice 04. | Gap vs framework MUST. |
 | 2026-11-24 | Debt FE-2: one Guard per domain (`charges-guard.tsx`…) instead of one generic Guard. Migrate with FE-1. | Gap vs framework MUST. |
 | 2026-11-24 | Debt BE-2: filter is `schemas/filter.ts` + `createWhereTranslator` per service, not `listQuerySchema` + `toPrismaArgs`. Align when a slice touches filters. | Gap vs framework MUST. |
