@@ -10,18 +10,52 @@
 
 /** Known categories and their sub-categories (display order). */
 export const CHARGE_CATEGORIES: Readonly<Record<string, readonly string[]>> = {
-  Logement: ['Loyer', 'Charges', 'Énergie', 'Eau'],
-  Santé: ['LAMal', 'Complémentaire', 'Soins'],
-  'Impôts & taxes': ['Impôts', 'Redevances'],
+  Logement: [
+    'Loyer',
+    'Charges',
+    'Énergie',
+    'Eau',
+    'Travaux & entretien',
+    'Mobilier & équipement',
+  ],
+  Santé: [
+    'LAMal',
+    'Complémentaire',
+    'Soins',
+    'Pharmacie',
+    'Dentiste',
+    'Optique',
+  ],
+  'Impôts & taxes': ['Impôts', 'Redevances', 'Taxe foncière'],
   Assurances: [
     'Auto',
     'Habitation',
     'Responsabilité civile',
     'Garantie',
     'Vie',
+    'Protection juridique',
+    'Voyage',
   ],
-  Abonnements: ['Mobile', 'Internet', 'Sport'],
-  Médias: ['Streaming', 'Presse'],
+  Abonnements: ['Mobile', 'Internet', 'Sport', 'Logiciels & cloud'],
+  Médias: ['Streaming', 'Presse', 'Musique', 'Jeux'],
+  'Crédits & prêts': [
+    'Crédit immobilier',
+    'Crédit consommation',
+    'Crédit auto',
+    'Leasing',
+    'Carte de crédit',
+  ],
+  Transports: [
+    'Carburant',
+    'Transports publics',
+    'Parking',
+    'Entretien véhicule',
+  ],
+  Alimentation: ['Courses', 'Restaurants'],
+  'Enfants & famille': ['Garde', 'Scolarité', 'Activités'],
+  'Loisirs & voyages': ['Vacances', 'Sorties', 'Culture'],
+  'Épargne & prévoyance': ['Épargne', 'Prévoyance 3a', 'Investissement'],
+  'Frais bancaires': ['Frais de compte', 'Cartes'],
   Divers: [],
 };
 

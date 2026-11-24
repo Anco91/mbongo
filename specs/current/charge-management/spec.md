@@ -134,7 +134,7 @@ La liste des charges SHALL limiter l'affichage initial aux 3 premières charges 
 
 ### Requirement: Sous-catégorie d'une charge
 
-Une charge SHALL pouvoir porter une sous-catégorie optionnelle. Les catégories connues (Logement, Santé, Impôts & taxes, Assurances, Abonnements, Médias, Divers) SHALL avoir chacune une liste fermée de sous-catégories ; une sous-catégorie SHALL appartenir à la liste de sa catégorie. Une sous-catégorie vide SHALL toujours être valide. Une catégorie hors liste (charges existantes) SHALL rester lisible et modifiable, sans sous-catégorie possible. Le serveur SHALL refuser une sous-catégorie étrangère à la catégorie (422).
+Une charge SHALL pouvoir porter une sous-catégorie optionnelle. Les catégories connues (Logement, Santé, Impôts & taxes, Assurances, Abonnements, Médias, Crédits & prêts, Transports, Alimentation, Enfants & famille, Loisirs & voyages, Épargne & prévoyance, Frais bancaires, Divers) SHALL avoir chacune une liste fermée de sous-catégories ; une sous-catégorie SHALL appartenir à la liste de sa catégorie. Une sous-catégorie vide SHALL toujours être valide. Une catégorie hors liste (charges existantes) SHALL rester lisible et modifiable, sans sous-catégorie possible. Le serveur SHALL refuser une sous-catégorie étrangère à la catégorie (422).
 
 #### Scenario: Choisir une sous-catégorie
 

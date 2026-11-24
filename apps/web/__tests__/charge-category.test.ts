@@ -27,7 +27,7 @@ const baseCharge = {
 };
 
 describe('CHARGE_CATEGORIES taxonomy', () => {
-  it('keeps the seven categories of the forms in order', () => {
+  it('keeps the original seven categories first-class and adds the bank-app ones, Divers last', () => {
     expect(Object.keys(CHARGE_CATEGORIES)).toEqual([
       'Logement',
       'Santé',
@@ -35,8 +35,50 @@ describe('CHARGE_CATEGORIES taxonomy', () => {
       'Assurances',
       'Abonnements',
       'Médias',
+      'Crédits & prêts',
+      'Transports',
+      'Alimentation',
+      'Enfants & famille',
+      'Loisirs & voyages',
+      'Épargne & prévoyance',
+      'Frais bancaires',
       'Divers',
     ]);
+  });
+
+  it('files loans and credits under Crédits & prêts', () => {
+    expect(CHARGE_CATEGORIES['Crédits & prêts']).toEqual(
+      expect.arrayContaining([
+        'Crédit immobilier',
+        'Crédit consommation',
+        'Crédit auto',
+        'Leasing',
+      ])
+    );
+  });
+
+  it('keeps every sub-category that existed before the extension', () => {
+    expect(CHARGE_CATEGORIES['Logement']).toEqual(
+      expect.arrayContaining(['Loyer', 'Charges', 'Énergie', 'Eau'])
+    );
+    expect(CHARGE_CATEGORIES['Santé']).toEqual(
+      expect.arrayContaining(['LAMal', 'Complémentaire', 'Soins'])
+    );
+    expect(CHARGE_CATEGORIES['Impôts & taxes']).toEqual(
+      expect.arrayContaining(['Impôts', 'Redevances'])
+    );
+    expect(CHARGE_CATEGORIES['Assurances']).toEqual(
+      expect.arrayContaining([
+        'Auto',
+        'Habitation',
+        'Responsabilité civile',
+        'Garantie',
+        'Vie',
+      ])
+    );
+    expect(CHARGE_CATEGORIES['Médias']).toEqual(
+      expect.arrayContaining(['Streaming', 'Presse'])
+    );
   });
 
   it('files LAMal under Santé and mobile, internet, sport under Abonnements', () => {
