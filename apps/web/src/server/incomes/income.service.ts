@@ -14,8 +14,11 @@ import {
   CreateIncomeInput,
   UpdateIncomeInput,
   ConfirmIncomeInput,
+  LinkIncomeInput,
+  IncomeLinkError,
   Transaction,
   isIncomeDueForMonth,
+  checkIncomeLink,
 } from '@mbongo/shared';
 import { parseISO, startOfMonth, endOfMonth } from 'date-fns';
 
@@ -25,6 +28,52 @@ interface IncomeServiceQuery {
   active?: boolean;
   accountId?: string;
   limit?: number;
+}
+
+const LINK_ERRORS: Record<
+  IncomeLinkError,
+  { status: 409 | 422; message: string }
+> = {
+  'amount-not-positive': {
+    status: 422,
+    message: 'Only a positive transaction can be linked to an income',
+  },
+  'transfer-leg': {
+    status: 422,
+    message: 'A transfer leg cannot be linked to an income',
+  },
+  'already-linked': {
+    status: 409,
+    message: 'This transaction is already linked to an income',
+  },
+  'payment-linked': {
+    status: 409,
+    message: 'This transaction is already linked to a payment',
+  },
+  'account-mismatch': {
+    status: 422,
+    message: 'The transaction is not on the income account',
+  },
+  'income-inactive': {
+    status: 422,
+    message: 'Cannot link to an inactive income source',
+  },
+  'income-not-due': {
+    status: 422,
+    message: 'This income source is not due in the selected month',
+  },
+  'date-outside-month': {
+    status: 422,
+    message: 'The transaction date is outside the selected month',
+  },
+  'month-already-confirmed': {
+    status: 409,
+    message: 'This income is already confirmed for the selected month',
+  },
+};
+
+function isUniqueViolation(error: unknown): boolean {
+  return (error as { code?: string } | null)?.code === 'P2002';
 }
 
 export class IncomeService {
@@ -198,6 +247,59 @@ export class IncomeService {
     });
 
     return this.toTransaction(row);
+  }
+
+  /**
+   * Link an existing transaction to an income source and month.
+   * Rules live in `checkIncomeLink`; this method loads facts and maps errors.
+   */
+  async linkTransaction(
+    id: string,
+    input: LinkIncomeInput
+  ): Promise<Transaction> {
+    const incomeRow = await prisma.income.findUnique({ where: { id } });
+    if (!incomeRow) throw new NotFoundError('Income', id);
+
+    const row = await prisma.transaction.findUnique({
+      where: { id: input.transactionId },
+    });
+    if (!row) throw new NotFoundError('Transaction', input.transactionId);
+
+    const [confirming, payment] = await Promise.all([
+      prisma.transaction.findUnique({
+        where: {
+          incomeId_budgetMonth: { incomeId: id, budgetMonth: input.month },
+        },
+        select: { id: true },
+      }),
+      prisma.payment.findUnique({ where: { transactionId: row.id } }),
+    ]);
+
+    const failure = checkIncomeLink({
+      income: this.toIncome(incomeRow),
+      transaction: this.toTransaction(row),
+      month: input.month,
+      confirmedTransactionId: confirming?.id ?? null,
+      hasPayment: payment !== null,
+    });
+    if (failure) {
+      const { status, message } = LINK_ERRORS[failure];
+      throw new HttpError(status, { message });
+    }
+
+    try {
+      const updated = await prisma.transaction.update({
+        where: { id: row.id },
+        data: { incomeId: id, budgetMonth: input.month },
+      });
+      return this.toTransaction(updated);
+    } catch (error) {
+      if (isUniqueViolation(error)) {
+        const { status, message } = LINK_ERRORS['month-already-confirmed'];
+        throw new HttpError(status, { message });
+      }
+      throw error;
+    }
   }
 
   private toIncome(row: {

@@ -4,12 +4,14 @@ import {
   createIncomeSchema,
   updateIncomeSchema,
   confirmIncomeSchema,
+  linkIncomeSchema,
   type Income,
   type IncomeHttp,
   type IncomeQuery,
   type CreateIncomeInput,
   type UpdateIncomeInput,
   type ConfirmIncomeInput,
+  type LinkIncomeInput,
   type Transaction,
   transactionSchema,
 } from '@mbongo/shared';
@@ -42,6 +44,13 @@ export const incomesRepository: IncomeHttp = {
     const body = confirmIncomeSchema.parse(input);
     return transactionSchema.parse(
       await request('POST', `/incomes/${id}/confirm`, { body })
+    );
+  },
+
+  async link(id: string, input: LinkIncomeInput): Promise<Transaction> {
+    const body = linkIncomeSchema.parse(input);
+    return transactionSchema.parse(
+      await request('POST', `/incomes/${id}/link`, { body })
     );
   },
 };

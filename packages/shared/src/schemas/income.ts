@@ -70,6 +70,12 @@ export const confirmIncomeSchema = z.object({
   date: isoDate.optional(),
 });
 
+/** Rattachement d'une transaction existante à une source et un mois. */
+export const linkIncomeSchema = z.object({
+  transactionId: z.string().min(1),
+  month: monthKeySchema,
+});
+
 /** Filtres de `GET /api/incomes`. */
 export const incomeQuerySchema = z.object({
   month: monthKeySchema.optional(),
@@ -83,4 +89,5 @@ export type IncomeFrequency = z.infer<typeof incomeFrequencySchema>;
 export type CreateIncomeInput = z.input<typeof createIncomeSchema>;
 export type UpdateIncomeInput = z.infer<typeof updateIncomeSchema>;
 export type ConfirmIncomeInput = z.infer<typeof confirmIncomeSchema>;
+export type LinkIncomeInput = z.infer<typeof linkIncomeSchema>;
 export type IncomeQuery = z.infer<typeof incomeQuerySchema>;

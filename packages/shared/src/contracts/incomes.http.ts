@@ -3,6 +3,7 @@ import type {
   CreateIncomeInput,
   Income,
   IncomeQuery,
+  LinkIncomeInput,
   UpdateIncomeInput,
 } from '../schemas/income';
 import type { Transaction } from '../schemas/transaction';
@@ -14,4 +15,6 @@ export interface IncomeHttp {
   remove(id: string): Promise<void>;
   /** Confirme le revenu d'un mois ; upsert idempotent de la transaction. */
   confirm(id: string, input: ConfirmIncomeInput): Promise<Transaction>;
+  /** Rattache une transaction existante à une source et un mois. */
+  link(id: string, input: LinkIncomeInput): Promise<Transaction>;
 }
