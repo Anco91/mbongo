@@ -110,3 +110,4 @@ Proof of failure: `cd apps/web && npx jest __tests__/charge-category.test.ts __t
 ## Handoffs
 
 - `docs/handoffs/20261124-2233-charge-subcategories.md`
+- `docs/handoffs/20261124-2250-charge-subcategories.md`
