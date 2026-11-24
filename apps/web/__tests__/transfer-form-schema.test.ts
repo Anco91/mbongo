@@ -1,9 +1,8 @@
 /**
  * Tests for the transfer create form schema.
  *
- * The form extends the shared createTransferSchema with the currency
- * rule (source CHF, target EUR) enforced client-side — an EUR source or
- * CHF target must be rejected by zod before any request is sent.
+ * The form extends the shared createTransferSchema with the account rules
+ * (any pair, open accounts only) enforced client-side before any request.
  *
  * @module Tests/Transfers/TransferCreateFormSchema
  */
@@ -52,29 +51,51 @@ describe('buildTransferFormSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('rejects an EUR source before sending (zod, no request)', () => {
+  it('accepts an EUR source and a CHF target (any pair of accounts)', () => {
     const result = buildTransferFormSchema(accounts).safeParse({
       ...validInput,
       sourceAccountId: 'account-bnp-perso',
-    });
-
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      const messages = result.error.issues.map((issue) => issue.message);
-      expect(messages).toContain('Le compte source doit être en CHF');
-    }
-  });
-
-  it('rejects a CHF target before sending (zod, no request)', () => {
-    const result = buildTransferFormSchema(accounts).safeParse({
-      ...validInput,
       targetAccountId: 'account-ubs-courant',
     });
 
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      const messages = result.error.issues.map((issue) => issue.message);
-      expect(messages).toContain('Le compte cible doit être en EUR');
+    expect(result.success).toBe(true);
+  });
+
+  it('accepts two accounts of the same currency', () => {
+    const result = buildTransferFormSchema([
+      ...accounts,
+      account('account-ubs-epargne', 'CHF'),
+    ]).safeParse({
+      ...validInput,
+      targetAccountId: 'account-ubs-epargne',
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects a closed source or target before sending', () => {
+    const closed = (id: string): Account => ({
+      ...account(id, 'CHF'),
+      status: 'CLOSED',
+    });
+    const closedSource = buildTransferFormSchema([
+      closed('account-ubs-courant'),
+      accounts[1],
+    ]).safeParse(validInput);
+    const closedTarget = buildTransferFormSchema([
+      accounts[0],
+      { ...closed('account-bnp-perso'), currency: 'EUR' },
+    ]).safeParse(validInput);
+
+    expect(closedSource.success).toBe(false);
+    expect(closedTarget.success).toBe(false);
+    if (!closedSource.success && !closedTarget.success) {
+      expect(closedSource.error.issues.map((i) => i.message)).toContain(
+        'Le compte source est clôturé'
+      );
+      expect(closedTarget.error.issues.map((i) => i.message)).toContain(
+        'Le compte cible est clôturé'
+      );
     }
   });
 

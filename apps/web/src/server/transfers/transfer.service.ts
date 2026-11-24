@@ -10,6 +10,10 @@ import {
   counterValue,
   effectiveRate,
   transferFees,
+  checkTransferAccounts,
+  isSameCurrencyTransfer,
+  settleSameCurrencyTransfer,
+  type TransferAccountRef,
 } from '@mbongo/shared';
 import { Prisma } from '@prisma/client';
 import { parseISO } from 'date-fns';
@@ -45,12 +49,16 @@ export class TransferService {
     ]);
     if (!src) throw new NotFoundError('Account', input.sourceAccountId);
     if (!tgt) throw new NotFoundError('Account', input.targetAccountId);
-    if (src.currency !== 'CHF' || tgt.currency !== 'EUR') {
-      throw new HttpError(
-        422,
-        'Transfer requires a CHF source account and an EUR target account'
-      );
-    }
+    const srcRef = src as TransferAccountRef;
+    const tgtRef = tgt as TransferAccountRef;
+    const refusal = checkTransferAccounts(srcRef, tgtRef);
+    if (refusal) throw new HttpError(422, refusal);
+
+    const sameCurrency = isSameCurrencyTransfer(srcRef, tgtRef);
+    const settlement = sameCurrency
+      ? settleSameCurrencyTransfer(input.amountSent)
+      : null;
+    const sentAt = parseISO(input.sentAt);
 
     const transfer = await prisma.$transaction(async (tx) => {
       const created = await tx.transfer.create({
@@ -58,22 +66,39 @@ export class TransferService {
           sourceAccountId: input.sourceAccountId,
           targetAccountId: input.targetAccountId,
           amountSent: input.amountSent,
-          rateEstimated: input.rateEstimated,
+          rateEstimated: settlement?.rateEstimated ?? input.rateEstimated,
           rateDate: parseISO(input.rateDate),
           memo: input.memo ?? null,
-          status: 'ESTIMATED',
-          sentAt: parseISO(input.sentAt),
+          status: settlement ? 'COMPLETED' : 'ESTIMATED',
+          sentAt,
+          ...(settlement && {
+            amountReceived: settlement.amountReceived,
+            receivedAt: sentAt,
+            rateEffective: settlement.rateEffective,
+            fees: settlement.fees,
+          }),
         },
       });
       await tx.transaction.create({
         data: {
           accountId: input.sourceAccountId,
-          date: parseISO(input.sentAt),
+          date: sentAt,
           amount: -input.amountSent,
           transferId: created.id,
           transferRole: 'SOURCE',
         },
       });
+      if (settlement) {
+        await tx.transaction.create({
+          data: {
+            accountId: input.targetAccountId,
+            date: sentAt,
+            amount: settlement.amountReceived,
+            transferId: created.id,
+            transferRole: 'TARGET',
+          },
+        });
+      }
       return created;
     });
 

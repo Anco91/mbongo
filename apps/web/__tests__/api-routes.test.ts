@@ -230,10 +230,10 @@ describe('POST /api/transfers', () => {
     expect(response.status).toBe(404);
   });
 
-  it('rejects currency-incompatible accounts with 422', async () => {
+  it('rejects a closed account with 422', async () => {
     (prisma.account.findUnique as jest.Mock).mockImplementation(
       ({ where }: { where: { id: string } }) =>
-        Promise.resolve({ id: where.id, currency: 'EUR' })
+        Promise.resolve({ id: where.id, currency: 'EUR', status: 'CLOSED' })
     );
 
     const response = await postTransfers(
