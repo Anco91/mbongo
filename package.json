@@ -26,7 +26,6 @@
     "prisma:migrate": "cd apps/web && npx prisma migrate dev",
     "prisma:studio": "cd apps/web && npx prisma studio",
     "prisma:push": "cd apps/web && npx prisma db push",
-    "prisma:seed": "cd apps/web && npm run db:seed",
     "quality": "npm run lint && npm run format:check && npm run typecheck && npm run test",
     "quality:fix": "npm run lint:fix && npm run format && npm run typecheck && npm run test",
     "install:all": "npm install",

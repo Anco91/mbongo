@@ -41,6 +41,11 @@ situation (second CHF salary) needs no model rewrite. Full context: `cdc.md` (ar
 |---|---|---|---|---|
 | 01 | `specs/01-query-factories.md` | FE-1 pilot: `queries/` factories for members, accounts, transactions; their hooks use them | done | `docs/handoffs/20261124-1628-01-query-factories.md` |
 | 02 | `specs/02-query-factories-charges.md` | FE-1: factories for charges, payments (hooks `use-charges`, `use-schedule`) | done | `docs/handoffs/20261124-1637-02-query-factories-charges.md` |
-| 03 | `specs/03-query-factories-rest.md` | FE-1: factories for incomes, transfers, monthly budgets, alerts, balances, exchange-rate | draft | — |
+| 03 | `specs/03-query-factories-rest.md` | FE-1: factories for incomes, transfers, monthly budgets, exchange-rate | review | — |
 | 04 | `specs/04-generic-guard.md` | FE-2: one generic Guard prefetching `queryOptions` | draft | — |
 | 05 | `specs/05-list-query.md` | BE-2: `listQuerySchema` + `toPrismaArgs` replace per-service translators | draft | — |
+| 06 | `specs/06-closed-accounts-in-charts.md` | Closed accounts (e.g. « M1 Verify ») no longer appear in the Sankey nor the donut; hard delete of an account allowed when it has no history worth keeping | draft | — |
+| 07 | `specs/07-budget-remaining-recompute.md` | Last step of « Préparer le mois » and budget edit always recompute incomes − provisions − charges = reste à vivre, even when the month is already prepared (today shows 0) | draft | — |
+| 08 | `specs/08-net-worth-breakdown-hover.md` | Hover on « Patrimoine consolidé » lists each term (+ 1000 CHF Épargne X, − 500 EUR Compte courant X découvert…) | draft | — |
+| 09 | `specs/09-transfers-archive.md` | Transfers page: close/hide settled transfers (design to decide: archive flag vs closed status) | draft | — |
+| 10 | `specs/10-charge-subcategories.md` | Sub-categories under categories (Abonnements → mobile, internet, sport; Assurances → auto, LAMal, garantie…), reflected in donut | draft | — |

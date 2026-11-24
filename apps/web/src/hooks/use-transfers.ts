@@ -20,6 +20,7 @@ import {
   type UseMutationResult,
 } from '@tanstack/react-query';
 import { transfersRepository } from '@/repositories/transfers.repository';
+import { transferQueries } from '@/queries/transfers';
 import type {
   Transfer,
   TransferQuery,
@@ -27,18 +28,13 @@ import type {
   UpdateTransferInput,
 } from '@mbongo/shared';
 
-const TRANSFERS_KEY = 'transfers';
-
 /**
  * List transfers (newest first by default).
  */
 export function useTransfers(
   query: TransferQuery = {}
 ): UseQueryResult<Transfer[], Error> {
-  return useQuery({
-    queryKey: [TRANSFERS_KEY, query],
-    queryFn: () => transfersRepository.findMany(query),
-  });
+  return useQuery(transferQueries.list(query));
 }
 
 /**
@@ -55,7 +51,7 @@ export function useCreateTransfer(): UseMutationResult<
     mutationFn: (input: CreateTransferInput) =>
       transfersRepository.create(input),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: [TRANSFERS_KEY] });
+      void queryClient.invalidateQueries({ queryKey: transferQueries.all() });
     },
   });
 }
@@ -75,7 +71,7 @@ export function useCompleteTransfer(): UseMutationResult<
     mutationFn: ({ id, input }: { id: string; input: UpdateTransferInput }) =>
       transfersRepository.completeTransfer(id, input),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: [TRANSFERS_KEY] });
+      void queryClient.invalidateQueries({ queryKey: transferQueries.all() });
     },
   });
 }
