@@ -53,12 +53,13 @@ its own initializer (circular type inference): use a module-level `const KEY = '
 | `apps/web/src/hooks/use-accounts.ts` | `useAccounts`/`useAccount` → `useQuery(accountQueries.list(query))` / `.detail(id)`; invalidations → `accountQueries.all()`; `setQueryData(accountQueries.detail(account.id).queryKey, account)`; drop `ACCOUNTS_KEY` |
 | `apps/web/src/hooks/use-transactions.ts` | both hooks → `useQuery(transactionQueries.list(query))` (month hook keeps `monthTransactionsQuery`) |
 | `apps/web/src/hooks/use-schedule.ts` | only the `useTransactions` hook and the `TRANSACTIONS_KEY` invalidations → `transactionQueries`; drop `TRANSACTIONS_KEY`. Payments untouched (slice 02) |
+| `apps/web/src/hooks/use-incomes.ts` | the three `invalidateQueries({ queryKey: ['transactions'] })` → `transactionQueries.all()` (criterion 4); nothing else |
 | `ARCHITECTURE.md` | add `apps/web/src/queries/` to Module map, Declared folders and Registry; update the Debt FE-1 row: members, accounts, transactions done in 01 |
 
 ### Read (allow-list)
 
 - `ARCHITECTURE.md`, `.agents-fw/standards/frontend.md` (FE-1 only)
-- `apps/web/src/hooks/use-members.ts`, `use-accounts.ts`, `use-transactions.ts`, `use-schedule.ts`
+- `apps/web/src/hooks/use-members.ts`, `use-accounts.ts`, `use-transactions.ts`, `use-schedule.ts`, `use-incomes.ts`
 - `apps/web/src/repositories/{members,accounts,transactions}.repository.ts` (signatures only)
 - `apps/web/src/lib/month-queries.ts`
 
