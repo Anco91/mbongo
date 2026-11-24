@@ -9,6 +9,7 @@
 
 import { endOfMonth, isWithinInterval, parseISO, startOfMonth } from 'date-fns';
 import type { Income } from '../schemas/income';
+import type { CurrencyConverter } from './schedule';
 
 /**
  * Détermine si une source de revenu est due pour un mois donné.
@@ -66,4 +67,44 @@ export function isIncomeDueForMonth(income: Income, monthKey: string): boolean {
   if (endDate && monthStart > endOfMonth(endDate)) return false;
 
   return true;
+}
+
+/** Montant confirmé d'une source pour un mois (transaction rattachée à un revenu). */
+export interface ConfirmedIncomeEntry {
+  incomeId: string | null;
+  budgetMonth: string | null;
+  amount: number;
+}
+
+/** Une ligne de revenu attendu : une source due, prévue ou confirmée. */
+export interface ExpectedIncomeEntry {
+  incomeId: string;
+  amount: number;
+  currency: Income['currency'];
+  confirmed: boolean;
+}
+
+/** Résultat du calcul des revenus attendus d'un mois. */
+export interface MonthExpectedIncomeResult {
+  total: number;
+  entries: ExpectedIncomeEntry[];
+}
+
+/**
+ * Revenus attendus d'un mois : une ligne par source due (`isIncomeDueForMonth`).
+ * Le montant confirmé du mois (transaction avec `incomeId` et `budgetMonth`
+ * égal au mois) remplace le montant prévu, jamais les deux. Total converti
+ * (si `convert`) et arrondi à 2 décimales.
+ */
+export function computeMonthExpectedIncome(
+  incomes: Income[],
+  confirmed: ConfirmedIncomeEntry[],
+  monthKey: string,
+  convert?: CurrencyConverter
+): MonthExpectedIncomeResult {
+  void incomes;
+  void confirmed;
+  void monthKey;
+  void convert;
+  throw new Error('not implemented');
 }
