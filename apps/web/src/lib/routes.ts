@@ -25,6 +25,7 @@ const MAIN_ROUTES: Record<string, string> = {
   '/household': 'Membres du foyer',
   '/schedule': 'Échéances à venir',
   '/alerts': 'Alertes',
+  '/incomes/unmatched': 'Revenus à lier',
 };
 
 const CREATE_ROUTES: Record<string, string> = {

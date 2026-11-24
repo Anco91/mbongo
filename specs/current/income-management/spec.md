@@ -106,3 +106,23 @@ La suppression d'une transaction de revenu SHALL laisser la source intacte. La s
 
 - **WHEN** l'utilisateur supprime une transaction de revenu rattachée
 - **THEN** la source reste active et le revenu du mois est considéré comme non confirmé
+
+### Requirement: Revenus à lier
+
+L'écran `/incomes/unmatched` SHALL lister chaque entrée d'argent positive sans source de revenu, avec ses sources possibles dans l'ordre du calcul de rapprochement, le montant prévu et l'écart (« Montant conforme » si nul). Le bouton « Lier » SHALL rattacher la transaction à la source pour le mois proposé, puis retirer la ligne et actualiser le tableau de bord. En cas de refus du serveur, la ligne SHALL rester et afficher le message.
+
+#### Scenario: Lien réussi
+
+- **GIVEN** un salaire reçu sans source et une proposition « Salaire »
+- **WHEN** l'utilisateur clique sur « Lier »
+- **THEN** la ligne disparaît et le revenu du mois est confirmé
+
+#### Scenario: Aucune source possible
+
+- **WHEN** une entrée n'a aucune proposition
+- **THEN** la ligne affiche « Aucune source de revenu possible »
+
+#### Scenario: Rien à lier
+
+- **WHEN** aucune entrée n'est sans source
+- **THEN** l'écran affiche « Aucun revenu à lier »

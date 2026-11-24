@@ -8,6 +8,7 @@
 
 'use client';
 
+import { useMemo } from 'react';
 import {
   useQuery,
   useMutation,
@@ -25,7 +26,11 @@ import {
   ConfirmIncomeInput,
   IncomeQuery,
   Transaction,
+  LinkIncomeInput,
+  UnmatchedIncome,
+  findUnmatchedIncome,
 } from '@mbongo/shared';
+import { UNMATCHED_QUERY } from '@/lib/month-queries';
 
 // ============================================================================
 // Query Hooks
@@ -45,6 +50,31 @@ export function useIncomes(
  */
 export function useIncome(id: string): UseQueryResult<Income, Error> {
   return useQuery(incomeQueries.detail(id));
+}
+
+/**
+ * Positive transactions without income source, with ranked proposals.
+ */
+export function useUnmatchedIncome(): {
+  items: UnmatchedIncome[];
+  incomes: Income[];
+  isLoading: boolean;
+  error: Error | null;
+} {
+  const transactions = useQuery(transactionQueries.list(UNMATCHED_QUERY));
+  const incomes = useQuery(incomeQueries.list({}));
+
+  const items = useMemo(
+    () => findUnmatchedIncome(transactions.data ?? [], incomes.data ?? []),
+    [transactions.data, incomes.data]
+  );
+
+  return {
+    items,
+    incomes: incomes.data ?? [],
+    isLoading: transactions.isLoading || incomes.isLoading,
+    error: transactions.error ?? incomes.error,
+  };
 }
 
 // ============================================================================
@@ -129,6 +159,28 @@ export function useConfirmIncome(): UseMutationResult<
       void queryClient.invalidateQueries({
         queryKey: incomeQueries.detail(id).queryKey,
       });
+      void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+  });
+}
+
+/**
+ * Link an existing transaction to an income source for a month.
+ */
+export function useLinkIncome(): UseMutationResult<
+  Transaction,
+  Error,
+  { id: string; input: LinkIncomeInput }
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, input }) => incomesRepository.link(id, input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: transactionQueries.all(),
+      });
+      void queryClient.invalidateQueries({ queryKey: incomeQueries.all() });
       void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });

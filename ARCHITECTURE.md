@@ -71,6 +71,7 @@ incomes, transfers, monthly budgets, alerts). Mobile-first PWA.
 | `packages/shared/src/domain/settlement.ts` → `computeSettlement` | domain | Settlement of an expected item vs realized amounts: open/partial/settled/discrepancy + gap, optional tolerance; positive magnitudes in the item's currency |
 | `packages/shared/src/domain/income-matching.ts` → `findUnmatchedIncome` | domain | Positive transactions with no `incomeId`/`transferId`, each with ranked source proposals (due, same account, not yet confirmed, `computeSettlement` gap); read-only, link comes in spec 17 |
 | `packages/shared/src/domain/income-link.ts` → `checkIncomeLink` | domain | First refusal reason (or null) to link an existing transaction to an income source + month: positive, no transfer/source/payment, same account, due, date in month, month free. Replayed by `incomeService.linkTransaction` (`POST /api/incomes/{id}/link`) |
+| `apps/web/src/components/incomes/` → `UnmatchedIncomeView/Guard/Content/Row`, `useUnmatchedIncome`, `useLinkIncome`, `UNMATCHED_QUERY` | ui | `/incomes/unmatched`: unmatched positives with proposals and « Lier » (spec 18); renders `findUnmatchedIncome` as returned |
 | `packages/shared/src/lib/calculation/active-accounts.ts` | domain | `excludeClosedAccounts`: drops closed accounts and what points at them before chart calculations |
 | `apps/web/src/components/patterns/show-closed-toggle.tsx` | ui | `ShowClosedToggle`: « Afficher les comptes clôturés » checkbox (dashboard, accounts) |
 | `apps/web/src/components/charts/` | ui | Sankey, donut, fullscreen chart |
