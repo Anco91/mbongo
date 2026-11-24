@@ -115,6 +115,28 @@ L'UI du dashboard SHALL afficher le donut des dépenses du mois choisi avec le t
 - **WHEN** le donut s'affiche
 - **THEN** les catégories des charges à venir occupent une part prévue distincte et le total au centre est non nul
 
+### Requirement: Ventilation du donut par sous-catégorie
+
+Le donut SHALL conserver un segment par catégorie. La légende du plein écran SHALL lister, sous chaque catégorie qui porte au moins une sous-catégorie renseignée, ces sous-catégories avec leur montant, par montant décroissant (à égalité, ordre alphabétique). Les dépenses sans sous-catégorie (charge sans sous-catégorie, transaction) SHALL former une ligne « Autres ». Une catégorie sans sous-catégorie renseignée SHALL n'avoir aucune ligne de détail. Prévu et réalisé SHALL fusionner dans la ventilation.
+
+#### Scenario: Catégorie ventilée
+
+- **GIVEN** en Abonnements un Mobile à 30 € et un Internet à 50 €, payés
+- **WHEN** l'utilisateur ouvre le donut en plein écran
+- **THEN** la légende montre « Abonnements 80 € » puis « Internet 50 € » et « Mobile 30 € »
+
+#### Scenario: Reste de la catégorie
+
+- **GIVEN** en Abonnements un Mobile à 30 € et une charge sans sous-catégorie à 20 €
+- **WHEN** la légende s'affiche
+- **THEN** elle montre « Mobile 30 € » et « Autres 20 € »
+
+#### Scenario: Aucune sous-catégorie
+
+- **GIVEN** une catégorie dont aucune charge n'a de sous-catégorie
+- **WHEN** la légende s'affiche
+- **THEN** la catégorie n'a pas de ligne de détail
+
 ### Requirement: Comptes clôturés dans les charts
 
 Le dashboard SHALL proposer une case « Afficher les comptes clôturés » au-dessus du Sankey et du donut. Par défaut elle est décochée : le Sankey et le donut SHALL exclure les transactions, transferts, charges et paiements liés à un compte clôturé. Cocher la case SHALL les réintégrer, la décocher les retirer, sans nouvelle requête. Patrimoine consolidé, soldes et alertes SHALL ignorer cette case. Le choix n'est pas persisté.

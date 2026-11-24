@@ -13,6 +13,7 @@
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { type JSX } from 'react';
+import { mergeCategorySegments, type SubcategoryExpense } from '@mbongo/shared';
 
 export interface DonutDatum {
   name: string;
@@ -20,6 +21,8 @@ export interface DonutDatum {
   color: string;
   /** Part « prévue » (échéances à venir) — rendue en opacité réduite (design D2). */
   planned?: boolean;
+  /** Sub-category breakdown shown under the legend row. */
+  subcategories?: SubcategoryExpense[];
 }
 
 interface DonutCategoriesChartProps {
@@ -99,18 +102,27 @@ interface DonutLegendProps {
   layout?: 'grid' | 'wrap';
 }
 
-/** One legend row per category: the planned and realized shares merge. */
-function mergeLegendRows(data: DonutDatum[]): DonutDatum[] {
-  const merged = new Map<string, DonutDatum>();
-  for (const d of data) {
-    const existing = merged.get(d.name);
-    if (existing) {
-      merged.set(d.name, { ...existing, value: existing.value + d.value });
-    } else {
-      merged.set(d.name, { ...d });
-    }
-  }
-  return [...merged.values()];
+interface SubRowsProps {
+  subcategories?: SubcategoryExpense[];
+  formatValue: (value: number) => string;
+}
+
+/** Indented, muted breakdown lines under a category row. */
+function SubRows({
+  subcategories,
+  formatValue,
+}: SubRowsProps): JSX.Element | null {
+  if (!subcategories?.length) return null;
+  return (
+    <ul className="mt-0.5 space-y-0.5 pl-3.5 text-[10px] text-slate-400">
+      {subcategories.map((sub) => (
+        <li key={sub.name} className="flex gap-1.5">
+          <span className="truncate">{sub.name}</span>
+          <span className="ml-auto">{formatValue(sub.value)}</span>
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 export function DonutLegend({
@@ -118,23 +130,26 @@ export function DonutLegend({
   formatValue,
   layout = 'grid',
 }: DonutLegendProps): JSX.Element {
-  const data = mergeLegendRows(rawData);
+  const data = mergeCategorySegments(rawData);
   if (layout === 'grid') {
     return (
       <div className="grid flex-1 grid-cols-2 gap-x-3 gap-y-1.5">
         {data.map((d) => (
-          <div
-            key={d.name}
-            className="flex items-center gap-1.5 text-[11px] text-slate-600"
-          >
-            <span
-              className="h-2 w-2 shrink-0 rounded-full"
-              style={{ backgroundColor: d.color }}
+          <div key={d.name}>
+            <div className="flex items-center gap-1.5 text-[11px] text-slate-600">
+              <span
+                className="h-2 w-2 shrink-0 rounded-full"
+                style={{ backgroundColor: d.color }}
+              />
+              <span className="truncate">{d.name}</span>
+              <span className="ml-auto text-slate-400">
+                {formatValue(d.value)}
+              </span>
+            </div>
+            <SubRows
+              subcategories={d.subcategories}
+              formatValue={formatValue}
             />
-            <span className="truncate">{d.name}</span>
-            <span className="ml-auto text-slate-400">
-              {formatValue(d.value)}
-            </span>
           </div>
         ))}
       </div>
@@ -143,16 +158,16 @@ export function DonutLegend({
   return (
     <div className="flex max-w-[320px] flex-wrap justify-center gap-x-3 gap-y-1.5">
       {data.map((d) => (
-        <div
-          key={d.name}
-          className="flex items-center gap-1.5 text-[11px] text-slate-600"
-        >
-          <span
-            className="h-2 w-2 rounded-full"
-            style={{ backgroundColor: d.color }}
-          />
-          <span>{d.name}</span>
-          <span className="text-slate-400">{formatValue(d.value)}</span>
+        <div key={d.name}>
+          <div className="flex items-center gap-1.5 text-[11px] text-slate-600">
+            <span
+              className="h-2 w-2 rounded-full"
+              style={{ backgroundColor: d.color }}
+            />
+            <span>{d.name}</span>
+            <span className="text-slate-400">{formatValue(d.value)}</span>
+          </div>
+          <SubRows subcategories={d.subcategories} formatValue={formatValue} />
         </div>
       ))}
     </div>
