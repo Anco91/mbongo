@@ -8,8 +8,25 @@
 import type { AccountScopedData } from './active-accounts';
 
 export function scopeToMember(
-  _input: AccountScopedData,
-  _memberId: string | null
+  input: AccountScopedData,
+  memberId: string | null
 ): AccountScopedData {
-  throw new Error('not implemented');
+  if (memberId === null) return input;
+  const accounts = input.accounts.filter((a) => a.memberId === memberId);
+  const ids = new Set(accounts.map((a) => a.id));
+  const chargeIds = new Set(
+    input.charges.filter((c) => ids.has(c.accountId)).map((c) => c.id)
+  );
+  return {
+    accounts,
+    transactions: input.transactions.filter((t) => ids.has(t.accountId)),
+    transfers: input.transfers.filter(
+      (t) => ids.has(t.sourceAccountId) && ids.has(t.targetAccountId)
+    ),
+    charges: input.charges.filter((c) => chargeIds.has(c.id)),
+    payments: input.payments.filter((p) => chargeIds.has(p.chargeId)),
+    ...(input.incomes
+      ? { incomes: input.incomes.filter((i) => ids.has(i.accountId)) }
+      : {}),
+  };
 }
