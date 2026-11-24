@@ -30,6 +30,7 @@ import { useTransactions } from '@/hooks/use-transactions';
 import { useCharges } from '@/hooks/use-charges';
 import { useMonthPayments } from '@/hooks/use-schedule';
 import { useTransfers } from '@/hooks/use-transfers';
+import { useIncomes } from '@/hooks/use-incomes';
 import { useDisplayCurrency } from '@/components/providers/display-currency-provider';
 import { monthKeyToDate } from '@/lib/month-navigation';
 
@@ -59,6 +60,7 @@ export function useDashboardData(
   // la même requête que le prefetch serveur du guard.
   const { data: payments = [] } = useMonthPayments(selectedMonth);
   const { data: transfers = [] } = useTransfers();
+  const { data: incomes = [] } = useIncomes();
   // Devise d'affichage partagée + taux courant (live prioritaire, fallback transferts).
   const { rate, rateDate } = useDisplayCurrency();
 
@@ -132,6 +134,7 @@ export function useDashboardData(
             transfers: monthTransfers,
             charges,
             payments: monthPayments,
+            incomes,
           }
         : excludeClosedAccounts({
             accounts,
@@ -139,6 +142,7 @@ export function useDashboardData(
             transfers: monthTransfers,
             charges,
             payments: monthPayments,
+            incomes,
           }),
     [
       showClosed,
@@ -147,16 +151,31 @@ export function useDashboardData(
       monthTransfers,
       charges,
       monthPayments,
+      incomes,
     ]
   );
+
+  // Confirmed incomes match on budgetMonth, not on date: add the income-linked
+  // transactions of other months (positive, so never an expense link).
+  const sankeyTransactions = useMemo(() => {
+    const inScope = new Set(chartScope.accounts.map((a) => a.id));
+    const inMonth = new Set(chartScope.transactions.map((t) => t.id));
+    const linked = transactions.filter(
+      (t) => t.incomeId && !inMonth.has(t.id) && inScope.has(t.accountId)
+    );
+    return [...chartScope.transactions, ...linked];
+  }, [chartScope, transactions]);
 
   const sankeyData = useMemo(
     () =>
       computeSankeyFlows({
         ...chartScope,
+        transactions: sankeyTransactions,
+        incomes: chartScope.incomes ?? [],
+        monthKey: selectedMonth,
         rate: consolidated.rate,
       }),
-    [chartScope, consolidated.rate]
+    [chartScope, sankeyTransactions, consolidated.rate, selectedMonth]
   );
 
   const donutData = useMemo(

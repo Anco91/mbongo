@@ -15,6 +15,10 @@ import { Payment } from '../../schemas/payment';
 import { Transaction } from '../../schemas/transaction';
 import { Transfer } from '../../schemas/transfer';
 import { counterValue } from '../../domain/conversion';
+import {
+  computeMonthExpectedIncome,
+  type ConfirmedIncomeEntry,
+} from '../../domain/income';
 
 export interface SankeyNode {
   name: string;
@@ -71,6 +75,8 @@ export function computeSankeyFlows(params: {
     transfers,
     payments,
     charges,
+    incomes,
+    monthKey,
     rate = 1,
   } = params;
   const effectiveRate = rate && rate > 0 ? rate : 1;
@@ -139,19 +145,25 @@ export function computeSankeyFlows(params: {
     }
   }
 
-  // 1. Revenus : transactions positives (hors transferts) → compte
-  for (const t of transactions) {
-    if (t.transferId) continue;
-    if (t.amount <= 0) continue;
-
-    const account = accountMap.get(t.accountId);
-    const accountName = account ? account.name : 'Compte inconnu';
-    // Empty labels fall through to the next useful display value.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const sourceName = t.note || t.category || 'Revenus';
-    const currency = account?.currency ?? 'EUR';
-
-    addLink(sourceName, accountName, t.amount, currency);
+  // 1. Revenus : revenus attendus du mois (confirmé = réalisé, sinon prévu) → compte
+  const confirmed: ConfirmedIncomeEntry[] = transactions.map((t) => ({
+    incomeId: t.incomeId ?? null,
+    budgetMonth: t.budgetMonth ?? null,
+    amount: t.amount,
+  }));
+  const incomeById = new Map(incomes.map((i) => [i.id, i]));
+  for (const entry of computeMonthExpectedIncome(incomes, confirmed, monthKey)
+    .entries) {
+    const income = incomeById.get(entry.incomeId);
+    if (!income) continue;
+    const account = accountMap.get(income.accountId);
+    addLink(
+      income.label,
+      account ? account.name : 'Compte inconnu',
+      entry.amount,
+      entry.currency,
+      !entry.confirmed
+    );
   }
 
   // 2. Transferts : compte source → Telexoo (ou compte cible directement)

@@ -39,5 +39,8 @@ export function excludeClosedAccounts(
     ),
     charges: input.charges.filter((c) => !droppedChargeIds.has(c.id)),
     payments: input.payments.filter((p) => !droppedChargeIds.has(p.chargeId)),
+    ...(input.incomes
+      ? { incomes: input.incomes.filter((i) => !closedIds.has(i.accountId)) }
+      : {}),
   };
 }
