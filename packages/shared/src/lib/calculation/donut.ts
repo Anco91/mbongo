@@ -12,6 +12,15 @@ import { Payment } from '../../schemas/payment';
 import { Transaction } from '../../schemas/transaction';
 import { counterValue } from '../../domain/conversion';
 
+/** Ligne de ventilation d'un segment : une sous-catégorie, en EUR consolidé. */
+export interface SubcategoryExpense {
+  name: string;
+  value: number;
+}
+
+/** Nom de la ligne qui regroupe les dépenses sans sous-catégorie. */
+export const OTHER_SUBCATEGORY = 'Autres';
+
 export interface CategoryExpense {
   name: string;
   value: number; // Consolidé EUR
@@ -20,6 +29,19 @@ export interface CategoryExpense {
   color: string;
   /** Part « prévue » : échéances PENDING du mois, distincte du réalisé. */
   planned?: boolean;
+  /** Ventilation par sous-catégorie, montant décroissant ; absente si aucune n'est renseignée. */
+  subcategories?: SubcategoryExpense[];
+}
+
+/**
+ * Fusionne les segments de même nom (prévu + réalisé), ventilation comprise.
+ * STUB: the Executor replaces the body.
+ */
+export function mergeCategorySegments<
+  T extends { name: string; value: number; subcategories?: SubcategoryExpense[] },
+>(segments: readonly T[]): T[] {
+  void segments;
+  throw new Error('not implemented');
 }
 
 const DEFAULT_CATEGORY_COLORS: Record<string, string> = {
