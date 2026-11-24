@@ -35,9 +35,18 @@ export interface PaymentDebit {
  * Throws `RangeError` when payment and account currencies differ.
  */
 export function planPaymentDebit(
-  _payment: PaymentDebitSource,
-  _account: PaymentDebitAccount,
-  _paidAt?: string | null
+  payment: PaymentDebitSource,
+  account: PaymentDebitAccount,
+  paidAt?: string | null
 ): PaymentDebit {
-  throw new Error('not implemented');
+  if (payment.currency !== account.currency) {
+    throw new RangeError(
+      `Payment currency ${payment.currency} differs from account currency ${account.currency}`
+    );
+  }
+  return {
+    accountId: account.id,
+    date: paidAt ?? payment.paidAt ?? payment.dueDate,
+    amount: -payment.amount,
+  };
 }

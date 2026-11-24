@@ -5,6 +5,7 @@ import {
   CreatePaymentInput,
   Payment,
   PaymentQuery,
+  planPaymentDebit,
   UpdatePaymentInput,
 } from '@mbongo/shared';
 import { Prisma } from '@prisma/client';
@@ -70,14 +71,55 @@ export class PaymentService {
   async update(id: string, input: UpdatePaymentInput): Promise<Payment> {
     const existing = await prisma.payment.findUnique({ where: { id } });
     if (!existing) throw new NotFoundError('Payment', id);
-    const row = await prisma.payment.update({
-      where: { id },
-      data: {
-        ...input,
-        dueDate: input.dueDate ? parseISO(input.dueDate) : undefined,
-        paidAt: input.paidAt ? parseISO(input.paidAt) : input.paidAt,
-      },
-    });
+    const data = {
+      ...input,
+      dueDate: input.dueDate ? parseISO(input.dueDate) : undefined,
+      paidAt: input.paidAt ? parseISO(input.paidAt) : input.paidAt,
+    };
+
+    // Manual tick (no transaction yet, PENDING -> PAID): book the debit on the
+    // charge's account and link it, so balances drop.
+    if (
+      input.status === 'PAID' &&
+      existing.status !== 'PAID' &&
+      !existing.transactionId
+    ) {
+      const charge = await prisma.charge.findUnique({
+        where: { id: existing.chargeId },
+        include: { account: true },
+      });
+      if (!charge) throw new NotFoundError('Charge', existing.chargeId);
+      const debit = planPaymentDebit(
+        {
+          amount: existing.amount,
+          currency: existing.currency as Payment['currency'],
+          dueDate: existing.dueDate.toISOString(),
+          paidAt: existing.paidAt?.toISOString() ?? null,
+        },
+        {
+          id: charge.account.id,
+          currency: charge.account.currency as Payment['currency'],
+        },
+        input.paidAt
+      );
+      const row = await prisma.$transaction(async (tx) => {
+        const transaction = await tx.transaction.create({
+          data: {
+            accountId: debit.accountId,
+            date: parseISO(debit.date),
+            amount: debit.amount,
+            transferId: null,
+          },
+        });
+        return tx.payment.update({
+          where: { id },
+          data: { ...data, transactionId: transaction.id },
+        });
+      });
+      return this.toPayment(row);
+    }
+
+    const row = await prisma.payment.update({ where: { id }, data });
     return this.toPayment(row);
   }
 
