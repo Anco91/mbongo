@@ -1,9 +1,0 @@
-/** Stub for 01-query-factories: the Executor replaces this file. */
-export const memberQueries = {
-  all: (): readonly ['members'] => {
-    throw new Error('not implemented');
-  },
-  list: (): never => {
-    throw new Error('not implemented');
-  },
-};

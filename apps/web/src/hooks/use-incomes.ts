@@ -83,7 +83,9 @@ export function useCreateIncome(): UseMutationResult<
     mutationFn: (input) => incomesRepository.create(input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: [INCOME_KEY] });
-      void queryClient.invalidateQueries({ queryKey: transactionQueries.all() });
+      void queryClient.invalidateQueries({
+        queryKey: transactionQueries.all(),
+      });
     },
   });
 }
@@ -117,7 +119,9 @@ export function useDeleteIncome(): UseMutationResult<void, Error, string> {
     mutationFn: (id) => incomesRepository.remove(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: [INCOME_KEY] });
-      void queryClient.invalidateQueries({ queryKey: transactionQueries.all() });
+      void queryClient.invalidateQueries({
+        queryKey: transactionQueries.all(),
+      });
     },
   });
 }
@@ -135,7 +139,9 @@ export function useConfirmIncome(): UseMutationResult<
   return useMutation({
     mutationFn: ({ id, input }) => incomesRepository.confirm(id, input),
     onSuccess: (_, { id }) => {
-      void queryClient.invalidateQueries({ queryKey: transactionQueries.all() });
+      void queryClient.invalidateQueries({
+        queryKey: transactionQueries.all(),
+      });
       void queryClient.invalidateQueries({ queryKey: incomeKey(id) });
       void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },

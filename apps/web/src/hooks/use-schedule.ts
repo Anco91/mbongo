@@ -117,7 +117,9 @@ export function useReconcilePayment(): UseMutationResult<
     }) => paymentsRepository.reconcile(id, transactionId),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: [PAYMENTS_KEY] });
-      await queryClient.invalidateQueries({ queryKey: transactionQueries.all() });
+      await queryClient.invalidateQueries({
+        queryKey: transactionQueries.all(),
+      });
     },
   });
 }
@@ -132,7 +134,9 @@ export function useUnlinkPayment(): UseMutationResult<Payment, Error, string> {
     mutationFn: (id: string) => paymentsRepository.unlink(id),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: [PAYMENTS_KEY] });
-      await queryClient.invalidateQueries({ queryKey: transactionQueries.all() });
+      await queryClient.invalidateQueries({
+        queryKey: transactionQueries.all(),
+      });
     },
   });
 }

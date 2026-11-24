@@ -74,7 +74,10 @@ export function useUpdateAccount(): UseMutationResult<
       accountsRepository.update(id, input),
     onSuccess: (account) => {
       void queryClient.invalidateQueries({ queryKey: accountQueries.all() });
-      queryClient.setQueryData(accountQueries.detail(account.id).queryKey, account);
+      queryClient.setQueryData(
+        accountQueries.detail(account.id).queryKey,
+        account
+      );
     },
   });
 }
