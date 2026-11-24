@@ -1,6 +1,6 @@
 ---
 id: fix-review-rows-21-26
-status: ready
+status: done
 branch: fix/review-rows-21-26
 tier: medium
 locked_at: 989f203
@@ -24,7 +24,7 @@ Fixes the findings of the review of rows 21, 23, 24, 25, 26: a manual payment ti
 |---|---|
 | `packages/shared/src/domain/payment-debit.ts` | add `AUTO_DEBIT_NOTE` and `paymentDebitAction` (see test) |
 | `apps/web/src/server/payments/payment.service.ts` | apply the design decisions (tick guard, sync, cleanup, 422/409 errors) |
-| `apps/web/src/components/patterns/chart-fullscreen.tsx` | optional `toolbar?: ReactNode` rendered outside the transformed area |
+| `apps/web/src/components/charts/chart-fullscreen.tsx` | optional `toolbar?: ReactNode` rendered outside the transformed area |
 | `apps/web/src/components/dashboard/dashboard-fullscreen-charts.tsx` | pass chips as `toolbar` |
 | `apps/web/src/components/dashboard/dashboard-content.tsx` | `effectiveMemberId` fallback |
 | `apps/web/src/components/patterns/filter-chips.tsx` | `aria-pressed` |
