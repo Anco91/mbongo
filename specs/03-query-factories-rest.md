@@ -1,6 +1,6 @@
 ---
 id: 03-query-factories-rest
-status: ready
+status: review
 branch: feat/03-query-factories-rest
 tier: medium
 locked_at: 2196408dfd09928d4bbf84bf573cd91d7ddcffc5

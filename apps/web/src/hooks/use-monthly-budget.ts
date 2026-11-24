@@ -16,17 +16,8 @@ import {
   type UseMutationResult,
 } from '@tanstack/react-query';
 import { monthlyBudgetsRepository } from '@/repositories/monthly-budgets.repository';
+import { monthlyBudgetQueries } from '@/queries/monthly-budgets';
 import { MonthlyBudget } from '@mbongo/shared';
-
-// ============================================================================
-// Query Keys
-// ============================================================================
-
-const MONTHLY_BUDGET_KEY = 'monthly-budgets';
-const monthlyBudgetKey = (month: string): [string, string] => [
-  MONTHLY_BUDGET_KEY,
-  month,
-];
 
 // ============================================================================
 // Query Hooks
@@ -39,11 +30,7 @@ const monthlyBudgetKey = (month: string): [string, string] => [
 export function useMonthlyBudget(
   month: string
 ): UseQueryResult<MonthlyBudget | null, Error> {
-  return useQuery({
-    queryKey: monthlyBudgetKey(month),
-    queryFn: () => monthlyBudgetsRepository.findOne(month),
-    enabled: Boolean(month),
-  });
+  return useQuery(monthlyBudgetQueries.detail(month));
 }
 
 // ============================================================================
@@ -63,7 +50,9 @@ export function usePrepareMonthlyBudget(): UseMutationResult<
   return useMutation({
     mutationFn: (month) => monthlyBudgetsRepository.prepare(month),
     onSuccess: (_, month) => {
-      void queryClient.invalidateQueries({ queryKey: monthlyBudgetKey(month) });
+      void queryClient.invalidateQueries({
+        queryKey: monthlyBudgetQueries.detail(month).queryKey,
+      });
       void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });

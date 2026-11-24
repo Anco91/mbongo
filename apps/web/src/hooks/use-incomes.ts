@@ -16,6 +16,7 @@ import {
   type UseMutationResult,
 } from '@tanstack/react-query';
 import { incomesRepository } from '@/repositories/incomes.repository';
+import { incomeQueries } from '@/queries/incomes';
 import { transactionQueries } from '@/queries/transactions';
 import {
   Income,
@@ -27,13 +28,6 @@ import {
 } from '@mbongo/shared';
 
 // ============================================================================
-// Query Keys
-// ============================================================================
-
-const INCOME_KEY = 'incomes';
-const incomeKey = (id: string): [string, string] => [INCOME_KEY, id];
-
-// ============================================================================
 // Query Hooks
 // ============================================================================
 
@@ -43,26 +37,14 @@ const incomeKey = (id: string): [string, string] => [INCOME_KEY, id];
 export function useIncomes(
   query: IncomeQuery = {}
 ): UseQueryResult<Income[], Error> {
-  return useQuery({
-    queryKey: [INCOME_KEY, query],
-    queryFn: () => incomesRepository.findMany(query),
-  });
+  return useQuery(incomeQueries.list(query));
 }
 
 /**
  * Get a single income by ID.
  */
 export function useIncome(id: string): UseQueryResult<Income, Error> {
-  return useQuery({
-    queryKey: incomeKey(id),
-    queryFn: () =>
-      incomesRepository.findMany({}).then((incomes) => {
-        const income = incomes.find((i) => i.id === id);
-        if (!income) throw new Error(`Income ${id} not found`);
-        return income;
-      }),
-    enabled: Boolean(id),
-  });
+  return useQuery(incomeQueries.detail(id));
 }
 
 // ============================================================================
@@ -82,7 +64,7 @@ export function useCreateIncome(): UseMutationResult<
   return useMutation({
     mutationFn: (input) => incomesRepository.create(input),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: [INCOME_KEY] });
+      void queryClient.invalidateQueries({ queryKey: incomeQueries.all() });
       void queryClient.invalidateQueries({
         queryKey: transactionQueries.all(),
       });
@@ -103,8 +85,10 @@ export function useUpdateIncome(): UseMutationResult<
   return useMutation({
     mutationFn: ({ id, input }) => incomesRepository.update(id, input),
     onSuccess: (_, { id }) => {
-      void queryClient.invalidateQueries({ queryKey: [INCOME_KEY] });
-      void queryClient.invalidateQueries({ queryKey: incomeKey(id) });
+      void queryClient.invalidateQueries({ queryKey: incomeQueries.all() });
+      void queryClient.invalidateQueries({
+        queryKey: incomeQueries.detail(id).queryKey,
+      });
     },
   });
 }
@@ -118,7 +102,7 @@ export function useDeleteIncome(): UseMutationResult<void, Error, string> {
   return useMutation({
     mutationFn: (id) => incomesRepository.remove(id),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: [INCOME_KEY] });
+      void queryClient.invalidateQueries({ queryKey: incomeQueries.all() });
       void queryClient.invalidateQueries({
         queryKey: transactionQueries.all(),
       });
@@ -142,7 +126,9 @@ export function useConfirmIncome(): UseMutationResult<
       void queryClient.invalidateQueries({
         queryKey: transactionQueries.all(),
       });
-      void queryClient.invalidateQueries({ queryKey: incomeKey(id) });
+      void queryClient.invalidateQueries({
+        queryKey: incomeQueries.detail(id).queryKey,
+      });
       void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });

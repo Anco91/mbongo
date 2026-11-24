@@ -1,15 +1,23 @@
-/** Stub for 03-query-factories-rest: the Executor replaces this file. */
+/**
+ * Transfer Queries
+ *
+ * Query factory for transfers: the only source of their query keys and
+ * `queryOptions`. Keys match the guards' server prefetch.
+ *
+ * @module Queries/Transfers
+ */
+
+import { queryOptions } from '@tanstack/react-query';
+import { transfersRepository } from '@/repositories/transfers.repository';
 import type { TransferQuery } from '@mbongo/shared';
 
-export const transferQueries = {
-  all: (): readonly ['transfers'] => {
-    throw new Error('not implemented');
-  },
-  list: (query?: TransferQuery): QueryStub => {
-    void query;
-    throw new Error('not implemented');
-  },
-};
+const KEY = 'transfers' as const;
 
-/** Minimal shape the locked tests read; the real factories return `queryOptions`. */
-type QueryStub = { queryKey: readonly unknown[] };
+export const transferQueries = {
+  all: () => [KEY] as const,
+  list: (query: TransferQuery = {}) =>
+    queryOptions({
+      queryKey: [KEY, query] as const,
+      queryFn: () => transfersRepository.findMany(query),
+    }),
+};

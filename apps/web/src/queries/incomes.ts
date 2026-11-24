@@ -1,19 +1,34 @@
-/** Stub for 03-query-factories-rest: the Executor replaces this file. */
+/**
+ * Income Queries
+ *
+ * Query factory for incomes: the only source of their query keys and
+ * `queryOptions`. Keys match the guards' server prefetch.
+ *
+ * @module Queries/Incomes
+ */
+
+import { queryOptions } from '@tanstack/react-query';
+import { incomesRepository } from '@/repositories/incomes.repository';
 import type { IncomeQuery } from '@mbongo/shared';
 
-export const incomeQueries = {
-  all: (): readonly ['incomes'] => {
-    throw new Error('not implemented');
-  },
-  list: (query?: IncomeQuery): QueryStub => {
-    void query;
-    throw new Error('not implemented');
-  },
-  detail: (id: string): QueryStub => {
-    void id;
-    throw new Error('not implemented');
-  },
-};
+const KEY = 'incomes' as const;
 
-/** Minimal shape the locked tests read; the real factories return `queryOptions`. */
-type QueryStub = { queryKey: readonly unknown[]; enabled?: boolean };
+export const incomeQueries = {
+  all: () => [KEY] as const,
+  list: (query: IncomeQuery = {}) =>
+    queryOptions({
+      queryKey: [KEY, query] as const,
+      queryFn: () => incomesRepository.findMany(query),
+    }),
+  detail: (id: string) =>
+    queryOptions({
+      queryKey: [KEY, id] as const,
+      queryFn: () =>
+        incomesRepository.findMany({}).then((incomes) => {
+          const income = incomes.find((i) => i.id === id);
+          if (!income) throw new Error(`Income ${id} not found`);
+          return income;
+        }),
+      enabled: Boolean(id),
+    }),
+};
