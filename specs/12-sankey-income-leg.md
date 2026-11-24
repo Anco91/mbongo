@@ -1,10 +1,12 @@
 ---
 id: 12-sankey-income-leg
-status: draft
+status: ready
 branch: feat/12-sankey-income-leg
 tier: medium
-locked_at:
-locked_tests: []
+locked_at: 86d8502
+locked_tests:
+  - apps/web/__tests__/sankey-income-leg.test.ts
+  - apps/web/__tests__/m3-calculations.test.ts
 ---
 
 # 12 — Sankey income leg on expected income
@@ -84,15 +86,33 @@ Standards to read first (CTX-5): none beyond `ARCHITECTURE.md`.
 
 ## Tests
 
-To write at the next session (Advisor, `write-tests.md`) before status `ready`:
-- Rewrite the existing sankey cases in `m3-calculations.test.ts` that rely on a positive transaction as
-  income (lines ~330-420, 832-870): they must pass `incomes` and `monthKey`.
-- New cases per criteria 1-5 on `computeSankeyFlows` and the `excludeClosedAccounts` incomes filter.
-- Criterion 6 is a visual check by the human (TEST-2).
+Locked at 86d8502 (Advisor). Criteria 1-5 are pinned; criterion 6 is a visual check by the human (TEST-2).
+`m3-calculations.test.ts`: the first sankey case now takes its income from a source, and every
+`computeSankeyFlows` call passes `incomes` and `monthKey`.
 
 ### Locked
 
-None yet.
+- `apps/web/__tests__/sankey-income-leg.test.ts` (new): criteria 1-5 and the `excludeClosedAccounts` incomes filter.
+- `apps/web/__tests__/m3-calculations.test.ts` (edited): sankey cases moved onto `incomes` + `monthKey`.
+
+Stubs already in place (86d8502), the Executor completes them: `incomes` and `monthKey` in the
+`computeSankeyFlows` params, optional `incomes` in `AccountScopedData`. Logic is not implemented.
+`use-dashboard-data.ts` does not typecheck until the Executor passes `incomes` and `monthKey`.
+`@mbongo/shared` is read through `dist`: run `npm run build -w packages/shared` before `jest`.
+
+### Proof of failure
+
+`npm run build -w packages/shared && cd apps/web && npx jest sankey-income-leg m3-calculations exclude-closed-accounts`
+
+```
+Tests: 8 failed, 39 passed
+✕ draws a due unconfirmed source as a planned link ... (expected 1 link, received 0)
+✕ ignores a positive transaction with neither transferId nor incomeId (received a 2200 link)
+✕ drops the sources pointing at a closed account
+✕ constructs incomes, transfers, and expense links (salary source gives no link)
+```
+
+All failures are assertion failures on the missing behaviour, none is a load or type error.
 
 ### Proposed by the Executor
 
