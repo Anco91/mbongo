@@ -61,6 +61,7 @@ export function useUnmatchedIncome(): {
   incomes: Income[];
   isLoading: boolean;
   error: Error | null;
+  nextPageError: Error | null;
   hasNextPage: boolean;
   fetchNextPage: () => void;
   isFetchingNextPage: boolean;
@@ -81,12 +82,18 @@ export function useUnmatchedIncome(): {
     return findUnmatchedIncome(openTransactions, incomes.data ?? []);
   }, [transactions.data, incomes.data, accounts.data]);
 
+  const hasLoadedPages = transactions.data !== undefined;
+
   return {
     items,
     incomes: incomes.data ?? [],
     isLoading:
       transactions.isLoading || incomes.isLoading || accounts.isLoading,
-    error: transactions.error ?? incomes.error ?? accounts.error,
+    error:
+      (hasLoadedPages ? null : transactions.error) ??
+      incomes.error ??
+      accounts.error,
+    nextPageError: hasLoadedPages ? transactions.error : null,
     hasNextPage: transactions.hasNextPage,
     fetchNextPage: () => void transactions.fetchNextPage(),
     isFetchingNextPage: transactions.isFetchingNextPage,

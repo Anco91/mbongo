@@ -22,6 +22,7 @@ export function UnmatchedIncomeContent(): JSX.Element {
     incomes,
     isLoading,
     error,
+    nextPageError,
     hasNextPage,
     fetchNextPage,
     isFetchingNextPage,
@@ -53,6 +54,11 @@ export function UnmatchedIncomeContent(): JSX.Element {
           incomes={incomes}
         />
       ))}
+      {nextPageError && (
+        <p role="alert" className="text-sm text-red-600">
+          Impossible de charger la suite : {nextPageError.message}
+        </p>
+      )}
       {hasNextPage && (
         <Button
           variant="outline"

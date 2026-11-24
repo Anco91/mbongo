@@ -15,8 +15,12 @@ import { createWhereTranslator } from '@/server/common/where-translator';
 const toDate = (v: unknown): unknown =>
   typeof v === 'string' ? parseISO(v) : v;
 
-const toNumber = (v: unknown): unknown =>
-  typeof v === 'string' && v.trim() !== '' ? Number(v) : v;
+const toNumber = (v: unknown): unknown => {
+  if (typeof v !== 'string' || v.trim() === '') return v;
+  const n = Number(v);
+  if (Number.isNaN(n)) throw new RangeError('Invalid numeric filter');
+  return n;
+};
 
 /** `'null'` stand-in → real null; applied item by item on lists. */
 const toNullable = (v: unknown): unknown => {

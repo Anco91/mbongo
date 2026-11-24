@@ -13,9 +13,16 @@ import { parseISO } from 'date-fns';
 
 export class TransactionService {
   async findMany(query: TransactionQuery): Promise<Transaction[]> {
-    const rows = await prisma.transaction.findMany(
-      buildTransactionFindArgs(query)
-    );
+    let args: ReturnType<typeof buildTransactionFindArgs>;
+    try {
+      args = buildTransactionFindArgs(query);
+    } catch (error: unknown) {
+      if (error instanceof RangeError) {
+        throw new HttpError(400, error.message);
+      }
+      throw error;
+    }
+    const rows = await prisma.transaction.findMany(args);
     return rows.map((row) => this.toTransaction(row));
   }
 
