@@ -170,7 +170,9 @@ export function useUpdateCharge(
       chargesRepository.update(id, input),
     onSuccess: (_charge) => {
       // Invalidate single charge query
-      void queryClient.invalidateQueries({ queryKey: chargeQueries.detail(id).queryKey });
+      void queryClient.invalidateQueries({
+        queryKey: chargeQueries.detail(id).queryKey,
+      });
       // Invalidate charges list
       void queryClient.invalidateQueries({ queryKey: chargeQueries.all() });
       // Invalidate payments (schedule may have changed)
@@ -198,7 +200,9 @@ export function useDeleteCharge(): UseMutationResult<void, Error, string> {
     mutationFn: (chargeId: string) => chargesRepository.remove(chargeId),
     onSuccess: (_data, chargeId) => {
       // Remove from cache
-      queryClient.removeQueries({ queryKey: chargeQueries.detail(chargeId).queryKey });
+      queryClient.removeQueries({
+        queryKey: chargeQueries.detail(chargeId).queryKey,
+      });
       // Invalidate charges list
       void queryClient.invalidateQueries({ queryKey: chargeQueries.all() });
       // Invalidate payments (schedule removed)

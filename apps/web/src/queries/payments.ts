@@ -29,7 +29,8 @@ export const paymentQueries = {
   byCharge: (chargeId: string) =>
     queryOptions({
       queryKey: [KEY, { chargeId }] as const,
-      queryFn: () => paymentsRepository.findMany({ chargeId: { eq: chargeId } }),
+      queryFn: () =>
+        paymentsRepository.findMany({ chargeId: { eq: chargeId } }),
       enabled: Boolean(chargeId),
     }),
 };
