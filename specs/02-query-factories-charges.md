@@ -1,6 +1,6 @@
 ---
 id: 02-query-factories-charges
-status: ready
+status: done
 branch: feat/02-query-factories-charges
 tier: medium
 locked_at: 465cb8d7e5b050f319f8f507b5353f129ce84c67
@@ -111,3 +111,5 @@ Proof of failure: `cd apps/web && npx jest __tests__/query-factories-charges.tes
 
 ## Handoffs
 
+
+- `docs/handoffs/20261124-1637-02-query-factories-charges.md`
