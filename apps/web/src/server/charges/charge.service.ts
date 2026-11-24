@@ -7,6 +7,8 @@ import {
   CreateChargeInput,
   UpdateChargeInput,
   generatePayments,
+  checkChargeSubcategory,
+  resolveChargeSubcategory,
 } from '@mbongo/shared';
 import { Prisma } from '@prisma/client';
 import { parseISO, startOfDay, startOfMonth } from 'date-fns';
@@ -47,6 +49,13 @@ export class ChargeService {
         message: `Unknown account: ${input.accountId}`,
       });
     }
+    const subcategoryIssue = checkChargeSubcategory(
+      input.category,
+      input.subcategory ?? null
+    );
+    if (subcategoryIssue) {
+      throw new HttpError(422, { message: subcategoryIssue });
+    }
     // M2 (design D5) : création TRANSACTIONNELLE — la charge et ses
     // échéances sont persistées tout-ou-rien. Un échec ne laisse
     // ni charge ni échéance orpheline.
@@ -59,6 +68,7 @@ export class ChargeService {
           currency: input.currency,
           accountId: input.accountId,
           category: input.category,
+          subcategory: input.subcategory ?? null,
           startDate: parseISO(input.startDate),
           endDate: input.endDate ? parseISO(input.endDate) : null,
           frequency: input.frequency,
@@ -81,10 +91,12 @@ export class ChargeService {
     const existing = await prisma.charge.findUnique({ where: { id } });
     if (!existing) throw new NotFoundError('Charge', id);
 
+    const subcategory = this.resolveSubcategory(existing, input);
+
     if (!this.touchesSchedule(input)) {
       const row = await prisma.charge.update({
         where: { id },
-        data: this.toPrisma(input),
+        data: this.toPrisma(input, subcategory),
       });
       return this.toCharge(row);
     }
@@ -126,7 +138,7 @@ export class ChargeService {
     const row = await prisma.$transaction(async (tx) => {
       const updated = await tx.charge.update({
         where: { id },
-        data: this.toPrisma(input),
+        data: this.toPrisma(input, subcategory),
       });
       await tx.payment.deleteMany({ where: deleteWhere });
       await this.generateAndStorePayments(tx, updated, from);
@@ -178,8 +190,35 @@ export class ChargeService {
     await prisma.charge.delete({ where: { id } });
   }
 
+  /**
+   * Sub-category to write for a patch, or undefined when the patch touches
+   * neither category nor sub-category. Throws 422 on a foreign value.
+   */
+  private resolveSubcategory(
+    existing: Prisma.ChargeGetPayload<object>,
+    input: UpdateChargeInput
+  ): string | null | undefined {
+    if (input.category === undefined && input.subcategory === undefined) {
+      return undefined;
+    }
+    const resolved = resolveChargeSubcategory(
+      {
+        category: existing.category,
+        subcategory: existing.subcategory ?? null,
+      },
+      input
+    );
+    const issue = checkChargeSubcategory(
+      input.category ?? existing.category,
+      resolved ?? null
+    );
+    if (issue) throw new HttpError(422, { message: issue });
+    return resolved ?? null;
+  }
+
   private toPrisma(
-    input: CreateChargeInput | UpdateChargeInput
+    input: CreateChargeInput | UpdateChargeInput,
+    subcategory?: string | null
   ): Prisma.ChargeUncheckedUpdateInput {
     const data: Prisma.ChargeUncheckedUpdateInput = {};
     if (input.label !== undefined) data.label = input.label;
@@ -197,6 +236,7 @@ export class ChargeService {
     if (input.dueDay !== undefined) data.dueDay = input.dueDay;
     if (input.provisioned !== undefined) data.provisioned = input.provisioned;
     if (input.accountId !== undefined) data.accountId = input.accountId;
+    if (subcategory !== undefined) data.subcategory = subcategory;
     return data;
   }
 

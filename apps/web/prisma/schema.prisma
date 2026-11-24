@@ -149,6 +149,7 @@ model Charge {
   amount       Float
   currency     String // Currency enum
   category     String
+  subcategory  String? // Optional detail of `category` (checked by zod and service, free text in DB)
   startDate    DateTime
   endDate      DateTime?
   frequency    String? // Frequency enum

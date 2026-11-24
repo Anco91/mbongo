@@ -45,6 +45,9 @@ export function ChargeDetail({
       </div>
       <Separator />
       <DetailRow label="Catégorie" value={charge.category} />
+      {charge.subcategory && (
+        <DetailRow label="Sous-catégorie" value={charge.subcategory} />
+      )}
       <DetailRow
         label="Montant"
         value={`${formatAmount(charge.amount, charge.currency)}${chargeAmountLabel(charge)}`}

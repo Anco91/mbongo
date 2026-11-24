@@ -77,6 +77,8 @@ incomes, transfers, monthly budgets, alerts). Mobile-first PWA.
 | `packages/shared/src/lib/calculation/active-accounts.ts` | domain | `excludeClosedAccounts`: drops closed accounts and what points at them before chart calculations |
 | `packages/shared/src/domain/transfer-archive.ts` → `isTransferClosed`, `filterVisibleTransfers` | domain | Closed (`CLOSED`) transfers hidden by default in the transfers list; order kept, input untouched |
 | `apps/web/src/components/patterns/show-closed-toggle.tsx` | ui | `ShowClosedToggle`: checkbox, default label « Afficher les comptes clôturés », optional `label` (dashboard, accounts, transfers) |
+| `packages/shared/src/domain/charge-category.ts` → `CHARGE_CATEGORIES`, `listSubcategories`, `checkChargeSubcategory`, `resolveChargeSubcategory` | domain | Single charge category/sub-category taxonomy and rule; replayed by `createChargeSchema` and `ChargeService` (422); category change alone resets sub-category |
+| `apps/web/src/components/charges/charge-category-fields.tsx` → `ChargeCategoryFields` | ui | Category + dependent « Sous-catégorie » selects, shared by charge create and edit forms |
 | `apps/web/src/components/charts/` | ui | Sankey, donut, fullscreen chart |
 | `apps/web/src/components/providers/` | ui | QueryProvider, DisplayCurrencyProvider, service worker register |
 
