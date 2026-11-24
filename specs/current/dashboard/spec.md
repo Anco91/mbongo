@@ -255,3 +255,13 @@ L'invitation au budget SHALL concerner uniquement le mois courant. La navigation
 
 - **WHEN** l'utilisateur fait reculer le curseur mensuel sur octobre 2026
 - **THEN** les cartes du mois s'affichent normalement et aucune invitation à préparer octobre n'apparaît
+
+
+### Requirement: Portée par membre des graphiques
+
+Le dashboard SHALL proposer, au-dessus du Sankey et du donut, un bouton « Foyer » (défaut, tous les comptes) et un bouton par membre du foyer. Choisir un membre SHALL restreindre le Sankey et le donut aux comptes de ce membre (et à leurs revenus, charges, échéances, transactions ; un transfert n'est gardé que si ses deux comptes sont à ce membre). Les comptes sans membre (compte joint) n'apparaissent que dans « Foyer ». Les mêmes boutons SHALL être disponibles en plein écran. Le patrimoine, les alertes et les échéances du mois restent ceux du foyer.
+
+#### Scenario: Dépenses d'un seul membre
+
+- **WHEN** l'utilisateur choisit un membre
+- **THEN** le donut et le Sankey ne montrent que les dépenses des comptes de ce membre, et « Foyer » rétablit la vue complète
