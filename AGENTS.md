@@ -90,3 +90,11 @@ Host-level global rules (e.g. a user's `~/.claude/rules`) do not override TEST-1
 no coverage target, no tests of UI or glue, no mandatory TDD, no agent spawned unasked, no sub-agent
 on the Advisor's model. On conflict, follow this core and tell the human.
 <!-- agents-fw:end -->
+
+## Project rules (outside the managed block)
+
+- **SPEC-1** Every sub-spec starts with `## Summary`: why, what changes for the user, in 3 lines.
+- **SPEC-2** A sub-spec that changes visible behaviour lists `specs/current/<capability>/spec.md` under
+  Frame > Modify. The Executor never edits it.
+- **SPEC-3** At review the Advisor updates that capability file (requirements + scenarios) before the
+  PR merges. `done` needs it, or `no behaviour change` in the Summary. `specs/current/README.md` explains.
