@@ -85,6 +85,12 @@ export const createTransactionSchema = transactionSchema
  */
 export const updateTransactionSchema = createTransactionSchema.partial();
 
+/**
+ * Stand-in for a real null in a filter value: HTTP query strings cannot
+ * carry null, so the server turns it back into null (transferId, incomeId).
+ */
+export const NULL_FILTER_VALUE = 'null';
+
 /** Schéma pour les requêtes GET /api/transactions */
 export const transactionQuerySchema = z.object({
   // Filtres sur les champs
@@ -92,6 +98,8 @@ export const transactionQuerySchema = z.object({
   category: filterSchema.optional(),
   transferId: filterSchema.optional(),
   transferRole: filterSchema.optional(),
+  amount: filterSchema.optional(),
+  incomeId: filterSchema.optional(),
 
   // Plage de dates
   dateFrom: isoDate.optional(),

@@ -13,13 +13,31 @@
 
 import { addDays, endOfDay, parseISO } from 'date-fns';
 import { monthBounds } from '@/lib/month-navigation';
-import type { PaymentQuery, TransactionQuery } from '@mbongo/shared';
+import {
+  NULL_FILTER_VALUE,
+  type PaymentQuery,
+  type TransactionQuery,
+} from '@mbongo/shared';
 
 /** Upper bound of the windowed payment/alert queries. */
 export const PAYMENTS_WINDOW_LIMIT = 500;
 
-/** Single-page query of the unmatched-income screen (API cap is 500). */
-export const UNMATCHED_QUERY: TransactionQuery = { limit: 500 };
+/** Page size of the unmatched-income screen. */
+export const UNMATCHED_PAGE_SIZE = 50;
+
+/**
+ * One page of unmatched income: positive, no income source, no transfer.
+ * HTTP cannot carry null, hence NULL_FILTER_VALUE (turned back server side).
+ */
+export function unmatchedIncomeQuery(cursor?: string): TransactionQuery {
+  return {
+    amount: { gt: 0 },
+    incomeId: { eq: NULL_FILTER_VALUE },
+    transferId: { eq: NULL_FILTER_VALUE },
+    limit: UNMATCHED_PAGE_SIZE,
+    ...(cursor ? { cursor } : {}),
+  };
+}
 
 /**
  * Windowed payments query for a month ('YYYY-MM'): every due date of
