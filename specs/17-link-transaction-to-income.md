@@ -1,6 +1,6 @@
 ---
 id: 17-link-transaction-to-income
-status: ready
+status: done
 branch: feat/17-link-transaction-to-income
 tier: medium
 locked_at: b0298dd
