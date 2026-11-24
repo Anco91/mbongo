@@ -186,5 +186,24 @@ export function listNetWorthTerms(
   accounts: Account[],
   balances: Record<string, number>
 ): NetWorthTerm[] {
-  throw new Error('not implemented');
+  const terms: NetWorthTerm[] = [];
+  for (const account of accounts) {
+    if (account.status !== 'ACTIVE') continue;
+    const balance = round2(balances[account.id] ?? account.openingBalance ?? 0);
+    if (balance === 0) continue;
+    terms.push({
+      accountId: account.id,
+      name: account.name,
+      currency: account.currency,
+      balance,
+      kind: balance > 0 ? 'asset' : 'overdraft',
+    });
+  }
+  // Actifs d'abord (solde décroissant), puis découverts (plus négatif d'abord).
+  return terms.sort((a, b) => {
+    if (a.kind !== b.kind) return a.kind === 'asset' ? -1 : 1;
+    const byBalance =
+      a.kind === 'asset' ? b.balance - a.balance : a.balance - b.balance;
+    return byBalance || a.name.localeCompare(b.name);
+  });
 }
