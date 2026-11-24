@@ -103,4 +103,27 @@ describe('checkTransferLegs', () => {
       checkTransferLegs({ ...base, fees: 5.01 }, [source, target])
     ).toEqual([]);
   });
+
+  it('flags a CLOSED transfer whose TARGET leg is missing', () => {
+    const t = { ...base, status: 'CLOSED' as const };
+    expect(checkTransferLegs(t, [source])).toContain('TARGET_MISSING');
+    expect(checkTransferLegs(t, [source, target])).toEqual([]);
+  });
+
+  it('flags a COMPLETED transfer whose amountReceived is null', () => {
+    const t = { ...base, amountReceived: null, fees: null };
+    expect(checkTransferLegs(t, [source])).toContain('AMOUNT_RECEIVED_MISSING');
+  });
+
+  it('does not require amountReceived on ESTIMATED or CLOSED-unreceived transfers', () => {
+    const estimated = {
+      ...base,
+      status: 'ESTIMATED' as const,
+      amountReceived: null,
+      fees: null,
+    };
+    expect(checkTransferLegs(estimated, [source])).toEqual([]);
+    const closed = { ...estimated, status: 'CLOSED' as const };
+    expect(checkTransferLegs(closed, [source])).toEqual([]);
+  });
 });

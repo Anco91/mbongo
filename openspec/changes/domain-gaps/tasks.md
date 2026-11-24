@@ -1,0 +1,3 @@
+- [ ] 1. `transfer-legs.ts`: CLOSED target-missing, `AMOUNT_RECEIVED_MISSING`
+- [ ] 2. `schemas/transaction.ts`: reject `AUTO_DEBIT_NOTE` in create/update note
+- [ ] 3. jest, typecheck, lint
