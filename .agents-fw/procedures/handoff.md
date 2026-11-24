@@ -24,7 +24,11 @@ Role: <advisor|executor|reviewer>
 Read: AGENTS.md, ARCHITECTURE.md, {{PATH}}
 Sub-spec: {{SUB_SPEC}} (master: specs/SPEC_MASTER.md)
 First action: <one sentence>
+Stop: none | done | human-gate: <reason>
 ```
+
+`Stop:` is `none` to let the relay start the next session, `done` when every row is done, or
+`human-gate: <reason>` at a GIT-7 gate (AUTO-2).
 
 Replace `{{PATH}}` with the exact handoff path and `{{SUB_SPEC}}` with the exact sub-spec path.
 Several handoffs exist: the master index row names the current one; the resume block names it too.

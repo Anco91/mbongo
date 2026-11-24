@@ -4,7 +4,9 @@ Use when: the next master row must be detailed before execution. Role: Advisor.
 Rules: WF-3, ROLE-1, ARCH-6, CTX-3, CTX-4, LIB-1..3.
 
 1. Read `ARCHITECTURE.md`, the master row, and only the code folders this slice touches.
-2. Copy `.agents-fw/templates/SUB_SPEC.md` to `specs/NN-slug.md`. Fill the header `id`, `branch`.
+2. Default (WF-9): follow `openspec-flow.md`; goal and criteria live in the OpenSpec change and this
+   procedure fills `frame.md`. Fallback without node: copy `.agents-fw/templates/SUB_SPEC.md` to
+   `specs/NN-slug.md`. Fill the header `id`, `branch`.
 3. Goal: one observable outcome. Acceptance criteria: given/when/then, each checkable.
 4. Analyse reuse (ARCH-6) before writing the Frame:
    - what in the registry already does part of it (reuse or extend);

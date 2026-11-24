@@ -5,8 +5,8 @@ or in `ARCHITECTURE.md` > Decisions. **MAY** is an option. Cite rules by ID in r
 
 ## Spec first, sliced
 
-- **WF-1 MUST** — Every feature goes through a sub-spec validated by the human before the first line of
-  production code.
+- **WF-1 MUST** — Every feature goes through a sub-spec validated by the PM (kickoff and Advisor review,
+  AUTO-4) before the first line of production code.
   Why: code written before the frame is agreed is the main source of drift and wasted tokens.
 
 - **WF-2 MUST** — `specs/SPEC_MASTER.md` is an index: vision, invariants, glossary, ordered list of
@@ -53,7 +53,7 @@ or in `ARCHITECTURE.md` > Decisions. **MAY** is an option. Cite rules by ID in r
 - **WF-7 MUST** — Order for each sub-spec:
   1. Advisor writes the sub-spec, its Frame and its tests (`procedures/write-sub-spec.md`,
      `procedures/write-tests.md`). Tests fail. Tests are committed and locked.
-  2. Human validates the sub-spec.
+  2. PM validates the sub-spec after the kickoff (`procedures/kickoff.md`); the human is not asked.
   3. Executor implements inside the Frame (`procedures/execute.md`).
   4. Review by the Advisor or a Reviewer (`procedures/review.md`).
   5. `ARCHITECTURE.md` updated; `arch-check.sh` and `test-lock.sh` green.
@@ -65,3 +65,10 @@ or in `ARCHITECTURE.md` > Decisions. **MAY** is an option. Cite rules by ID in r
 - **WF-8 SHOULD** — When the human asks for something outside the current sub-spec, add it as a new
   line in the master index instead of growing the current sub-spec.
   Why: scope creep is how sessions get long.
+
+- **WF-9 MUST** — OpenSpec is the default spec workflow. A sub-spec is an OpenSpec change
+  (`openspec/changes/<id>/`: `proposal.md`, spec deltas, `design.md`, `tasks.md`) plus a framework
+  `frame.md` with the header and the Frame. The flow explore → propose → tasks → apply → archive runs
+  without stopping (`procedures/openspec-flow.md`). Scripts take the `frame.md` path. Without node, the
+  plain `templates/SUB_SPEC.md` is the fallback.
+  Why: one clear, tool-supported path (explore, propose, tick tasks, archive) beats a home-made format.
