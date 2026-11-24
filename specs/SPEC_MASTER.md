@@ -45,7 +45,7 @@ situation (second CHF salary) needs no model rewrite. Full context: `cdc.md` (ar
 | 04 | `specs/04-generic-guard.md` | FE-2: one generic Guard prefetching `queryOptions` | draft | — |
 | 05 | `specs/05-list-query.md` | BE-2: `listQuerySchema` + `toPrismaArgs` replace per-service translators | draft | — |
 | 06 | `specs/06-closed-accounts-in-charts.md` | Dashboard toggle includes/hides closed accounts in Sankey and donut (recomputed); accounts page checkbox lists closed accounts. Hard delete postponed | done | `docs/handoffs/20261124-1719-06-closed-accounts-in-charts.md` |
-| 07 | `specs/07-budget-remaining-recompute.md` | Last step of « Préparer le mois » and budget edit always recompute incomes − provisions − charges = reste à vivre, even when the month is already prepared (today shows 0) | ready | `docs/handoffs/20261124-1857-07-budget-remaining-recompute.md` |
+| 07 | `specs/07-budget-remaining-recompute.md` | Last step of « Préparer le mois » and budget edit always recompute incomes − provisions − charges = reste à vivre, even when the month is already prepared (today shows 0) | delivered, review approved, SPEC-3 pending | `docs/handoffs/20261124-1906-07-budget-remaining-recompute.md` |
 | 08 | `specs/08-net-worth-breakdown-hover.md` | Hover on « Patrimoine consolidé » lists each term (+ 1000 CHF Épargne X, − 500 EUR Compte courant X découvert…) | draft | — |
 | 09 | `specs/09-transfers-archive.md` | Transfers page: close/hide settled transfers (design to decide: archive flag vs closed status) | draft | — |
 | 10 | `specs/10-charge-subcategories.md` | Sub-categories under categories (Abonnements → mobile, internet, sport; Assurances → auto, LAMal, garantie…), reflected in donut | draft | — |
