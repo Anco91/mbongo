@@ -10,11 +10,13 @@ import { JSX, useId } from 'react';
 interface ShowClosedToggleProps {
   checked: boolean;
   onChange: (value: boolean) => void;
+  label?: string;
 }
 
 export function ShowClosedToggle({
   checked,
   onChange,
+  label = 'Afficher les comptes clôturés',
 }: ShowClosedToggleProps): JSX.Element {
   const id = useId();
   return (
@@ -27,7 +29,7 @@ export function ShowClosedToggle({
         className="h-4 w-4 rounded border-slate-300 accent-slate-900"
       />
       <label htmlFor={id} className="text-xs text-slate-600">
-        Afficher les comptes clôturés
+        {label}
       </label>
     </div>
   );

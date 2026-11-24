@@ -62,7 +62,7 @@ function round2(n: number): number {
 
 /**
  * Trouve le dernier taux connu à partir des transferts :
- * 1. Taux effectif du dernier transfert COMPLETED
+ * 1. Taux effectif du dernier transfert réalisé (COMPLETED ou CLOSED avec taux effectif)
  * 2. Sinon taux estimé du dernier transfert
  */
 export function findLatestRate(
@@ -72,7 +72,11 @@ export function findLatestRate(
 
   // 1. Chercher d'abord les transferts complétés avec taux effectif
   const completed = transfers
-    .filter((t) => t.status === 'COMPLETED' && t.rateEffective !== null)
+    .filter(
+      (t) =>
+        (t.status === 'COMPLETED' || t.status === 'CLOSED') &&
+        t.rateEffective !== null
+    )
     .sort((a, b) => {
       const dateA = a.receivedAt
         ? new Date(a.receivedAt).getTime()

@@ -7,6 +7,7 @@
  * Les transferts suivent un workflow en 2 phases :
  * - Phase 1 (ESTIMATED) : le montant envoyé et le taux estimé sont connus
  * - Phase 2 (COMPLETED) : le montant reçu et le taux effectif sont confirmés
+ * - CLOSED : transfert clos (rangé), peut l'être depuis n'importe quel état
  *
  * @packageDocumentation
  */
@@ -29,7 +30,11 @@ const isoDate = z
 // ============================================================================
 
 /** Statuts possibles pour un transfert */
-export const transferStatusSchema = z.enum(['ESTIMATED', 'COMPLETED']);
+export const transferStatusSchema = z.enum([
+  'ESTIMATED',
+  'COMPLETED',
+  'CLOSED',
+]);
 
 export type TransferStatus = z.infer<typeof transferStatusSchema>;
 
