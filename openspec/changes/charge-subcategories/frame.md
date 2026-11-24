@@ -33,7 +33,7 @@ Une charge peut porter une sous-catégorie optionnelle (Abonnements → Mobile, 
 | `packages/shared/src/domain/charge-category.ts` | STUB: fill `CHARGE_CATEGORIES` and replace the three bodies (below). Barrel line already added |
 | `packages/shared/src/schemas/charge.ts` | `chargeSchema.subcategory: z.string().min(1).nullable().default(null)` (after `category`; `category` stays `z.string().min(1)`, NO enum); `createChargeSchema.superRefine`: `checkChargeSubcategory(charge.category, charge.subcategory)` non-null → issue path `['subcategory']`; `chargeQuerySchema` unchanged |
 | `apps/web/prisma/schema.prisma`, `apps/web/prisma/migrations/20261124230000_add_charge_subcategory/migration.sql` | ALREADY DONE by the Advisor, do not edit. Run `npx prisma generate` only |
-| `apps/web/src/server/charges/charge.service.ts` | `create`: `checkChargeSubcategory` non-null → `HttpError(422, { message })` before any write; write `subcategory: input.subcategory ?? null`. `update`: after the 404 check, `const subcategory = resolveChargeSubcategory(existing, input)`; when `input.category !== undefined \|\| input.subcategory !== undefined`: check `(input.category ?? existing.category, subcategory)` (422 on refusal) and put `subcategory` in the written data; when neither is in the patch, write no `subcategory` key. `toPrisma` stays the only mapper (add the key there from a resolved value or set it in `update`; no second mapper) |
+| `apps/web/src/server/charges/charge.service.ts` | `create`: `checkChargeSubcategory` non-null → `HttpError(422, { message })` before any write; write `subcategory: input.subcategory ?? null` (check with `input.subcategory ?? null`). `update`: after the 404 check, `const subcategory = resolveChargeSubcategory({ category: existing.category, subcategory: existing.subcategory ?? null }, input)` (normalise `undefined` to `null`: mocked and legacy rows may lack the key); when `input.category !== undefined \|\| input.subcategory !== undefined`: check `(input.category ?? existing.category, subcategory ?? null)` (422 on refusal) and put `subcategory` in the written data; when neither is in the patch, write no `subcategory` key. `toPrisma` stays the only mapper (add the key there from a resolved value or set it in `update`; no second mapper) |
 | `apps/web/src/components/charges/charge-create-form.tsx` | drop local `CATEGORIES`; render `<ChargeCategoryFields />` where the category select is; default `subcategory: null`; resolver step: `subcategory === '' \|\| not in listSubcategories(category)` → `null` before `zodResolver` (same place and motif as the `dueDay` clearing) |
 | `apps/web/src/components/charges/charge-edit-form.tsx` | same as create; default value `charge.subcategory` |
 | `apps/web/src/components/charges/charge-detail.tsx` | `<DetailRow label="Sous-catégorie" …/>` after « Catégorie », only when `charge.subcategory` |
@@ -101,7 +101,10 @@ Proof of failure: `cd apps/web && npx jest __tests__/charge-category.test.ts __t
 
 ## Gates
 
-- Applying `20261124230000_add_charge_subcategory` to `dev.db` is a human gate (GIT-7). Mention it in the handoff and the PR.
+- Applying `20261124230000_add_charge_subcategory` to `dev.db` is a human gate (GIT-7). The column is nullable, so applying it before the code lands is harmless: the human applies it first, then the Executor runs.
+- No merge until the human has applied the migration.
+- Verify with jest, typecheck, lint and build only. After `prisma generate`, every charge query against an unmigrated `dev.db` fails with « no such column »: do not run the app before the migration is applied.
+- Dry run (Advisor): adding `subcategory` to `chargeSchema` breaks no existing test; only the two locked files fail.
 
 ## Handoffs
 

@@ -36,7 +36,7 @@ Advisor step delivered: change proposed, Frame written, tests locked, branch pus
 
 ## Blockers / risks
 
-- Human gate (GIT-7): applying the migration to `dev.db`. Not applied. Executor runs `npx prisma generate` only.
+- Human gate (GIT-7): applying the migration to `dev.db`. Not applied; harmless to apply first (nullable column). No merge before it; do not run the app before it. Executor runs `npx prisma generate` only.
 - Untracked `apps/web/prisma/dev.db.bak-20261124-215210` left alone.
 
 ## Next action
@@ -50,6 +50,6 @@ NEXT SESSION
 Role: executor
 Read: AGENTS.md, ARCHITECTURE.md, docs/handoffs/20261124-2233-charge-subcategories.md
 Sub-spec: openspec/changes/charge-subcategories/frame.md (master: specs/SPEC_MASTER.md)
-First action: Implement the Frame on feat/charge-subcategories (prisma generate only, never apply the migration), then open the PR.
+First action: git checkout feat/charge-subcategories, implement the Frame (prisma generate only, never apply the migration), then open the PR; no merge before the migration is applied.
 Stop: human-gate: apply migration 20261124230000_add_charge_subcategory to dev.db
 ```
