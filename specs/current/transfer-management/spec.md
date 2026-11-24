@@ -8,17 +8,22 @@ Modéliser le transfert CHF→EUR en 2 phases (règle métier § 3.3 du cahier d
 
 ### Requirement: Créer un transfert en phase estimé
 
-L'API SHALL exposer `POST /api/transfers` : compte source CHF, compte cible EUR, montant envoyé, taux de référence (daté), date d'envoi. Le transfert est créé au statut `ESTIMATED` avec sa contre-valeur estimée, et une transaction de débit (`-montant`) SHALL être créée immédiatement sur le compte source.
+L'API SHALL exposer `POST /api/transfers` : deux comptes ouverts distincts (toute devise, tout membre), montant envoyé, taux de référence (daté), date d'envoi. Le transfert est créé au statut `ESTIMATED` avec sa contre-valeur estimée, et une transaction de débit (`-montant`) SHALL être créée immédiatement sur le compte source.
 
 #### Scenario: Transfert estimé créé
 
 - **WHEN** l'utilisateur crée un transfert de 1 500 CHF depuis "UBS Courant" vers "BNP Perso" au taux de référence 1,0634
 - **THEN** le transfert est créé au statut `ESTIMATED`, avec contre-valeur estimée ≈ 1 595,10 EUR et une transaction de débit de −1 500 CHF sur le compte source
 
-#### Scenario: Comptes de devises incompatibles rejetés
+#### Scenario: Compte clos ou identique rejeté
 
-- **WHEN** la création est soumise avec un compte cible en CHF (ou source en EUR)
-- **THEN** la réponse est 422 "le transfert exige une source CHF et une cible EUR"
+- **WHEN** la création est soumise avec un compte source ou cible clos, ou le même compte des deux côtés
+- **THEN** la réponse est refusée (422 pour un compte clos)
+
+#### Scenario: Même devise sans taux ni frais
+
+- **WHEN** l'utilisateur transfère 1 000 CHF entre deux comptes CHF ouverts
+- **THEN** le transfert est créé `COMPLETED` aussitôt (reçu = envoyé, taux 1, frais 0) avec une transaction de débit et une de crédit
 
 #### Scenario: Compte inexistant rejeté lisiblement
 
