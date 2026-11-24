@@ -20,3 +20,7 @@
 - Decision: colonne nullable because zéro admin; rejected table de catégories.
 - Decision: LAMal sous Santé because palette et formulaire; rejected Assurances.
 - Decision: remise à `null` au changement de catégorie because moins de friction; rejected 422.
+
+## Frame amendment (typecheck)
+
+`subcategory` is required in the inferred `Charge` type (`.default(null)`), so existing `Charge` fixtures fail `tsc` (jest passes). Decision (PM): add `subcategory: null` to the fixtures of 5 existing test files; keep the type required. Mechanical edit, no assertion change.

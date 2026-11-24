@@ -37,6 +37,7 @@ Une charge peut porter une sous-catégorie optionnelle (Abonnements → Mobile, 
 | `apps/web/src/components/charges/charge-create-form.tsx` | drop local `CATEGORIES`; render `<ChargeCategoryFields />` where the category select is; default `subcategory: null`; resolver step: `subcategory === '' \|\| not in listSubcategories(category)` → `null` before `zodResolver` (same place and motif as the `dueDay` clearing) |
 | `apps/web/src/components/charges/charge-edit-form.tsx` | same as create; default value `charge.subcategory` |
 | `apps/web/src/components/charges/charge-detail.tsx` | `<DetailRow label="Sous-catégorie" …/>` after « Catégorie », only when `charge.subcategory` |
+| `apps/web/__tests__/{m3-calculations,schedule,schedule.missing-payments,schedule.due-day,m5-filters}.test.ts` | Frame amendment: add `subcategory: null` to every `Charge` fixture literal so `tsc` passes (mechanical, no assertion change; not locked tests of this change) |
 | `ARCHITECTURE.md` | registry row `domain/charge-category.ts` → `CHARGE_CATEGORIES`, `listSubcategories`, `checkChargeSubcategory`, `resolveChargeSubcategory`; row `components/charges/charge-category-fields.tsx` (same commit, CTX-3) |
 | `specs/current/charge-management/spec.md` | Advisor only, at review (SPEC-2/3) |
 
