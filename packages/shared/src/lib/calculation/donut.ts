@@ -105,6 +105,13 @@ const DEFAULT_CATEGORY_COLORS: Record<string, string> = {
   Alimentation: '#f59e0b',
   Transports: '#3b82f6',
   Loisirs: '#ec4899',
+  'Crédits & prêts': '#b91c1c',
+  Médias: '#78350f',
+  'Enfants & famille': '#84cc16',
+  'Loisirs & voyages': '#e11d48',
+  'Épargne & prévoyance': '#c2410c',
+  'Frais bancaires': '#525252',
+  Divers: '#a8a29e',
 };
 
 const PALETTE = [

@@ -29,10 +29,17 @@ export function MemberScopeChips({
     ...members.map((m) => ({ value: m.id, label: m.firstName })),
   ];
   return (
-    <FilterChips
-      items={items}
-      value={value ?? HOUSEHOLD}
-      onChange={(v) => onChange(v === HOUSEHOLD ? null : v)}
-    />
+    <div className="flex flex-wrap items-center gap-2">
+      <FilterChips
+        items={items}
+        value={value ?? HOUSEHOLD}
+        onChange={(v) => onChange(v === HOUSEHOLD ? null : v)}
+      />
+      {value !== null && (
+        <p className="text-xs text-slate-500">
+          Hors comptes joints (visibles sous Foyer)
+        </p>
+      )}
+    </div>
   );
 }

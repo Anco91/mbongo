@@ -259,7 +259,7 @@ L'invitation au budget SHALL concerner uniquement le mois courant. La navigation
 
 ### Requirement: Portée par membre des graphiques
 
-Le dashboard SHALL proposer, au-dessus du Sankey et du donut, un bouton « Foyer » (défaut, tous les comptes) et un bouton par membre du foyer. Choisir un membre SHALL restreindre le Sankey et le donut aux comptes de ce membre (et à leurs revenus, charges, échéances, transactions ; un transfert n'est gardé que si ses deux comptes sont à ce membre). Les comptes sans membre (compte joint) n'apparaissent que dans « Foyer ». Les mêmes boutons SHALL être disponibles en plein écran. Le patrimoine, les alertes et les échéances du mois restent ceux du foyer.
+Le dashboard SHALL proposer, au-dessus du Sankey et du donut, un bouton « Foyer » (défaut, tous les comptes) et un bouton par membre du foyer. Choisir un membre SHALL restreindre le Sankey et le donut aux comptes de ce membre (et à leurs revenus, charges, échéances, transactions ; un transfert n'est gardé que si ses deux comptes sont à ce membre). Les comptes sans membre (compte joint) n'apparaissent que dans « Foyer » : un indice « hors comptes joints » SHALL être affiché près des boutons dès qu'un membre est choisi. Les mêmes boutons SHALL être disponibles en plein écran. Le patrimoine, les alertes et les échéances du mois restent ceux du foyer.
 
 #### Scenario: Dépenses d'un seul membre
 
