@@ -58,7 +58,7 @@ const link = (
     from: flows.nodes[l.source].name,
     to: flows.nodes[l.target].name,
     value: l.value,
-    currency: l.nativeCurrency,
+    currency: l.nativeCurrency ?? '',
   };
 };
 

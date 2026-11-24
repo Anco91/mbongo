@@ -59,6 +59,23 @@ export function sankeyNodeTotals(data: SankeyData): number[] {
   return data.nodes.map((_, i) => round2(Math.max(incoming[i], outgoing[i])));
 }
 
+/**
+ * Montant de la jambe de transfert, dans la devise du compte cible.
+ * Reçu réel si connu ; sinon estimation : même devise = montant envoyé,
+ * CHF → EUR = contre-valeur au taux effectif, EUR → CHF = montant × taux estimé.
+ */
+function transferLegAmount(
+  tr: Transfer,
+  sourceCurrency: string,
+  targetCurrency: string,
+  rate: number
+): number {
+  if (tr.amountReceived != null) return tr.amountReceived;
+  if (sourceCurrency === targetCurrency) return tr.amountSent;
+  if (sourceCurrency === 'CHF') return counterValue(tr.amountSent, rate);
+  return round2(tr.amountSent * tr.rateEstimated);
+}
+
 export function computeSankeyFlows(params: {
   accounts: Account[];
   transactions: Transaction[];
@@ -166,16 +183,23 @@ export function computeSankeyFlows(params: {
     );
   }
 
-  // 2. Transferts : compte source → Telexoo (ou compte cible directement)
+  // 2. Transferts : compte source → compte cible, dans la devise du compte cible
+  // (jamais un revenu : le compte cible ne reçoit que la jambe de transfert)
   for (const tr of transfers) {
     const srcAccount = accountMap.get(tr.sourceAccountId);
     const tgtAccount = accountMap.get(tr.targetAccountId);
     const srcName = srcAccount ? srcAccount.name : 'Compte émetteur';
     const tgtName = tgtAccount ? tgtAccount.name : 'Compte récepteur';
+    const sourceCurrency = srcAccount?.currency ?? 'EUR';
+    const targetCurrency = tgtAccount?.currency ?? 'EUR';
 
-    const receivedEur =
-      tr.amountReceived ?? counterValue(tr.amountSent, effectiveRate);
-    addLink(srcName, tgtName, receivedEur, 'EUR');
+    const legAmount = transferLegAmount(
+      tr,
+      sourceCurrency,
+      targetCurrency,
+      effectiveRate
+    );
+    addLink(srcName, tgtName, legAmount, targetCurrency);
   }
 
   // 3. Dépenses d'échéances : réalisées (PAID) et prévues (PENDING) —
