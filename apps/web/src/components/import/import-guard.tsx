@@ -8,6 +8,8 @@
  */
 
 import { accountService } from '@/server/accounts/account.service';
+import { merchantCategoryService } from '@/server/merchant-categories/merchant-category.service';
+import { merchantCategoryQueries } from '@/queries/merchant-categories';
 import { transactionService } from '@/server/transactions/transaction.service';
 import {
   PrefetchGuard,
@@ -28,6 +30,10 @@ export function ImportGuard({
     {
       queryKey: ['transactions', {}],
       queryFn: () => transactionService.findMany({}),
+    },
+    {
+      queryKey: merchantCategoryQueries.all(),
+      queryFn: () => merchantCategoryService.findAll(),
     },
   ];
 

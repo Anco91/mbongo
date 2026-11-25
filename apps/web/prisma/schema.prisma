@@ -250,3 +250,15 @@ model MonthStartBalance {
   @@unique([month, accountId])
   @@map("month_start_balances")
 }
+
+// ─── Import bancaire ──────────────────────────────────────────────────────────
+
+/// Merchant → charge category learned on the bank import screen (never guessed)
+model MerchantCategory {
+  merchant  String   @id
+  category  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("merchant_categories")
+}
