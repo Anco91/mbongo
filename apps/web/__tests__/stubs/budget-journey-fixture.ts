@@ -12,6 +12,7 @@ import {
   type Income,
   type Payment,
   type Transaction,
+  type Transfer,
 } from '@mbongo/shared';
 
 export const TODAY = new Date('2026-11-15T12:00:00.000Z');
@@ -257,4 +258,124 @@ export const T_SALARY_DEC_EARLY = transaction({
   date: '2026-11-20T12:00:00.000Z',
   incomeId: 'inc-salary',
   budgetMonth: '2026-12',
+});
+
+// ---------------------------------------------------------------------------
+// Spec 38 additions (append only: the spec 34 `current` tests do not use them)
+// ---------------------------------------------------------------------------
+/** Credit card settled on the current account every 28th. */
+export const A_CARD = account({
+  id: 'a-card',
+  name: 'Carte de crédit',
+  accountType: 'CREDIT_CARD',
+  linkedAccountId: 'a-cur',
+  billingDay: 28,
+});
+/** Deferred-debit card: the account settles itself, nothing to move. */
+export const A_DEFERRED = account({
+  id: 'a-def',
+  name: 'Carte différée',
+  deferredCard: true,
+});
+export const A_OLD = account({
+  id: 'a-old',
+  name: 'Ancien compte',
+  openingBalance: 3000,
+  status: 'CLOSED',
+  closedAt: '2026-06-30T12:00:00.000Z',
+});
+
+export const T_CARD_1 = transaction({
+  id: 't-card-1',
+  accountId: 'a-card',
+  amount: -200,
+  date: '2026-11-05T12:00:00.000Z',
+});
+export const T_CARD_2 = transaction({
+  id: 't-card-2',
+  accountId: 'a-card',
+  amount: -100,
+  date: '2026-11-12T12:00:00.000Z',
+});
+export const T_DEFERRED = transaction({
+  id: 't-def-1',
+  accountId: 'a-def',
+  amount: -100,
+  date: '2026-11-05T12:00:00.000Z',
+});
+
+/** Phone payment of November ticked paid today: one debit, no second one. */
+export const P_PHONE_NOV_PAID: Payment = {
+  ...P_PHONE_NOV,
+  status: 'PAID',
+  paidAt: '2026-11-15T12:00:00.000Z',
+  transactionId: 't-phone-nov',
+};
+export const T_PHONE_NOV = transaction({
+  id: 't-phone-nov',
+  accountId: 'a-cur',
+  amount: -30,
+  date: '2026-11-15T12:00:00.000Z',
+});
+
+function transfer(
+  over: Partial<Transfer> & Pick<Transfer, 'id' | 'status' | 'sentAt'>
+): Transfer {
+  return {
+    sourceAccountId: 'a-chf',
+    targetAccountId: 'a-cur',
+    amountSent: 1000,
+    rateEstimated: RATE,
+    rateDate: over.sentAt,
+    amountReceived: null,
+    rateEffective: null,
+    fees: null,
+    memo: null,
+    receivedAt: null,
+    createdAt: STAMP,
+    updatedAt: STAMP,
+    ...over,
+  };
+}
+
+/** 1000 CHF sent, 1040 EUR received (1050 estimated): 10 EUR of fees. */
+export const TR_DONE = transfer({
+  id: 'tr-done',
+  status: 'COMPLETED',
+  sentAt: '2026-11-10T12:00:00.000Z',
+  receivedAt: '2026-11-10T12:00:00.000Z',
+  amountReceived: 1040,
+  rateEffective: 1.04,
+  fees: 10,
+});
+export const T_TR_DONE_SRC = transaction({
+  id: 't-tr-done-src',
+  accountId: 'a-chf',
+  amount: -1000,
+  date: '2026-11-10T12:00:00.000Z',
+  transferId: 'tr-done',
+  transferRole: 'SOURCE',
+});
+export const T_TR_DONE_TGT = transaction({
+  id: 't-tr-done-tgt',
+  accountId: 'a-cur',
+  amount: 1040,
+  date: '2026-11-10T12:00:00.000Z',
+  transferId: 'tr-done',
+  transferRole: 'TARGET',
+});
+/** Planned for 2026-11-28: the SOURCE leg exists, the TARGET leg does not yet. */
+export const TR_PLANNED = transfer({
+  id: 'tr-plan',
+  status: 'ESTIMATED',
+  sentAt: '2026-11-28T12:00:00.000Z',
+  amountSent: 500,
+});
+export const T_TR_PLAN_SRC = transaction({
+  id: 't-tr-plan-src',
+  accountId: 'a-chf',
+  amount: -500,
+  date: '2026-11-28T12:00:00.000Z',
+  transferId: 'tr-plan',
+  transferRole: 'SOURCE',
 });

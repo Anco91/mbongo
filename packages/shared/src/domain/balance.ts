@@ -135,3 +135,18 @@ export function computeStatementGap(
 
   return { snapshotDate: snapshotDay, calculated, gap };
 }
+
+/**
+ * ADVISOR STUB (spec 38): balance of an account at the end of `asOf`'s UTC day.
+ * Opening balance plus the account's transactions dated on or before that day.
+ */
+export function balanceAsOf(
+  account: { id: string; openingBalance: number },
+  transactions: Array<{ accountId: string; date: string; amount: number }>,
+  asOf: Date
+): number {
+  void account;
+  void transactions;
+  void asOf;
+  throw new Error('balanceAsOf: not implemented (spec 38)');
+}
