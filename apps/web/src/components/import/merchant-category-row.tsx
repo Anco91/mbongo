@@ -2,7 +2,7 @@
  * Merchant Category Row
  *
  * One merchant of the month: count, total and the category it maps to
- * (persisted per device through the merchant mapping store).
+ * (persisted server-side through the merchant categories API).
  *
  * @module Components/Import/MerchantCategoryRow
  */
@@ -11,7 +11,7 @@
 
 import { type JSX } from 'react';
 import { CHARGE_CATEGORIES, UNCATEGORIZED } from '@mbongo/shared';
-import { setCategory } from '@/lib/merchant-mapping-store';
+import { useSetMerchantCategory } from '@/hooks/use-merchant-categories';
 import { formatAmount } from '@/lib/format';
 
 const CATEGORY_NAMES = Object.keys(CHARGE_CATEGORIES);
@@ -29,6 +29,7 @@ export function MerchantCategoryRow({
   total,
   count,
 }: MerchantCategoryRowProps): JSX.Element {
+  const setCategory = useSetMerchantCategory();
   return (
     <li className="flex items-center gap-2 py-2">
       <div className="min-w-0 flex-1">
@@ -42,7 +43,9 @@ export function MerchantCategoryRow({
       <select
         aria-label={`Catégorie de ${merchant}`}
         value={category}
-        onChange={(event) => setCategory(merchant, event.target.value)}
+        onChange={(event) =>
+          setCategory.mutate({ merchant, category: event.target.value })
+        }
         className="w-40 appearance-none rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-800 focus:border-slate-400 focus:outline-none"
       >
         <option value={UNCATEGORIZED}>{UNCATEGORIZED}</option>

@@ -9,18 +9,14 @@
 
 'use client';
 
-import { useMemo, useState, useSyncExternalStore, type JSX } from 'react';
+import { useMemo, useState, type JSX } from 'react';
 import {
   analyzeSpending,
   listStatementMonths,
   parseBnpCsv,
   type BankStatement,
 } from '@mbongo/shared';
-import {
-  getServerSnapshot,
-  getSnapshot,
-  subscribe,
-} from '@/lib/merchant-mapping-store';
+import { useMerchantMapping } from '@/hooks/use-merchant-categories';
 import { EmptyState } from '@/components/patterns/async-state';
 import { formatAmount } from '@/lib/format';
 import { MerchantCategoryRow } from '@/components/import/merchant-category-row';
@@ -42,11 +38,7 @@ function errorMessage(error: unknown): string {
 }
 
 export function ImportContent(): JSX.Element {
-  const mapping = useSyncExternalStore(
-    subscribe,
-    getSnapshot,
-    getServerSnapshot
-  );
+  const mapping = useMerchantMapping();
   const [statement, setStatement] = useState<BankStatement | null>(null);
   const [month, setMonth] = useState('');
   const [error, setError] = useState<string | null>(null);

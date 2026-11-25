@@ -39,3 +39,14 @@ Un relevé de solde enregistré par erreur peut être supprimé par son identifi
 #### Scenario: Identifiant inconnu
 - **WHEN** l'identifiant n'existe pas
 - **THEN** la réponse est 404 et rien n'est supprimé
+
+### Requirement: Correspondance commerçant → catégorie enregistrée
+Le choix de catégorie d'un commerçant est enregistré en base et retrouvé sur tout appareil ; « À catégoriser » supprime la correspondance.
+
+#### Scenario: Catégorie choisie
+- **WHEN** l'utilisateur choisit une catégorie pour un commerçant
+- **THEN** elle est enregistrée et réutilisée à la prochaine analyse
+
+#### Scenario: Retour à « À catégoriser »
+- **WHEN** l'utilisateur repasse le commerçant à « À catégoriser »
+- **THEN** la correspondance est supprimée
