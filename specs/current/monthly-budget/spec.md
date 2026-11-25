@@ -99,17 +99,17 @@ L'étape Charges SHALL lister les charges du foyer qui ne sont pas expirées à 
 
 ### Requirement: Ajustement des comptes
 
-L'étape Comptes SHALL lister les comptes actifs et permettre d'ajouter un compte ou d'ajuster le solde d'ouverture et le découvert autorisé d'un compte existant. Les comptes clos SHALL ne pas être proposés à l'ajustement. L'étape Comptes du wizard SHALL exposer : bouton "Ajouter un compte" ouvrant le formulaire `AccountCreateForm` inline, boutons "Modifier" et "Supprimer" sur chaque ligne de compte actif. La modification SHALL permettre d'ajuster le solde d'ouverture et le découvert autorisé. La suppression SHALL suivre les règles de `account-management` (compte vierge supprimé, compte avec données cloturé).
+L'étape Comptes SHALL lister les comptes actifs et permettre d'ajouter un compte ou d'ajuster le solde de départ du mois préparé d'un compte existant (voir « Solde de départ du mois »). Les comptes clos SHALL ne pas être proposés à l'ajustement. L'étape Comptes du wizard SHALL exposer : bouton "Ajouter un compte" ouvrant le formulaire `AccountCreateForm` inline, boutons "Modifier" et "Supprimer" sur chaque ligne de compte actif. La modification SHALL permettre d'ajuster le solde de départ du mois, sans toucher au solde d'ouverture du compte. La suppression SHALL suivre les règles de `account-management` (compte vierge supprimé, compte avec données cloturé).
 
 #### Scenario: Compte oublié
 
 - **WHEN** l'utilisateur crée un compte depuis l'étape Comptes
 - **THEN** le compte est disponible immédiatement dans le reste du parcours et sur le dashboard
 
-#### Scenario: Correction du solde d'ouverture
+#### Scenario: Correction du solde de départ
 
-- **WHEN** l'utilisateur corrige le solde d'ouverture d'un compte actif
-- **THEN** le patrimoine consolidé et le récapitulatif reflètent la correction
+- **WHEN** l'utilisateur corrige le solde de départ d'un compte actif pour le mois préparé
+- **THEN** la valeur est enregistrée pour ce mois et ce compte, et le solde d'ouverture du compte reste inchangé
 
 #### Scenario: Création de compte depuis le wizard
 
@@ -117,11 +117,11 @@ L'étape Comptes SHALL lister les comptes actifs et permettre d'ajouter un compt
 - **WHEN** il clique sur "Ajouter un compte", remplit le formulaire, et confirme
 - **THEN** le compte est créé et apparaît immédiatement dans la liste avec les boutons "Modifier" et "Supprimer"
 
-#### Scenario: Ajustement du solde d'ouverture
+#### Scenario: Ajustement du solde de départ
 
-- **GIVEN** un compte "UBS Courant" avec solde 1 500 CHF
-- **WHEN** l'utilisateur clique sur "Modifier", change le solde à 1 800 CHF, et confirme
-- **THEN** le solde d'ouverture est mis à jour et le patrimoine consolidé reflète la correction
+- **GIVEN** un compte "UBS Courant" dont le solde de départ suggéré du mois est 1 500 CHF
+- **WHEN** l'utilisateur clique sur "Ajuster", change le solde à 1 800 CHF, et confirme
+- **THEN** 1 800 CHF est enregistré comme solde de départ de ce mois pour ce compte et le solde d'ouverture reste inchangé
 
 #### Scenario: Suppression d'un compte vierge
 
@@ -134,6 +134,37 @@ L'étape Comptes SHALL lister les comptes actifs et permettre d'ajouter un compt
 - **GIVEN** l'étape Comptes affiche une liste de comptes
 - **WHEN** la liste est rendue
 - **THEN** les boutons "Modifier" et "Supprimer" restent dans leur container sans déborder, même sur mobile (390px)
+
+### Requirement: Solde de départ du mois
+
+Le système SHALL pouvoir enregistrer, pour un couple (mois `AAAA-MM`, compte), un solde de départ. L'enregistrement SHALL être idempotent : enregistrer deux fois le même couple laisse une seule valeur. L'étape Comptes SHALL afficher pour chaque compte actif la valeur enregistrée si elle existe, sinon la suggestion (fin du mois précédent, découvert de carte à débit différé non reporté). Rien SHALL être enregistré à l'ouverture de l'étape ni à la lecture ; seule une confirmation de l'utilisateur écrit. Le solde est exprimé avec au plus deux décimales et peut être négatif. Le solde d'ouverture du compte SHALL ne pas être modifié par la préparation.
+
+#### Scenario: Valeur enregistrée prioritaire
+
+- **GIVEN** un solde de départ de 1 800 CHF enregistré pour `2026-12` et un compte dont la suggestion est 1 500 CHF
+- **WHEN** l'utilisateur ouvre l'étape Comptes de `2026-12`
+- **THEN** 1 800 CHF est affiché
+
+#### Scenario: Suggestion par défaut
+
+- **GIVEN** aucun solde de départ enregistré pour `2026-12`
+- **WHEN** l'utilisateur ouvre l'étape Comptes de `2026-12`
+- **THEN** la suggestion est affichée et rien n'est enregistré
+
+#### Scenario: Solde d'ouverture intact
+
+- **WHEN** l'utilisateur ajuste le solde de départ d'un mois
+- **THEN** le solde d'ouverture du compte et les autres mois sont inchangés
+
+#### Scenario: Mois sans valeur
+
+- **WHEN** les soldes de départ d'un mois sans enregistrement sont lus
+- **THEN** le résultat est une liste vide, pas une erreur
+
+#### Scenario: Compte inconnu
+
+- **WHEN** l'enregistrement cible un compte inexistant
+- **THEN** il est refusé avec une erreur « introuvable » et rien n'est écrit
 
 ### Requirement: Récapitulatif du mois préparé
 
