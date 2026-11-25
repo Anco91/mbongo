@@ -1,6 +1,6 @@
 ---
 id: charge-owner-scope
-status: review
+status: done
 branch: feat/charge-owner-scope
 tier: medium
 locked_at: 3b02a6e
