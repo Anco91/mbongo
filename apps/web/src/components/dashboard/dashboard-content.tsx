@@ -12,6 +12,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, JSX } from 'react';
+import { useQueryState, parseAsString } from 'nuqs';
 import { useDisplayCurrency } from '@/components/providers/display-currency-provider';
 import { formatAmount } from '@/lib/format';
 import {
@@ -51,7 +52,16 @@ export function DashboardContent(): JSX.Element {
   // Closed accounts are hidden from the charts by default.
   const [showClosed, setShowClosed] = useState(false);
   // Charts scope: null = whole household, else one member's accounts.
-  const [memberId, setMemberId] = useState<string | null>(null);
+  const [memberId, setMemberId] = useQueryState(
+    'membre',
+    parseAsString.withOptions({ history: 'replace' })
+  );
+  const selectMember = useCallback(
+    (id: string | null): void => {
+      void setMemberId(id);
+    },
+    [setMemberId]
+  );
   const { data: members = [] } = useMembers();
   // A scoped member that no longer exists falls back to the household.
   const effectiveMemberId =
@@ -119,7 +129,7 @@ export function DashboardContent(): JSX.Element {
       <MemberScopeChips
         members={members}
         value={effectiveMemberId}
-        onChange={setMemberId}
+        onChange={selectMember}
       />
 
       <SwipeZone onSwipe={changeMonth}>
@@ -169,7 +179,7 @@ export function DashboardContent(): JSX.Element {
           donutData={donutData}
           members={members}
           memberId={effectiveMemberId}
-          onMemberChange={setMemberId}
+          onMemberChange={selectMember}
           formatValue={formatDisplay}
           onClose={() => setFullscreenChart(null)}
         />
