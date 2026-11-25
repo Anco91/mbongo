@@ -23,4 +23,5 @@ export {
   Trash2 as IconTrash,
   AlertTriangle as IconTriangleAlert,
   Bell as IconBell,
+  Upload as IconImport,
 } from 'lucide-react';

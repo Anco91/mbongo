@@ -1,6 +1,6 @@
 ---
 id: 45-import-screen
-status: ready
+status: done
 branch: spec/45-import-screen
 tier: medium
 locked_at:

@@ -1,5 +1,5 @@
 /**
- * Tab Navigation — bottom navigation with 4 tabs, per the maquette.
+ * Tab Navigation — bottom navigation with 5 tabs, per the maquette.
  * Hidden while a create/edit/detail sub-view covers the screen
  * (`routeChrome`, design D4).
  *
@@ -15,6 +15,7 @@ import {
   IconBankStatement,
   IconCalendar,
   IconChartPie,
+  IconImport,
 } from '@/components/ui/icons';
 import { routeChrome } from '@/lib/routes';
 import { JSX } from 'react';
@@ -24,6 +25,7 @@ const tabs = [
   { href: '/charges', label: 'Charges', icon: IconCalendar },
   { href: '/transfers', label: 'Transferts', icon: IconArrowsTransaction },
   { href: '/accounts', label: 'Comptes', icon: IconBankStatement },
+  { href: '/import', label: 'Import', icon: IconImport },
 ] as const;
 
 interface TabContentProps {

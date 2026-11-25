@@ -89,4 +89,4 @@ situation (second CHF salary) needs no model rewrite. Full context: `cdc.md` (ar
 | 43 | `specs/43-dashboard-start-balance.md` | Le solde de départ enregistré ancre la projection du dashboard (mois courant/futur, par compte). Verrouillé : 8 tests rouges. Needs 38, 40 | done | `docs/handoffs/20261125-2024-43-dashboard-start-balance.md` |
 
 | 44 | (fast-track) | Sankey : un virement externe est une dépense du compte source vers le nœud « Virements externes » (devise du compte source). Suite de 37 | done | PR (fast-track) |
-| 45 | (à écrire) `docs/plans/20261125-budget-projection-import.md` § Sous-spec 36 | Import BNP, écran : dépôt local du CSV, aperçu validé, `BalanceSnapshot` depuis le banner, table commerçant → catégorie persistée, rapport du mois. Needs 36 | draft | — |
+| 45 | `specs/45-import-screen.md` | Import BNP, écran : dépôt local du CSV, aperçu validé, `BalanceSnapshot` depuis le banner, table commerçant → catégorie persistée, rapport du mois. Needs 36 | done | — |
