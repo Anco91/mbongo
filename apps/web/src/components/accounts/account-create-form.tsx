@@ -86,7 +86,7 @@ export function AccountCreateForm({
   const hasOverdraft = (form.watch('overdraftLimit') ?? 0) > 0;
 
   const memberOptions = [
-    { value: '', label: '— Couple / non rattaché —' },
+    { value: '', label: 'Foyer (commun)' },
     ...members.map((m) => ({ value: m.id, label: m.firstName })),
   ];
 
@@ -99,14 +99,20 @@ export function AccountCreateForm({
   ];
 
   const onSubmit = form.handleSubmit((data) =>
-    createAccount(data, {
-      onSuccess: (account) => {
-        if (onSaved) {
-          onSaved(account);
-          form.reset();
-        }
+    createAccount(
+      {
+        ...data,
+        memberId: data.memberId === '' ? null : (data.memberId ?? null),
       },
-    })
+      {
+        onSuccess: (account) => {
+          if (onSaved) {
+            onSaved(account);
+            form.reset();
+          }
+        },
+      }
+    )
   );
 
   // If onSaved is provided (inline use), don't show FormSuccess — the parent handles it

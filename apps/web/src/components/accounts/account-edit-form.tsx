@@ -76,7 +76,7 @@ export function AccountEditForm({
   const hasOverdraft = (form.watch('overdraftLimit') ?? 0) > 0;
 
   const memberOptions = [
-    { value: '', label: '— Couple / non rattaché —' },
+    { value: '', label: 'Foyer (commun)' },
     ...members.map((m) => ({ value: m.id, label: m.firstName })),
   ];
 
@@ -98,7 +98,13 @@ export function AccountEditForm({
   }
 
   const onSubmit = form.handleSubmit((data) =>
-    update({ id: account.id, input: data })
+    update({
+      id: account.id,
+      input: {
+        ...data,
+        memberId: data.memberId === '' ? null : (data.memberId ?? null),
+      },
+    })
   );
 
   if (isSuccess) {
@@ -220,7 +226,7 @@ function defaultsOf(account: Account): UpdateAccountInput {
     bank: account.bank,
     currency: account.currency,
     accountType: account.accountType,
-    memberId: account.memberId,
+    memberId: account.memberId ?? '',
     overdraftLimit: account.overdraftLimit,
     deferredCard: account.deferredCard,
     billingDay: account.billingDay,
