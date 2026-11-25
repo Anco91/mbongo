@@ -50,6 +50,15 @@ export type AccountStatus = z.infer<typeof accountStatusSchema>;
 // ============================================================================
 
 /**
+ * Optional id sent by a select: '' (« Foyer », « no account ») reads as null.
+ * Used by the write schemas only; the persisted shape keeps min(1).
+ */
+const optionalIdSchema = z
+  .union([z.literal('').transform(() => null), z.string().min(1)])
+  .nullable()
+  .default(null);
+
+/**
  * Schéma principal pour un Account (forme persistée)
  */
 export const accountSchema = z.object({
@@ -106,11 +115,16 @@ function validateLinkedAccountRefine(
  * Le .partial() doit se faire sur l'objet brut : un schema déjà raffiné
  * (superRefine) n'expose plus .partial().
  */
-const createAccountBase = accountSchema.omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
+const createAccountBase = accountSchema
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    memberId: optionalIdSchema,
+    linkedAccountId: optionalIdSchema,
+  });
 
 /**
  * Schéma pour créer un nouveau Account

@@ -57,7 +57,7 @@ export function AccountEditForm({
 }): JSX.Element {
   const router = useRouter();
   const { data: account, isLoading } = useAccount(accountId);
-  const { data: members = [] } = useMembers();
+  const { data: members = [], isLoading: isMembersLoading } = useMembers();
   const {
     mutate: update,
     isPending: isSaving,
@@ -89,7 +89,8 @@ export function AccountEditForm({
       .map((a) => ({ value: a.id, label: a.name })),
   ];
 
-  if (isLoading || !account) {
+  // Owner options must exist before the select mounts, or its value is lost.
+  if (isLoading || isMembersLoading || !account) {
     return (
       <div className="flex min-h-[200px] items-center justify-center">
         <span>Chargement du compte…</span>
