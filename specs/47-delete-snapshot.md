@@ -3,7 +3,7 @@ id: 47-delete-snapshot
 status: ready
 branch: spec/47-delete-snapshot
 tier: small
-locked_at:
+locked_at: c166070b6cc743cf3a5f06ef6aebe2f68be43bb3
 locked_tests:
   - apps/web/__tests__/snapshot-delete.service.test.ts
 ---
