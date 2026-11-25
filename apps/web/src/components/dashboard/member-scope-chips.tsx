@@ -21,7 +21,7 @@ interface MemberScopeChipsProps {
   value: string | null;
   onChange: (memberId: string | null) => void;
   /** Accounts of the selected member (sub-scope row). */
-  accounts?: ReadonlyArray<Pick<Account, 'id' | 'name'>>;
+  accounts?: ReadonlyArray<Pick<Account, 'id' | 'name' | 'accountType'>>;
   accountId?: string | null;
   onAccountChange?: (accountId: string | null) => void;
 }
@@ -38,9 +38,11 @@ export function MemberScopeChips({
     { value: HOUSEHOLD, label: 'Foyer' },
     ...members.map((m) => ({ value: m.id, label: m.firstName })),
   ];
+  // Savings accounts are not offered as a chart sub-scope.
+  const scopableAccounts = accounts.filter((a) => a.accountType !== 'SAVINGS');
   const accountItems = [
     { value: ALL_ACCOUNTS, label: 'Tous les comptes' },
-    ...accounts.map((a) => ({ value: a.id, label: a.name })),
+    ...scopableAccounts.map((a) => ({ value: a.id, label: a.name })),
   ];
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -49,7 +51,7 @@ export function MemberScopeChips({
         value={value ?? HOUSEHOLD}
         onChange={(v) => onChange(v === HOUSEHOLD ? null : v)}
       />
-      {value !== null && onAccountChange && accounts.length > 0 && (
+      {value !== null && onAccountChange && scopableAccounts.length > 0 && (
         <FilterChips
           items={accountItems}
           value={accountId ?? ALL_ACCOUNTS}

@@ -90,7 +90,7 @@ incomes, transfers, monthly budgets, alerts). Mobile-first PWA.
 | `packages/shared/src/lib/calculation/donut.ts` → `computeDonutExpenses`, `mergeCategorySegments`, `formatPercent`, `SubcategoryExpense` | domain | Donut segments per category (+ optional sub-category breakdown); `mergeCategorySegments` merges planned/realized rows for the legend |
 | `packages/shared/src/lib/calculation/member-scope.ts` → `scopeToMember` | domain | Restricts chart inputs to one member: their accounts' data, charges they own (`chargeOwner`: explicit member, else account owner; common charges only in household); optional `accountId` narrows to one account of that member (ignored for household); transfers need both ends; null = household. Used by `useDashboardData` |
 | `packages/shared/src/domain/charge-owner.ts` → `chargeOwner`, `ownerChoiceToFields`, `fieldsToOwnerChoice` | domain | Owner member of a charge (`shared` → null, else `memberId`, else debited account's member); maps the « Propriétaire / débiteur » select ↔ `{ memberId, shared }`. Replayed by charge badge, member filter, scope, forms; server re-checks exclusivity (422) |
-| `apps/web/src/components/dashboard/member-scope-chips.tsx` → `MemberScopeChips` | ui | « Foyer / <membre> » chips (on `FilterChips`) plus per-account sub-chips (`?compte=`) for dashboard and fullscreen charts |
+| `apps/web/src/components/dashboard/member-scope-chips.tsx` → `MemberScopeChips` | ui | « Foyer / <membre> » chips (on `FilterChips`) plus per-account sub-chips (`?compte=`, no `SAVINGS`), fullscreen charts only; page cards stay Foyer |
 | `apps/web/src/components/charts/` | ui | Sankey, donut, fullscreen chart |
 | `apps/web/src/components/providers/` | ui | QueryProvider, DisplayCurrencyProvider, service worker register |
 
