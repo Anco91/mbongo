@@ -13,7 +13,11 @@
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { type JSX } from 'react';
-import { mergeCategorySegments, type SubcategoryExpense } from '@mbongo/shared';
+import {
+  formatPercent,
+  mergeCategorySegments,
+  type SubcategoryExpense,
+} from '@mbongo/shared';
 
 export interface DonutDatum {
   name: string;
@@ -33,6 +37,44 @@ interface DonutCategoriesChartProps {
   size?: number;
   /** Total au centre de l'anneau (M4, design D5 — défaut : oui). */
   showCenterTotal?: boolean;
+}
+
+/** Minimum share of a slice to carry an on-slice % label (avoids overlap). */
+const MIN_LABEL_SHARE = 0.05;
+
+interface SliceLabelProps {
+  cx?: number;
+  cy?: number;
+  midAngle?: number;
+  innerRadius?: number;
+  outerRadius?: number;
+  value?: number;
+}
+
+function sliceLabel(total: number) {
+  return function SliceLabel({
+    cx = 0,
+    cy = 0,
+    midAngle = 0,
+    innerRadius = 0,
+    outerRadius = 0,
+    value = 0,
+  }: SliceLabelProps): JSX.Element | null {
+    if (total <= 0 || value / total < MIN_LABEL_SHARE) return null;
+    const radius = (innerRadius + outerRadius) / 2;
+    const rad = (-midAngle * Math.PI) / 180;
+    return (
+      <text
+        x={cx + radius * Math.cos(rad)}
+        y={cy + radius * Math.sin(rad)}
+        textAnchor="middle"
+        dominantBaseline="central"
+        className="fill-white text-[10px] font-semibold"
+      >
+        {formatPercent(value, total)}
+      </text>
+    );
+  };
 }
 
 export function DonutCategoriesChart({
@@ -56,6 +98,8 @@ export function DonutCategoriesChart({
             outerRadius="90%"
             paddingAngle={2}
             stroke="none"
+            label={size >= 200 ? sliceLabel(total) : false}
+            labelLine={false}
           >
             {data.map((d) => (
               <Cell
@@ -88,7 +132,11 @@ export function DonutCategoriesChart({
               Total
             </text>
           )}
-          <Tooltip formatter={(value) => formatValue(Number(value))} />
+          <Tooltip
+            formatter={(value) =>
+              `${formatValue(Number(value))} · ${formatPercent(Number(value), total)}`
+            }
+          />
         </PieChart>
       </ResponsiveContainer>
     </div>
@@ -131,6 +179,7 @@ export function DonutLegend({
   layout = 'grid',
 }: DonutLegendProps): JSX.Element {
   const data = mergeCategorySegments(rawData);
+  const total = data.reduce((sum, d) => sum + d.value, 0);
   if (layout === 'grid') {
     return (
       <div className="grid flex-1 grid-cols-2 gap-x-3 gap-y-1.5">
@@ -143,7 +192,7 @@ export function DonutLegend({
               />
               <span className="truncate">{d.name}</span>
               <span className="ml-auto text-slate-400">
-                {formatValue(d.value)}
+                {formatValue(d.value)} · {formatPercent(d.value, total)}
               </span>
             </div>
             <SubRows
@@ -165,7 +214,9 @@ export function DonutLegend({
               style={{ backgroundColor: d.color }}
             />
             <span>{d.name}</span>
-            <span className="text-slate-400">{formatValue(d.value)}</span>
+            <span className="text-slate-400">
+              {formatValue(d.value)} · {formatPercent(d.value, total)}
+            </span>
           </div>
           <SubRows subcategories={d.subcategories} formatValue={formatValue} />
         </div>

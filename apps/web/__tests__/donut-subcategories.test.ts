@@ -7,6 +7,7 @@
 import {
   computeDonutExpenses,
   mergeCategorySegments,
+  formatPercent,
   type Charge,
   type Payment,
   type Transaction,
@@ -219,5 +220,20 @@ describe('mergeCategorySegments', () => {
 
   it('returns an empty list for an empty input', () => {
     expect(mergeCategorySegments([])).toEqual([]);
+  });
+});
+
+describe('formatPercent', () => {
+  it('rounds the share of the total to a whole percent', () => {
+    expect(formatPercent(25, 100)).toBe('25%');
+    expect(formatPercent(1, 3)).toBe('33%');
+  });
+
+  it('shows <1% for a tiny non-zero share', () => {
+    expect(formatPercent(0.2, 100)).toBe('<1%');
+  });
+
+  it('returns 0% when the total is zero', () => {
+    expect(formatPercent(0, 0)).toBe('0%');
   });
 });
