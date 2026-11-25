@@ -7,7 +7,7 @@
  */
 
 import { prisma } from '@/server/db';
-import { NotFoundError } from '@/server/common/http';
+import { BadRequestError, NotFoundError } from '@/server/common/http';
 import type {
   MonthStartBalance,
   SaveMonthStartBalancesInput,
@@ -39,12 +39,18 @@ export class MonthStartBalanceService {
     const ids = input.balances.map((b) => b.accountId);
     const found = await prisma.account.findMany({
       where: { id: { in: ids } },
-      select: { id: true },
+      select: { id: true, status: true },
     });
     const known = new Set(found.map((a) => a.id));
     const missing = ids.find((id) => !known.has(id));
     if (missing !== undefined) {
       throw new NotFoundError('Account', missing);
+    }
+    // A closed account has no start balance to prepare.
+    if (found.some((a) => a.status === 'CLOSED')) {
+      throw new BadRequestError(
+        'Cannot save a start balance for a closed account'
+      );
     }
 
     await prisma.$transaction(
