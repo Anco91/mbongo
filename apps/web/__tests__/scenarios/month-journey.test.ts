@@ -39,7 +39,12 @@ import {
   X2,
 } from '../stubs/month-journey-fixture';
 
-const END_OF_X = { 'a-cur': 1500, 'a-bnp': -320, 'a-over': -100, 'a-sav': 5000 };
+const END_OF_X = {
+  'a-cur': 1500,
+  'a-bnp': -320,
+  'a-over': -100,
+  'a-sav': 5000,
+};
 
 function plan(
   monthKey: string,

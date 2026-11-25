@@ -3,12 +3,7 @@
  * data. Own file: the spec 34 / 38 fixture stays untouched. Dates noon UTC.
  * "Today" is 2026-11-15, so month X = 2026-12 is a future month.
  */
-import type {
-  Account,
-  Charge,
-  Income,
-  Payment,
-} from '@mbongo/shared';
+import type { Account, Charge, Income, Payment } from '@mbongo/shared';
 
 export const STAMP = '2026-01-01T12:00:00.000Z';
 export const X = '2026-12';
@@ -36,13 +31,35 @@ function account(
   };
 }
 
-export const A_CUR = account({ id: 'a-cur', name: 'Compte courant', openingBalance: 1000 });
+export const A_CUR = account({
+  id: 'a-cur',
+  name: 'Compte courant',
+  openingBalance: 1000,
+});
 /** Deferred-debit current account: a negative month end is repaid at month end. */
-export const A_BNP = account({ id: 'a-bnp', name: 'Compte différé', deferredCard: true });
+export const A_BNP = account({
+  id: 'a-bnp',
+  name: 'Compte différé',
+  deferredCard: true,
+});
 /** Ordinary overdraft: carried to the next month. */
-export const A_OVER = account({ id: 'a-over', name: 'Compte à découvert', openingBalance: -100 });
-export const A_SAV = account({ id: 'a-sav', name: 'Épargne', accountType: 'SAVINGS', openingBalance: 5000 });
-export const A_OLD = account({ id: 'a-old', name: 'Ancien compte', openingBalance: 300, status: 'CLOSED' });
+export const A_OVER = account({
+  id: 'a-over',
+  name: 'Compte à découvert',
+  openingBalance: -100,
+});
+export const A_SAV = account({
+  id: 'a-sav',
+  name: 'Épargne',
+  accountType: 'SAVINGS',
+  openingBalance: 5000,
+});
+export const A_OLD = account({
+  id: 'a-old',
+  name: 'Ancien compte',
+  openingBalance: 300,
+  status: 'CLOSED',
+});
 export const ACCOUNTS: Account[] = [A_CUR, A_BNP, A_OVER, A_SAV, A_OLD];
 
 function charge(over: Partial<Charge> & Pick<Charge, 'id' | 'label'>): Charge {
@@ -66,8 +83,18 @@ function charge(over: Partial<Charge> & Pick<Charge, 'id' | 'label'>): Charge {
 }
 
 /** Fixed, no end date: carries over. */
-export const RENT = charge({ id: 'c-rent', label: 'Loyer', amount: 900, dueDay: 3 });
-export const INSURANCE = charge({ id: 'c-ins', label: 'Assurance', amount: 60, dueDay: 10 });
+export const RENT = charge({
+  id: 'c-rent',
+  label: 'Loyer',
+  amount: 900,
+  dueDay: 3,
+});
+export const INSURANCE = charge({
+  id: 'c-ins',
+  label: 'Assurance',
+  amount: 60,
+  dueDay: 10,
+});
 /** One-off, December only. */
 export const TV = charge({
   id: 'c-tv',
