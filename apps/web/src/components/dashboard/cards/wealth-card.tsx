@@ -11,7 +11,7 @@
 import type {
   ConsolidatedBalance,
   NetWorthTerm,
-  ProjectedBalance,
+  WealthView,
 } from '@mbongo/shared';
 import { useDisplayCurrency } from '@/components/providers/display-currency-provider';
 import { formatAmount, formatDate } from '@/lib/format';
@@ -23,16 +23,14 @@ interface WealthCardProps {
   consolidated: ConsolidatedBalance;
   /** Taux courant affiché (pour la conversion parallèle). */
   rate: number | null;
-  /** Termes du patrimoine (un par compte actif), détaillés au survol/focus. */
-  terms: NetWorthTerm[];
   /** Charges dues du mois courant, EUR (null : inconnu). */
   dueChargesEur: number | null;
   /** Patrimoine net des charges dues, EUR. */
   netOfDueEur: number | null;
   /** Reste à vivre des comptes (hors épargne), EUR. */
   remainingToLiveEur: number | null;
-  /** Solde à la fin du mois choisi ; absent : patrimoine du jour. */
-  projection?: ProjectedBalance;
+  /** Chiffres du mois choisi (soldes, ou budget seul pour un mois futur). */
+  view: WealthView;
   /** Mois du curseur, `YYYY-MM` (libellé « Projeté fin <mois> »). */
   selectedMonth?: string;
 }
@@ -53,23 +51,66 @@ function NetWorthTermRow({ term }: { term: NetWorthTerm }): JSX.Element {
   );
 }
 
+function FutureBudgetCard({
+  view,
+  month,
+}: {
+  view: WealthView;
+  month?: string;
+}): JSX.Element {
+  const { displayCurrency, convert } = useDisplayCurrency();
+  const { incomeTotal, chargesTotal, remaining } = view.budget;
+  const rows: Array<[string, number, boolean]> = [
+    ['Revenus prévus', incomeTotal, false],
+    ['Charges prévues', chargesTotal, false],
+    ['Reste à vivre (budget)', remaining, true],
+  ];
+  return (
+    <Card className="rounded-xl">
+      <CardContent className="pt-5">
+        <p className="text-xs text-slate-500">
+          Budget de {month ? monthNameLabel(month) : 'ce mois'} · le solde des
+          comptes n&apos;est pas connu avant le début du mois
+        </p>
+        <dl className="mt-2 space-y-1 text-sm text-slate-600">
+          {rows.map(([label, amount, strong]) => (
+            <div
+              key={label}
+              className={`flex justify-between ${strong ? 'text-xl font-semibold text-slate-900' : ''}`}
+            >
+              <dt>{label}</dt>
+              <dd className="tabular-nums">
+                {formatAmount(convert(amount), displayCurrency)}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function WealthCard({
   consolidated,
   rate,
-  terms,
   dueChargesEur,
   netOfDueEur,
   remainingToLiveEur,
-  projection,
+  view,
   selectedMonth,
 }: WealthCardProps): JSX.Element {
   const { displayCurrency, convert } = useDisplayCurrency();
   const { rateSource } = useDisplayCurrency();
-  const totalEur = projection ? projection.totalEur : consolidated.totalEur;
-  const isProjected = projection !== undefined && projection.state !== 'past';
+  const { terms } = view;
+  const totalEur = view.totalEur;
+  const isProjected = view.state !== 'past';
   // Dues, net worth and reste à vivre describe today: shown on the current
   // month only. A past or future month already nets its own charges.
-  const showTodayLines = !projection || projection.state === 'current';
+  const showTodayLines = view.state === 'current';
+
+  if (view.kind === 'budget') {
+    return <FutureBudgetCard view={view} month={selectedMonth} />;
+  }
 
   return (
     <Card

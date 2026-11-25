@@ -107,8 +107,7 @@ export function DashboardContent(): JSX.Element {
     netOfDueEur,
     remainingToLiveEur,
     rate,
-    netWorthTerms,
-    projection,
+    wealthView,
     sankeyData,
     donutData,
     scopedSankeyData,
@@ -147,11 +146,10 @@ export function DashboardContent(): JSX.Element {
       <WealthCard
         consolidated={consolidated}
         rate={rate}
-        terms={netWorthTerms}
         dueChargesEur={dueChargesEur}
         netOfDueEur={netOfDueEur}
         remainingToLiveEur={remainingToLiveEur}
-        projection={projection}
+        view={wealthView}
         selectedMonth={selectedMonth}
       />
 

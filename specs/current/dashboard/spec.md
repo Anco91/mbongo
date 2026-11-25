@@ -40,13 +40,14 @@ L'UI du dashboard SHALL afficher le total consolidé en EUR au taux courant (tau
 
 ### Requirement: Patrimoine projeté à la fin du mois
 
-La carte patrimoine SHALL suivre le curseur mensuel. Le solde d'un compte « du jour » SHALL ne compter que les transactions datées d'aujourd'hui ou avant ; une transaction future ne SHALL pas modifier le patrimoine du jour. Pour un mois passé, la carte SHALL afficher le patrimoine réel à la fin de ce mois, sans libellé de projection. Pour le mois courant et les mois futurs, elle SHALL afficher « Projeté fin <mois> » (mois en toutes lettres, sans l'année) : soldes d'aujourd'hui, plus les transactions futures, les revenus dus non confirmés (au montant prévu, jamais en double d'un revenu confirmé), les paiements `PENDING` échus jusqu'à la fin du mois (retards et charges provisionnées compris), les jambes cibles estimées des transferts non encore reçues et le prochain règlement de chaque carte à débit différé. Seuls les comptes actifs SHALL compter.
+La carte patrimoine SHALL suivre le curseur mensuel. Le solde d'un compte « du jour » SHALL ne compter que les transactions datées d'aujourd'hui ou avant ; une transaction future ne SHALL pas modifier le patrimoine du jour. Pour un mois passé, la carte SHALL afficher le patrimoine réel à la fin de ce mois, sans libellé de projection. Pour un mois futur, elle SHALL afficher uniquement le budget du mois (« Revenus prévus », « Charges prévues », « Reste à vivre (budget) »), jamais un solde de compte, une ligne de comptes ni un patrimoine reporté : le solde d'un mois qui n'a pas commencé est inconnu. Pour le mois courant, elle SHALL afficher « Projeté fin <mois> » (mois en toutes lettres, sans l'année), lignes et total issus des mêmes soldes : soldes d'aujourd'hui, plus les transactions futures, les revenus dus non confirmés (au montant prévu, jamais en double d'un revenu confirmé), les paiements `PENDING` échus jusqu'à la fin du mois (retards et charges provisionnées compris), les jambes cibles estimées des transferts non encore reçues et le prochain règlement de chaque carte à débit différé. Seuls les comptes actifs SHALL compter.
 
 #### Scenario: Mois futur
 
 - **GIVEN** le curseur sur décembre
 - **WHEN** le dashboard s'affiche
-- **THEN** la carte patrimoine indique « Projeté fin décembre » avec le solde projeté
+- **THEN** la carte affiche « Budget de décembre » avec revenus prévus, charges prévues et reste à vivre, sans solde ni ligne de comptes
+- **AND** janvier affiche son propre budget, indépendant de décembre et des soldes des comptes
 
 #### Scenario: Mois passé
 
