@@ -299,3 +299,11 @@ Le système SHALL calculer le plan d'un mois à partir des échéances attendues
 - **WHEN** un compte à débit différé termine le mois en négatif
 - **THEN** son solde logique de départ du mois suivant est 0 ; un compte ordinaire à découvert garde son solde négatif
 
+### Requirement: Budget d'un mois futur sans report
+Un mois futur affiche uniquement les revenus et charges de ce mois ; aucun solde de compte n'y est reporté. Un solde de départ enregistré ne change pas cet affichage.
+
+#### Scenario: Pas de report d'un mois à l'autre
+- **GIVEN** des revenus et charges identiques en décembre et en janvier
+- **WHEN** le curseur passe de décembre à janvier
+- **THEN** le reste à vivre est identique et aucun patrimoine n'augmente
+

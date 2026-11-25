@@ -1,6 +1,6 @@
 ---
 id: 48-future-month-budget-only
-status: ready
+status: done
 branch: spec/48-future-month-budget-only
 tier: medium
 locked_at: e9850ba1f87e1f6c019985907282cbfc4c59e61f

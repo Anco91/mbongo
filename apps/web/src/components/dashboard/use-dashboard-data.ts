@@ -15,12 +15,11 @@ import { paymentQueries } from '@/queries/payments';
 import { monthStartBalanceQueries } from '@/queries/month-start-balances';
 import {
   balanceAsOf,
-  computeProjectedBalance,
+  computeWealthView,
   computeConsolidatedBalance,
   computeDonutExpenses,
   computeSankeyFlows,
   excludeClosedAccounts,
-  listNetWorthTerms,
   scopeToMember,
   computeMonthlyBudget,
   counterValue,
@@ -34,9 +33,8 @@ import {
   type Payment,
   type Transaction,
   type CategoryExpense,
-  type NetWorthTerm,
   type SankeyData,
-  type ProjectedBalance,
+  type WealthView,
 } from '@mbongo/shared';
 import { useAccounts } from '@/hooks/use-accounts';
 import { useTransactions } from '@/hooks/use-transactions';
@@ -55,8 +53,8 @@ interface DashboardData {
   consolidated: ReturnType<typeof computeConsolidatedBalance>;
   rate: number | null;
   /** Balances at the end of the selected month (real if past, else projected). */
-  projection: ProjectedBalance;
-  netWorthTerms: NetWorthTerm[];
+  /** Numbers of the wealth card (budget only for a future month). */
+  wealthView: WealthView;
   sankeyData: SankeyData;
   donutData: CategoryExpense[];
   /** Same charts narrowed to the member/account scope (fullscreen only). */
@@ -182,39 +180,58 @@ export function useDashboardData(
     [accounts, balances, transfers, rate, rateDate]
   );
 
-  // Solde au dernier jour du mois choisi : réel (passé) ou projeté.
-  const projection = useMemo(
+  // Chiffres de la carte patrimoine : une seule fonction pure. Un mois futur
+  // montre le budget du mois seulement, jamais un solde reporté.
+  const wealthPayments = useMemo(() => {
+    const byId = new Map(
+      [...payments, ...projectionPayments].map((p) => [p.id, p])
+    );
+    return [...byId.values()];
+  }, [payments, projectionPayments]);
+  const confirmedIncome = useMemo(
     () =>
-      computeProjectedBalance({
+      transactions
+        .filter((t) => t.incomeId)
+        .map((t) => ({
+          incomeId: t.incomeId ?? null,
+          budgetMonth: t.budgetMonth ?? null,
+          amount: t.amount,
+        })),
+    [transactions]
+  );
+  const wealthView = useMemo(
+    () =>
+      computeWealthView({
         accounts,
         transactions,
         transfers,
-        payments: projectionPayments,
+        payments: wealthPayments,
         charges,
         incomes,
+        confirmedIncome,
         today: now,
         monthKey: selectedMonth,
         rate,
         startOverrides,
+        convert: (amount, currency) =>
+          currency === 'CHF' && consolidated.rate
+            ? counterValue(amount, consolidated.rate)
+            : amount,
       }),
     [
       accounts,
       transactions,
       transfers,
-      projectionPayments,
+      wealthPayments,
       charges,
       incomes,
+      confirmedIncome,
       now,
       selectedMonth,
       rate,
       startOverrides,
+      consolidated.rate,
     ]
-  );
-
-  // Termes du patrimoine (détail au survol de la carte).
-  const netWorthTerms = useMemo(
-    () => listNetWorthTerms(accounts, balances),
-    [accounts, balances]
   );
 
   // Fenêtre mensuelle du mois choisi (curseur).
@@ -334,8 +351,7 @@ export function useDashboardData(
     chargesById,
     consolidated,
     rate,
-    projection,
-    netWorthTerms,
+    wealthView,
     sankeyData: pageCharts.sankeyData,
     donutData: pageCharts.donutData,
     scopedSankeyData: scopedCharts.sankeyData,

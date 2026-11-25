@@ -3,7 +3,6 @@
  * dashboard wealth card shows for a month. A past or current month shows
  * account balances (lines and total from the same balances); a future month
  * shows the month budget only (income − charges), never an account balance.
- * Advisor stub: the Executor replaces the body and keeps the signature.
  *
  * @packageDocumentation
  */
@@ -15,8 +14,13 @@ import type { Transaction } from '../../schemas/transaction';
 import type { Transfer } from '../../schemas/transfer';
 import type { ConfirmedIncomeEntry } from '../../domain/income';
 import type { CurrencyConverter } from '../../domain/schedule';
-import type { NetWorthTerm } from './consolidated';
-import type { MonthState } from './projected-balance';
+import { listNetWorthTerms, type NetWorthTerm } from './consolidated';
+import { computeMonthPlan } from './month-journey';
+import {
+  computeMonthState,
+  computeProjectedBalance,
+  type MonthState,
+} from './projected-balance';
 
 export interface WealthViewInput {
   accounts: Account[];
@@ -48,6 +52,50 @@ export interface WealthView {
   budget: { incomeTotal: number; chargesTotal: number; remaining: number };
 }
 
-export function computeWealthView(_input: WealthViewInput): WealthView {
-  throw new Error('not implemented');
+/**
+ * Numbers of the wealth card for a month. A future month never inherits an
+ * account balance: only that month's income and charges are shown. Past and
+ * current months show the (projected) balances, lines and total from the same
+ * balances.
+ */
+export function computeWealthView(input: WealthViewInput): WealthView {
+  const { monthKey, today } = input;
+  const state = computeMonthState(monthKey, today);
+  const plan = computeMonthPlan({
+    monthKey,
+    accounts: input.accounts,
+    charges: input.charges,
+    payments: input.payments,
+    incomes: input.incomes,
+    confirmedIncome: input.confirmedIncome,
+    previousEndBalances: null,
+    convert: input.convert,
+  });
+  const budget = {
+    incomeTotal: plan.incomeTotal,
+    chargesTotal: plan.chargesTotal,
+    remaining: plan.remaining,
+  };
+  if (state === 'future') {
+    return { state, kind: 'budget', terms: [], totalEur: null, budget };
+  }
+  const projection = computeProjectedBalance({
+    accounts: input.accounts,
+    transactions: input.transactions,
+    transfers: input.transfers,
+    payments: input.payments,
+    charges: input.charges,
+    incomes: input.incomes,
+    today,
+    monthKey,
+    rate: input.rate,
+    startOverrides: input.startOverrides,
+  });
+  return {
+    state,
+    kind: 'balances',
+    terms: listNetWorthTerms(input.accounts, projection.balances),
+    totalEur: projection.totalEur,
+    budget,
+  };
 }
