@@ -40,6 +40,9 @@ export interface SankeyData {
   links: SankeyLink[];
 }
 
+/** Destination node of transfers to an account outside the household. */
+const EXTERNAL_TRANSFER_NODE = 'Virements externes';
+
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
@@ -187,7 +190,17 @@ export function computeSankeyFlows(params: {
   // 2. Transferts : compte source → compte cible, dans la devise du compte cible
   // (jamais un revenu : le compte cible ne reçoit que la jambe de transfert)
   for (const tr of transfers) {
-    if (tr.targetAccountId === null) continue; // externe : ligne 44
+    if (tr.targetAccountId === null) {
+      // Externe : sortie du foyer, dépense non catégorisée du compte source
+      const external = accountMap.get(tr.sourceAccountId);
+      addLink(
+        external ? external.name : 'Compte émetteur',
+        EXTERNAL_TRANSFER_NODE,
+        tr.amountSent,
+        external?.currency ?? 'EUR'
+      );
+      continue;
+    }
     const srcAccount = accountMap.get(tr.sourceAccountId);
     const tgtAccount = accountMap.get(tr.targetAccountId);
     const srcName = srcAccount ? srcAccount.name : 'Compte émetteur';
