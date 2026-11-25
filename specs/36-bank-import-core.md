@@ -3,7 +3,7 @@ id: 36-bank-import-core
 status: ready
 branch: spec/36-bank-import-core
 tier: medium
-locked_at: PENDING
+locked_at: 6f07930f7c28e3835e626935aa39c235a19b14ad
 locked_tests:
   - apps/web/__tests__/bank-import.test.ts
 ---
