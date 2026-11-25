@@ -6,7 +6,12 @@
  */
 
 import { JSX } from 'react';
-import type { Account, Charge, Payment } from '@mbongo/shared';
+import {
+  chargeOwner,
+  type Account,
+  type Charge,
+  type Payment,
+} from '@mbongo/shared';
 import { OwnerBadge } from '@/components/patterns';
 import { AccountChip, StatusBadge, TypeBadge } from '@/components/ui';
 import { formatAmount, formatDate } from '@/lib/format';
@@ -34,7 +39,7 @@ export function ChargeRow({
         <StatusBadge status={status} />
       </div>
       <div className="mt-1 flex items-center gap-2">
-        <OwnerBadge memberId={account?.memberId ?? null} />
+        <OwnerBadge memberId={chargeOwner(charge, account)} />
         <TypeBadge type={charge.type} />
         {account && <AccountChip name={account.name} />}
       </div>

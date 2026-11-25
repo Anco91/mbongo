@@ -7,7 +7,12 @@
 
 import { JSX } from 'react';
 import Link from 'next/link';
-import type { Account, Charge, Payment } from '@mbongo/shared';
+import {
+  chargeOwner,
+  type Account,
+  type Charge,
+  type Payment,
+} from '@mbongo/shared';
 import { DeleteButton, DetailRow, OwnerBadge } from '@/components/patterns';
 import { AccountChip, StatusBadge, TypeBadge } from '@/components/ui';
 import { Separator } from '@/components/ui/separator';
@@ -38,7 +43,7 @@ export function ChargeDetail({
   return (
     <>
       <div className="flex items-center gap-2">
-        <OwnerBadge memberId={account?.memberId ?? null} />
+        <OwnerBadge memberId={chargeOwner(charge, account)} />
         <TypeBadge type={charge.type} />
         <StatusBadge status={status} />
         {account && <AccountChip name={account.name} />}
