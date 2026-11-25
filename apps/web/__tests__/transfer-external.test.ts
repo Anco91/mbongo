@@ -88,7 +88,8 @@ describe('createTransferSchema, external transfer', () => {
   });
 
   it('keeps an internal transfer valid without an external label', () => {
-    const { externalLabel: _label, ...internal } = external;
+    const internal = { ...external };
+    delete (internal as { externalLabel?: string }).externalLabel;
     const result = createTransferSchema.safeParse({
       ...internal,
       targetAccountId: 'tgt',
