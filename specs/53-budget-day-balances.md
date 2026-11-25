@@ -3,7 +3,7 @@ id: 53-budget-day-balances
 status: done
 branch: test/53-budget-day-balances
 tier: small
-locked_at:
+locked_at: 4d75460d74a0712c8d15aed63efb163e95777ad5
 locked_tests:
   - apps/web/__tests__/scenarios/budget-day-balances.test.ts
 ---
