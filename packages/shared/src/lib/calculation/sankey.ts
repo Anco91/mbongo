@@ -187,6 +187,7 @@ export function computeSankeyFlows(params: {
   // 2. Transferts : compte source → compte cible, dans la devise du compte cible
   // (jamais un revenu : le compte cible ne reçoit que la jambe de transfert)
   for (const tr of transfers) {
+    if (tr.targetAccountId === null) continue; // externe : ligne 44
     const srcAccount = accountMap.get(tr.sourceAccountId);
     const tgtAccount = accountMap.get(tr.targetAccountId);
     const srcName = srcAccount ? srcAccount.name : 'Compte émetteur';

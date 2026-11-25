@@ -119,3 +119,16 @@ Le taux de repli du patrimoine consolidé SHALL traiter un transfert `CLOSED` po
 
 - **GIVEN** un transfert `CLOSED` avec taux effectif 0,95 et un transfert `ESTIMATED` plus récent à 0,93
 - **THEN** le taux de repli est 0,95
+
+### Requirement: Virement vers un compte externe
+Un virement peut n'avoir ni compte cible ni taux : il porte un libellé de destinataire (`externalLabel`) et une seule jambe, la sortie du compte source.
+
+#### Scenario: Création d'un virement externe
+- **GIVEN** un compte source ouvert et un libellé de destinataire
+- **WHEN** l'utilisateur crée le virement avec « Compte externe »
+- **THEN** le virement est `COMPLETED`, sans jambe cible, et la liste affiche « source → libellé » avec le mémo
+
+#### Scenario: Compte source clos
+- **WHEN** la source est clôturée
+- **THEN** la création est refusée (422) ; la réception d'un virement externe est refusée (409)
+

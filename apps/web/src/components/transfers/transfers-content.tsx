@@ -25,6 +25,7 @@ import {
   transferFees,
   filterVisibleTransfers,
   isTransferClosed,
+  isExternalTransfer,
   type Transfer,
 } from '@mbongo/shared';
 import { formatAmount, formatDate } from '@/lib/format';
@@ -89,7 +90,9 @@ export function TransfersContent(): JSX.Element {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium text-slate-800">
                   {accountName(transfer.sourceAccountId)} →{' '}
-                  {accountName(transfer.targetAccountId)}
+                  {transfer.targetAccountId === null
+                    ? (transfer.externalLabel ?? 'Compte externe')
+                    : accountName(transfer.targetAccountId)}
                 </CardTitle>
                 <div className="flex items-center gap-2">
                   <StatusBadge status={statusLabel(transfer.status)} />
@@ -106,63 +109,72 @@ export function TransfersContent(): JSX.Element {
                 {formatAmount(transfer.amountSent, 'CHF')} envoyés
               </div>
 
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="rounded-lg bg-slate-50 p-2.5">
-                  <p className="text-slate-500">Phase 1 · Estimé</p>
-                  <p className="mt-1 font-semibold text-slate-800">
-                    {formatAmount(
-                      counterValue(transfer.amountSent, transfer.rateEstimated),
-                      'EUR'
-                    )}
-                  </p>
-                  <p className="text-[11px] text-slate-400">
-                    taux de référence {transfer.rateEstimated} (
-                    {formatDate(transfer.rateDate)})
-                  </p>
-                </div>
-                {transfer.status === 'COMPLETED' &&
-                transfer.amountReceived !== null ? (
-                  <div className="rounded-lg bg-emerald-50 p-2.5">
-                    <p className="text-slate-500">Phase 2 · Réalisé</p>
+              {transfer.memo && (
+                <p className="text-xs text-slate-600">{transfer.memo}</p>
+              )}
+
+              {isExternalTransfer(transfer) ? null : (
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div className="rounded-lg bg-slate-50 p-2.5">
+                    <p className="text-slate-500">Phase 1 · Estimé</p>
                     <p className="mt-1 font-semibold text-slate-800">
-                      {formatAmount(transfer.amountReceived, 'EUR')}
-                    </p>
-                    <p className="text-[11px] text-slate-400">
-                      Taux effectif :{' '}
-                      {transfer.rateEffective ??
-                        effectiveRate(
-                          transfer.amountReceived,
-                          transfer.amountSent
-                        )}{' '}
-                      · frais{' '}
                       {formatAmount(
-                        transfer.fees ??
-                          transferFees(
-                            counterValue(
-                              transfer.amountSent,
-                              transfer.rateEstimated
-                            ),
-                            transfer.amountReceived
-                          ),
+                        counterValue(
+                          transfer.amountSent,
+                          transfer.rateEstimated
+                        ),
                         'EUR'
                       )}
                     </p>
-                    {transfer.receivedAt && (
-                      <p className="text-[11px] text-slate-400">
-                        Crédité le {formatDate(transfer.receivedAt)}
-                      </p>
-                    )}
-                  </div>
-                ) : transfer.status === 'ESTIMATED' ? (
-                  <div className="rounded-lg bg-slate-50 p-2.5 opacity-90">
-                    <p className="text-slate-500">Phase 2 · Réalisé</p>
-                    <p className="mt-1 text-[11px] italic text-slate-400">
-                      En attente du crédit
+                    <p className="text-[11px] text-slate-400">
+                      taux de référence {transfer.rateEstimated} (
+                      {formatDate(transfer.rateDate)})
                     </p>
-                    <CompleteTransferForm transferId={transfer.id} />
                   </div>
-                ) : null}
-              </div>
+                  {transfer.status === 'COMPLETED' &&
+                  transfer.amountReceived !== null ? (
+                    <div className="rounded-lg bg-emerald-50 p-2.5">
+                      <p className="text-slate-500">Phase 2 · Réalisé</p>
+                      <p className="mt-1 font-semibold text-slate-800">
+                        {formatAmount(transfer.amountReceived, 'EUR')}
+                      </p>
+                      <p className="text-[11px] text-slate-400">
+                        Taux effectif :{' '}
+                        {transfer.rateEffective ??
+                          effectiveRate(
+                            transfer.amountReceived,
+                            transfer.amountSent
+                          )}{' '}
+                        · frais{' '}
+                        {formatAmount(
+                          transfer.fees ??
+                            transferFees(
+                              counterValue(
+                                transfer.amountSent,
+                                transfer.rateEstimated
+                              ),
+                              transfer.amountReceived
+                            ),
+                          'EUR'
+                        )}
+                      </p>
+                      {transfer.receivedAt && (
+                        <p className="text-[11px] text-slate-400">
+                          Crédité le {formatDate(transfer.receivedAt)}
+                        </p>
+                      )}
+                    </div>
+                  ) : transfer.status === 'ESTIMATED' ? (
+                    <div className="rounded-lg bg-slate-50 p-2.5 opacity-90">
+                      <p className="text-slate-500">Phase 2 · Réalisé</p>
+                      <p className="mt-1 text-[11px] italic text-slate-400">
+                        En attente du crédit
+                      </p>
+                      <CompleteTransferForm transferId={transfer.id} />
+                    </div>
+                  ) : null}
+                </div>
+              )}
             </CardContent>
           </Card>
         )}

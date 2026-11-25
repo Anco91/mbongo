@@ -7,6 +7,7 @@
  * @packageDocumentation
  */
 
+import { isExternalTransfer } from './transfer-external';
 import { counterValue, transferFees } from './conversion';
 
 // ============================================================================
@@ -16,7 +17,7 @@ import { counterValue, transferFees } from './conversion';
 /** Transfer record fields used by the leg check. */
 export interface TransferLegsSource {
   sourceAccountId: string;
-  targetAccountId: string;
+  targetAccountId: string | null;
   amountSent: number;
   rateEstimated: number;
   amountReceived: number | null;
@@ -101,13 +102,18 @@ function targetIssues(
 }
 
 function receivedIssues(transfer: TransferLegsSource): TransferLegIssue[] {
+  if (isExternalTransfer(transfer)) return [];
   return transfer.status === 'COMPLETED' && transfer.amountReceived === null
     ? ['AMOUNT_RECEIVED_MISSING']
     : [];
 }
 
 function feesIssues(transfer: TransferLegsSource): TransferLegIssue[] {
-  if (transfer.status !== 'COMPLETED' || transfer.amountReceived === null) {
+  if (
+    isExternalTransfer(transfer) ||
+    transfer.status !== 'COMPLETED' ||
+    transfer.amountReceived === null
+  ) {
     return [];
   }
   if (transfer.fees === null) return ['FEES_GAP'];

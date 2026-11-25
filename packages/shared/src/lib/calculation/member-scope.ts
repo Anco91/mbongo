@@ -32,7 +32,9 @@ export function scopeToMember(
     accounts,
     transactions: input.transactions.filter((t) => ids.has(t.accountId)),
     transfers: input.transfers.filter(
-      (t) => ids.has(t.sourceAccountId) && ids.has(t.targetAccountId)
+      (t) =>
+        ids.has(t.sourceAccountId) &&
+        (t.targetAccountId === null || ids.has(t.targetAccountId))
     ),
     charges,
     payments: input.payments.filter((p) => chargeIds.has(p.chargeId)),
