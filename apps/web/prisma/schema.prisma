@@ -34,30 +34,31 @@ model Member {
 
 /// Account represents a bank account or financial account
 model Account {
-  id                String            @id @default(uuid())
-  name              String
-  bank              String?
-  currency          String // "CHF" | "EUR"
-  accountType       String // "CURRENT"|"CREDIT_CARD"|"JOINT"|"SAVINGS"
-  memberId          String?
-  member            Member?           @relation(fields: [memberId], references: [id])
-  overdraftLimit    Float             @default(0)
-  deferredCard      Boolean           @default(false)
-  billingDay        Int?
-  linkedAccountId   String?
-  linkedAccount     Account?          @relation("CardSettlement", fields: [linkedAccountId], references: [id])
-  settlementCards   Account[]         @relation("CardSettlement")
-  openingBalance    Float             @default(0) // renamed from balance
-  status            String            @default("ACTIVE") // "ACTIVE" | "CLOSED"
-  closedAt          DateTime?
-  transactions      Transaction[]
-  snapshots         BalanceSnapshot[]
-  charges           Charge[] // existing relation preserved
-  incomes           Income[]
-  outgoingTransfers Transfer[]        @relation("TransferSourceAccount")
-  incomingTransfers Transfer[]        @relation("TransferTargetAccount")
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  id                 String              @id @default(uuid())
+  name               String
+  bank               String?
+  currency           String // "CHF" | "EUR"
+  accountType        String // "CURRENT"|"CREDIT_CARD"|"JOINT"|"SAVINGS"
+  memberId           String?
+  member             Member?             @relation(fields: [memberId], references: [id])
+  overdraftLimit     Float               @default(0)
+  deferredCard       Boolean             @default(false)
+  billingDay         Int?
+  linkedAccountId    String?
+  linkedAccount      Account?            @relation("CardSettlement", fields: [linkedAccountId], references: [id])
+  settlementCards    Account[]           @relation("CardSettlement")
+  openingBalance     Float               @default(0) // renamed from balance
+  status             String              @default("ACTIVE") // "ACTIVE" | "CLOSED"
+  closedAt           DateTime?
+  transactions       Transaction[]
+  snapshots          BalanceSnapshot[]
+  charges            Charge[] // existing relation preserved
+  incomes            Income[]
+  monthStartBalances MonthStartBalance[]
+  outgoingTransfers  Transfer[]          @relation("TransferSourceAccount")
+  incomingTransfers  Transfer[]          @relation("TransferTargetAccount")
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
 
   @@index([name])
   @@index([memberId])
@@ -234,4 +235,17 @@ model MonthlyBudget {
   updatedAt  DateTime  @updatedAt
 
   @@map("monthly_budgets")
+}
+
+model MonthStartBalance {
+  id        String   @id @default(uuid())
+  month     String
+  accountId String
+  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  balance   Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([month, accountId])
+  @@map("month_start_balances")
 }

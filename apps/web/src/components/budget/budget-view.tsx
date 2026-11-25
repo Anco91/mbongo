@@ -58,7 +58,7 @@ export function BudgetView({
       case 1:
         return <ChargesStep month={month} />;
       case 2:
-        return <AccountsStep />;
+        return <AccountsStep month={month} />;
       case 3:
         return <RecapStep month={month} />;
       default:

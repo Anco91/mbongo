@@ -22,11 +22,12 @@ incomes, transfers, monthly budgets, alerts). Mobile-first PWA.
 - `packages/shared/src/lib/calculation/` — pure chart/aggregate calculations (month, consolidated, donut, sankey) — called by dashboard.
 - `packages/shared/src/contracts/` — `<Resource>Http` interfaces: the HTTP contract the client repositories implement.
 - `apps/web/src/server/<resource>/` — `<resource>.service.ts` (Prisma CRUD + findMany) and `<resources>.controller.ts` (validate → delegate → respond) — wired by `app/api/`.
+- `apps/web/src/server/month-start-balances/` — service + controller of the persisted logical start balance per (month, account); `PUT/GET /api/month-start-balances/{month}` (spec 40).
 - `apps/web/src/server/common/` — `http.ts` (parse body/query, error → HTTP mapping), `where-translator.ts` (filter → Prisma where); `server/db.ts` = Prisma client singleton.
 - `apps/web/src/app/api/` — route handlers, pure wiring onto controllers.
 - `apps/web/src/app/<route>/` — pages (routing only), English URLs; `error.tsx` / `loading.tsx` per route.
 - `apps/web/src/repositories/` — typed client for `/api`, one per resource, implements `contracts/*.http.ts`, parses responses with shared schemas.
-- `apps/web/src/queries/` — `<resource>Queries` factories (`all()`, `list()`, `detail()` → `queryOptions`): only source of query keys; members, accounts, transactions, charges, payments, incomes, transfers, monthly budgets, exchange rate — consumed by hooks.
+- `apps/web/src/queries/` — `<resource>Queries` factories (`all()`, `list()`, `detail()` → `queryOptions`): only source of query keys; members, accounts, transactions, charges, payments, incomes, transfers, monthly budgets, month start balances, exchange rate — consumed by hooks.
 - `apps/web/src/hooks/` — TanStack Query hooks per resource (only consumers of repositories).
 - `apps/web/src/components/{ui,form,patterns,charts}/` — domain-free primitives, form kit, shared patterns, chart renderers.
 - `apps/web/src/components/<domain>/` — `<Domain>View` → `<Domain>Guard` → `<Domain>Content` + rows/forms of that domain.
@@ -61,7 +62,7 @@ incomes, transfers, monthly budgets, alerts). Mobile-first PWA.
 | `apps/web/src/server/common/where-translator.ts` | infra | `createWhereTranslator` filter → Prisma where |
 | `apps/web/src/server/` | module | One folder per resource: service + controller |
 | `apps/web/src/repositories/` | client | Typed `/api` client per resource |
-| `apps/web/src/queries/` | client | `memberQueries`, `accountQueries`, `transactionQueries`, `chargeQueries`, `paymentQueries`, `incomeQueries`, `transferQueries`, `monthlyBudgetQueries`, `exchangeRateQueries`, `snapshotQueries`: query keys + `queryOptions`; reuse, never hardcode keys |
+| `apps/web/src/queries/` | client | `memberQueries`, `accountQueries`, `transactionQueries`, `chargeQueries`, `paymentQueries`, `incomeQueries`, `transferQueries`, `monthlyBudgetQueries`, `monthStartBalanceQueries`, `exchangeRateQueries`, `snapshotQueries`: query keys + `queryOptions`; reuse, never hardcode keys |
 | `apps/web/src/hooks/` | client | TanStack Query hooks per resource |
 | `apps/web/src/lib/` | util | `api.ts` request, `format.ts`, `routes.ts`, month navigation/queries, filters, PWA |
 | `apps/web/src/lib/month-navigation.ts` → `monthNameLabel` | util | Month name alone from `YYYY-MM` (date-fns, French), e.g. « novembre ». Used by « Projeté fin <mois> » in `WealthCard` |
@@ -84,6 +85,8 @@ incomes, transfers, monthly budgets, alerts). Mobile-first PWA.
 | `packages/shared/src/domain/balance.ts` → `balanceAsOf` | domain | Balance of an account at the end of a UTC day (`openingBalance` + transactions dated up to it, cent-rounded). Today's balances and `computeStatementGap` use it |
 | `packages/shared/src/lib/calculation/projected-balance.ts` → `computeProjectedBalance`, `computeMonthState` | domain | Active-account balances at the end of a month: real if past, else balance today plus future transactions, unconfirmed incomes, PENDING payments (overdue and provisioned included), missing ESTIMATED transfer legs, next card settlement; `totalEur` consolidated. « Projeté fin <mois> » in `WealthCard` |
 | `packages/shared/src/lib/calculation/month-journey.ts` → `expectedMonthPayments`, `suggestMonthStart`, `computeMonthPlan` | domain | Plan of a month prepared at its start: persisted payments plus missing scheduled ones (matched on `dueDate` day; open-ended one-off and ended items absent), budget totals, remaining, logical start balance per ACTIVE account (deferred-card overdraft not carried, overrides win). Pure; wiring in rows 40-42 |
+| `packages/shared/src/schemas/month-start-balance.ts` → `monthStartBalanceSchema`, `saveMonthStartBalancesSchema` | schema | Row (month, account, balance) and idempotent save body (≥ 1 account, unique, ≤ 2 decimals, negative allowed). Table `MonthStartBalance`; `openingBalance` untouched by preparation |
+| `apps/web/src/components/budget/use-month-start.ts` → `useMonthStart` | ui | `suggested` (`suggestMonthStart` over previous month end via `computeProjectedBalance`) and `saved` start balances of a month; used by `AccountsStep` |
 | `apps/web/src/queries/payments.ts` → `paymentQueries.pendingUntil`, `pendingUntilQuery` | client | PENDING payments due up to the end of a month, overdue included; dashboard dues and projection, prefetched by `DashboardGuard` |
 | `packages/shared/src/lib/calculation/active-accounts.ts` | domain | `excludeClosedAccounts`: drops closed accounts and what points at them before chart calculations |
 | `packages/shared/src/domain/transfer-archive.ts` → `isTransferClosed`, `filterVisibleTransfers` | domain | Closed (`CLOSED`) transfers hidden by default in the transfers list; order kept, input untouched |

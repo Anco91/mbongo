@@ -25,6 +25,7 @@ export * from './schemas/transfer';
 export * from './schemas/snapshot';
 export * from './schemas/income';
 export * from './schemas/monthly-budget';
+export * from './schemas/month-start-balance';
 export * from './contracts/charges.http';
 export * from './contracts/payments.http';
 export * from './contracts/members.http';
@@ -34,6 +35,7 @@ export * from './contracts/transfers.http';
 export * from './contracts/snapshots.http';
 export * from './contracts/incomes.http';
 export * from './contracts/monthly-budgets.http';
+export * from './contracts/month-start-balances.http';
 
 // ============================================================================
 // Domain Logic & Calculations

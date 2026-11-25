@@ -1,7 +1,8 @@
 /**
  * Accounts Step
  *
- * Step 3: Display active accounts, allow balance adjustment,
+ * Step 3: Display active accounts with their start balance of the month
+ * (saved, else suggested), allow adjustment for that month only,
  * deletion, and creation of new accounts.
  * Uses ItemList + CreatePanel + EditableItem patterns.
  *
@@ -10,11 +11,9 @@
 
 'use client';
 
-import {
-  useAccounts,
-  useUpdateAccount,
-  useCloseAccount,
-} from '@/hooks/use-accounts';
+import { useAccounts, useCloseAccount } from '@/hooks/use-accounts';
+import { useSaveMonthStartBalances } from '@/hooks/use-month-start-balances';
+import { useMonthStart } from '../use-month-start';
 import { AccountCreateForm } from '@/components/accounts/account-create-form';
 import {
   ItemList,
@@ -30,30 +29,40 @@ import type { Account } from '@mbongo/shared';
  * Account row adapter — wraps EditableItem with account-specific behavior.
  * Owns the update/close mutations for a single account.
  */
-function AccountRow({ account }: { account: Account }): JSX.Element {
-  const update = useUpdateAccount();
+function AccountRow({
+  account,
+  month,
+  startBalance,
+}: {
+  account: Account;
+  month: string;
+  startBalance: number;
+}): JSX.Element {
+  const save = useSaveMonthStartBalances();
   const close = useCloseAccount();
 
-  const isUpdating = update.isPending && update.variables?.id === account.id;
+  const isUpdating =
+    save.isPending &&
+    save.variables?.input.balances[0]?.accountId === account.id;
 
   return (
     <EditableItem
       label={account.name}
       meta={
         <>
-          {account.bank ?? '—'} — {account.currency}
+          Solde de départ — {account.bank ?? '—'} — {account.currency}
           {account.overdraftLimit > 0 &&
             ` — Découvert: ${account.overdraftLimit.toFixed(2)}`}
         </>
       }
-      amount={account.openingBalance}
+      amount={startBalance}
       currency={account.currency}
       actionLabel="Ajuster"
       isPending={isUpdating}
       onConfirm={(amount) =>
-        update.mutateAsync({
-          id: account.id,
-          input: { openingBalance: amount },
+        save.mutateAsync({
+          month,
+          input: { balances: [{ accountId: account.id, balance: amount }] },
         })
       }
       actions={
@@ -69,8 +78,10 @@ function AccountRow({ account }: { account: Account }): JSX.Element {
   );
 }
 
-export function AccountsStep(): JSX.Element {
-  const { data: accounts, isLoading } = useAccounts();
+export function AccountsStep({ month }: { month: string }): JSX.Element {
+  const { data: accounts, isLoading: accountsLoading } = useAccounts();
+  const { isLoading: startLoading, suggested, saved } = useMonthStart(month);
+  const isLoading = accountsLoading || startLoading;
 
   const activeAccounts = (accounts ?? []).filter((a) => a.status === 'ACTIVE');
 
@@ -80,7 +91,13 @@ export function AccountsStep(): JSX.Element {
         items={activeAccounts}
         isLoading={isLoading}
         emptyState="Aucun compte actif."
-        renderItem={(account) => <AccountRow account={account} />}
+        renderItem={(account) => (
+          <AccountRow
+            account={account}
+            month={month}
+            startBalance={saved[account.id] ?? suggested[account.id] ?? 0}
+          />
+        )}
         footer={
           <CreatePanel
             title="Nouveau compte"

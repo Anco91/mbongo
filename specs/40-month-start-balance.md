@@ -3,7 +3,7 @@ id: 40-month-start-balance
 status: ready
 branch: spec/40-month-start-balance
 tier: medium
-locked_at: 4bf700b86c7a040111829ff2a0e4a35fe94affa0
+locked_at: 48481340ef6dc38c6f0d8bdec4a3d97ed64ad782
 locked_tests:
   - apps/web/__tests__/month-start-balance-schema.test.ts
 ---
