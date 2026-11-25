@@ -88,6 +88,22 @@ Questions à trancher dans la spec, avec la recommandation :
 - Catégories : table de correspondance banque → `CHARGE_CATEGORIES`, « À catégoriser » reste non catégorisé, jamais deviné.
 - Rien n'est écrit sans l'aperçu validé ; fichier sensible (IBAN, noms) : traité en local, jamais journalisé.
 
+## Constats sur le CSV réel (`exports-xls/E3292319 (1).csv`, 2026-11-25)
+
+- ASCII, séparateur `;`, 1 242 lignes du 25/10/2025 au 22/11/2026. Ligne 1 = bandeau `type;type;****2319;date du solde;;solde` (`296,60` au 24/11/2026, entités HTML dans le libellé). Puis `date dd/mm/yyyy;catégorie;sous-type;libellé;montant`. Montant à la française (`-1 300,00`, espace des milliers, virgule), signe : débit négatif, crédit positif. Pas de ligne d'en-tête de colonnes.
+- Les achats carte sont dans ce compte courant : `PAIEMENT CB` / `FACTURE CARTE DU ddmmyy <commerçant> ... <montant>EUR`, 951 lignes, toutes datées du jour de prélèvement (fin de mois). La vraie date est `DU ddmmyy` dans le libellé. Pas de ligne d'en-tête carte séparée : il n'y a donc pas de compte carte distinct dans cet export.
+- Aucun IBAN : un virement donne seulement `/MOTIF`, `/BEN <nom>` ou `/DE <nom>`. Le compte cible n'est pas identifiable (ex. `CHARGES MAISON /BEN CARLA ...` = compte joint). `VIREMENT INTERNE` (`VIR CPTE A CPTE EMIS`, motif `EPARGNE`) = vers l'épargne, sans compte nommé.
+- Conséquence (décision D9) : l'import ne crée jamais de virement. Il importe la transaction (sortie ou entrée) et propose un lien manuel vers un virement saisi à la main, ou « virement externe » (spec 37). Même règle de non-devinette que pour les catégories.
+- Types vus : PAIEMENT CB 951, PRELEVEMENT 105, VIREMENT INSTANTANE EMIS 56, VIREMENT 40, VIREMENT INSTANTANE RECU 19, COMMISSIONS 18, ECHEANCE PRET 16, RETRAIT DISTRIBUTEUR 15, VIREMENT INTERNE 8, INTERETS 2, CHEQUE 2, OPERATIONS DIVERSES 1, ANN PRLV SEPA EMIS 1. Les libellés de prélèvement et de virement reçu portent des motifs exploitables pour le rapprochement des charges et des revenus.
+- Les libellés contiennent noms et références : fichier traité en local, jamais journalisé (déjà dit plus haut).
+
+## Sous-spec 37 — virements externes et commentaire
+
+- Besoin humain (2026-11-25) : certains virements partent vers un compte hors foyer ; côté Mbongo il n'y a qu'une soustraction. Un commentaire optionnel doit exister sur tout virement.
+- Existant : `Transfer.memo` (schéma, formulaire de création « Mémo (optionnel) »). À vérifier en spec : affichage dans la liste/détail, édition, import.
+- Changement : `targetAccountId` devient optionnel (virement externe = jambe SOURCE seule, pas de taux ni frais, pas de jambe TARGET). Migration Prisma (porte humaine GIT-7), `checkTransferAccounts` / `checkTransferLegs` et les calculs (patrimoine, Sankey : sortie externe = dépense non catégorisée du budget, pas neutre) à adapter. Un virement externe sort du patrimoine du foyer, contrairement à un virement interne (voir décision 2026-11-24).
+- À trancher dans la spec : libellé et destinataire texte libre (« Compte externe : <nom> ») ou entité réutilisable ; recommandation : texte libre dans un champ `externalLabel`, pas d'entité tant qu'un seul usage.
+
 ## Import par API (recherche faite, non retenue pour V1)
 
 - BNP Paribas : les API DSP2 (Hello bank! et BNP retail France) sont réservées aux prestataires de paiement agréés par une autorité nationale ([groupe BNP Paribas, API DSP2](https://group.bnpparibas/en/psd2-apis)). Le portail CIB vise les comptes d'entreprise ([developers.cib.bnpparibas.com](https://developers.cib.bnpparibas.com/)). Pas d'accès particulier trouvé.
