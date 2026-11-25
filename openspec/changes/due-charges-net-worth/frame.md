@@ -1,9 +1,9 @@
 ---
 id: due-charges-net-worth
-status: draft
+status: ready
 branch: feat/due-charges-net-worth
 tier: medium
-locked_at:
+locked_at: 48f9302
 locked_tests:
   - apps/web/__tests__/due-charges.test.ts
   - apps/web/__tests__/remaining-to-live.test.ts
