@@ -29,8 +29,8 @@ import { Separator } from '@/components/ui/separator';
 interface ProvisionsCardProps {
   charges: Charge[];
   accountsById: Map<string, Account>;
-  /** Selected month `YYYY-MM`; absent = every provisioned charge. */
-  monthKey?: string;
+  /** Selected month `YYYY-MM`. */
+  monthKey: string;
 }
 
 export function ProvisionsCard({
@@ -41,8 +41,7 @@ export function ProvisionsCard({
   const provisionedCharges = useMemo(
     () =>
       charges.filter(
-        (c) =>
-          c.provisioned && (!monthKey || isChargeActiveInMonth(c, monthKey))
+        (c) => c.provisioned && isChargeActiveInMonth(c, monthKey)
       ),
     [charges, monthKey]
   );
