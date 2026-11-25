@@ -1,6 +1,6 @@
 ---
 id: 38-projected-balance
-status: review
+status: done
 branch: feat/38-projected-balance
 tier: medium
 locked_at: 56fad68228c7c780b78269a8f6280e788f75a1d6

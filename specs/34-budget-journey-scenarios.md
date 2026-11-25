@@ -1,6 +1,6 @@
 ---
 id: 34-budget-journey-scenarios
-status: review
+status: done
 branch: test/budget-journey-scenarios
 tier: small
 locked_at: 83e1767178a218a2a71327d397e57a09d0c939a5
