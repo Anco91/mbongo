@@ -47,6 +47,11 @@ export function swipeDirection(deltaX: number, deltaY: number): number {
   return deltaX < 0 ? 1 : -1;
 }
 
+/** Nom du mois seul : `monthNameLabel('2026-11')` → "novembre". */
+export function monthNameLabel(monthKey: string): string {
+  return format(monthKeyToDate(monthKey), 'MMMM', { locale: fr });
+}
+
 /**
  * Retourne les bornes d'un mois pour une date ou clé mensuelle.
  *
