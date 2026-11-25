@@ -1,22 +1,22 @@
 ---
 id: 39-month-journey
 status: ready
-branch: feat/39-month-journey
+branch: spec/39-month-journey
 tier: medium
-locked_at: d5a53b5781c616eccbbf3f3b4f16ed72674917f4
+locked_at: 7e75473479b77efee9c3d00a33ec2facbf601479
 locked_tests:
   - apps/web/__tests__/scenarios/month-journey.test.ts
 ---
 
 # 39 — Month journey (budgéter X, puis X+1 et X+2)
 
-Master: `specs/SPEC_MASTER.md` · Plan: `~/.claude/plans/etant-donn-e-que-c-est-pure-deer-of-9a2ed560-ac47-4366-8cef-49dcffc73cfa.md` · Needs: 35, 38 · Rules: WF-3, WF-7, TEST-1..5
+Master: `specs/SPEC_MASTER.md` · Needs: 35, 38 · Rules: WF-3, WF-7, TEST-1..5
 
 ## Summary
 
 - Pourquoi : le parcours central (préparer un mois, puis le suivant sans rien ressaisir) n'avait aucun test ; les mois sans échéance enregistrée paraissaient vides.
 - Ce qui change : une fonction pure donne le plan d'un mois préparé en début de mois (échéances attendues, totaux, solde logique de départ par compte) ; fixes sans fin repris, ponctuelle et charge terminée absentes, découvert d'un compte à débit différé non reporté.
-- Changement de comportement visible : non dans cette spec (domaine pur ; branchement dans les lignes 40 à 42).
+- Changement de comportement visible : non (no behaviour change ; Advisor note in monthly-budget spec at review) dans cette spec (domaine pur ; branchement dans les lignes 40 à 42).
 
 ## Acceptance criteria
 
@@ -25,7 +25,7 @@ Master: `specs/SPEC_MASTER.md` · Plan: `~/.claude/plans/etant-donn-e-que-c-est-
 
 ## Rules pinned
 
-- `expectedMonthPayments(charges, payments, monthKey)`: persisted payments of the month (any status) + scheduled ones not persisted. Scheduled = `missingPayments(charge, persistedOfThatCharge, firstDayOfMonth)` kept when `dueDate.slice(0,7) === monthKey`. No new generator.
+- `expectedMonthPayments(charges, payments, monthKey)`: persisted payments of the month (any status) + scheduled ones not persisted. Scheduled = `missingPayments(charge, persistedOfThatCharge, firstDayOfMonth)` (it dedupes on the exact instant only: you MUST also drop its entries whose `dueDate.slice(0,10)` equals a persisted one) kept when `dueDate.slice(0,7) === monthKey`. No new generator.
 - Persisted and scheduled match on `dueDate.slice(0,10)` (scheduled dates are UTC midnight, persisted ones may be noon: matching on the instant would duplicate the rent, checked). A persisted CANCELLED/FAILED payment still counts as persisted.
 - Scheduled payment: `id = expected:<chargeId>:<YYYY-MM-DD>`, status PENDING, `paidAt`/`transactionId` null, `createdAt = updatedAt = dueDate`.
 - Do **not** filter charges with `isChargeActiveInMonth` for payments: an open-ended `ONE_OFF` would come back every month. `ONE_OFF` yields one payment at `startDate`, which leaves the month filter.
@@ -59,7 +59,7 @@ Size: 1 production file.
 
 ## Tests
 
-Locked: `apps/web/__tests__/scenarios/month-journey.test.ts`. Proof of failure at `d5a53b5781c616eccbbf3f3b4f16ed72674917f4`: `cd apps/web && npx jest __tests__/scenarios/month-journey.test.ts` → 13 failed, all `not implemented: …`. Reference check (throwaway): `missingPayments` over the fixture gives Dec rent+ins+TV+gym, Jan/Feb rent+ins.
+Locked: `apps/web/__tests__/scenarios/month-journey.test.ts`. Proof of failure at `7e75473479b77efee9c3d00a33ec2facbf601479`: `cd apps/web && npx jest __tests__/scenarios/month-journey.test.ts` → 13 failed, all `not implemented: …`. Reference check (throwaway): `missingPayments` over the fixture gives Dec rent+ins+TV+gym, Jan/Feb rent+ins.
 
 ## Out of scope (own rows in the master)
 
