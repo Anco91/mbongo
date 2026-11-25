@@ -5,8 +5,15 @@
  *
  * @packageDocumentation
  */
-import type { CurrencyConverter } from '../../domain/schedule';
-import type { ConfirmedIncomeEntry } from '../../domain/income';
+import {
+  computeMonthlyBudget,
+  missingPayments,
+  type CurrencyConverter,
+} from '../../domain/schedule';
+import {
+  computeMonthExpectedIncome,
+  type ConfirmedIncomeEntry,
+} from '../../domain/income';
 import type { Account } from '../../schemas/account';
 import type { Charge } from '../../schemas/charge';
 import type { Income } from '../../schemas/income';
@@ -52,11 +59,33 @@ export interface MonthPlan {
  * `id = expected:<chargeId>:<YYYY-MM-DD>`, status PENDING, no paidAt/transactionId.
  */
 export function expectedMonthPayments(
-  _charges: Charge[],
-  _payments: Payment[],
-  _monthKey: string
+  charges: Charge[],
+  payments: Payment[],
+  monthKey: string
 ): Payment[] {
-  throw new Error('not implemented: expectedMonthPayments');
+  const persisted = payments.filter((p) => p.dueDate.slice(0, 7) === monthKey);
+  const scheduled = charges.flatMap((charge) => {
+    const own = payments.filter((p) => p.chargeId === charge.id);
+    const day = new Set(own.map((p) => p.dueDate.slice(0, 10)));
+    return missingPayments(charge, own, firstDayOfMonth(monthKey))
+      .filter(
+        (p) =>
+          p.dueDate.slice(0, 7) === monthKey && !day.has(p.dueDate.slice(0, 10))
+      )
+      .map((p): Payment => ({
+        id: `expected:${charge.id}:${p.dueDate.slice(0, 10)}`,
+        chargeId: p.chargeId,
+        amount: p.amount,
+        currency: p.currency,
+        dueDate: p.dueDate,
+        status: 'PENDING',
+        paidAt: null,
+        transactionId: null,
+        createdAt: p.dueDate,
+        updatedAt: p.dueDate,
+      }));
+  });
+  return [...persisted, ...scheduled];
 }
 
 /**
@@ -66,13 +95,62 @@ export function expectedMonthPayments(
  * (or `previousEnd` null): its `openingBalance`.
  */
 export function suggestMonthStart(
-  _accounts: Account[],
-  _previousEnd: AccountBalances | null
+  accounts: Account[],
+  previousEnd: AccountBalances | null
 ): AccountBalances {
-  throw new Error('not implemented: suggestMonthStart');
+  const start: AccountBalances = {};
+  for (const account of accounts) {
+    if (account.status !== 'ACTIVE') continue;
+    const end = previousEnd?.[account.id];
+    start[account.id] =
+      end === undefined || end === null
+        ? account.openingBalance
+        : account.deferredCard && end < 0
+          ? 0
+          : end;
+  }
+  return start;
 }
 
 /** The plan of a month prepared at its start (see types). */
-export function computeMonthPlan(_input: MonthPlanInput): MonthPlan {
-  throw new Error('not implemented: computeMonthPlan');
+export function computeMonthPlan(input: MonthPlanInput): MonthPlan {
+  const { monthKey, charges, payments, convert } = input;
+  const expectedPayments = expectedMonthPayments(charges, payments, monthKey);
+  const chargesTotal = computeMonthlyBudget(
+    charges,
+    expectedPayments,
+    firstDayOfMonth(monthKey),
+    convert
+  ).total;
+  const incomeTotal = computeMonthExpectedIncome(
+    input.incomes,
+    input.confirmedIncome,
+    monthKey,
+    convert
+  ).total;
+  const suggested = suggestMonthStart(
+    input.accounts,
+    input.previousEndBalances
+  );
+  const startBalances: AccountBalances = {};
+  for (const id of Object.keys(suggested)) {
+    startBalances[id] = input.startOverrides?.[id] ?? suggested[id];
+  }
+  return {
+    monthKey,
+    expectedPayments,
+    chargesTotal,
+    incomeTotal,
+    remaining: round2(incomeTotal - chargesTotal),
+    startBalances,
+  };
+}
+
+function firstDayOfMonth(monthKey: string): Date {
+  const [year, month] = monthKey.split('-').map(Number);
+  return new Date(year, month - 1, 1);
+}
+
+function round2(n: number): number {
+  return Math.round(n * 100) / 100;
 }
