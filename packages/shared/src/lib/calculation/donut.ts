@@ -92,6 +92,13 @@ export function mergeCategorySegments<
   });
 }
 
+/** Part du total en pourcentage entier (« <1% » si non nul mais sous 1 %). */
+export function formatPercent(value: number, total: number): string {
+  if (total <= 0 || value <= 0) return '0%';
+  const pct = (value / total) * 100;
+  return pct < 1 ? '<1%' : `${Math.round(pct)}%`;
+}
+
 const DEFAULT_CATEGORY_COLORS: Record<string, string> = {
   Logement: '#0f766e',
   'Santé (LaMaL)': '#0891b2',
