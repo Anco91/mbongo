@@ -137,7 +137,7 @@ L'étape Comptes SHALL lister les comptes actifs et permettre d'ajouter un compt
 
 ### Requirement: Récapitulatif du mois préparé
 
-Le récapitulatif SHALL afficher les revenus du mois, le total des échéances du mois hors provisions, le total des provisions, le total des charges du mois et le reste à vivre (revenus − charges). Les revenus SHALL être les revenus attendus du mois : pour chaque source de revenu active due dans le mois, le montant confirmé pour ce mois s'il existe, sinon le montant prévu de la source (jamais les deux). Les transactions positives sans lien à une source ne SHALL pas être comptées. La tuile se nomme « Revenus prévus ». Les échéances du mois SHALL être requêtées à la source pour le mois préparé. Le total des charges SHALL réutiliser le calcul de budget mensuel existant, sans double comptage des provisions.
+Le récapitulatif SHALL afficher les revenus du mois, le total des échéances du mois hors provisions, le total des provisions, le total des charges du mois et le reste à vivre (revenus − charges). Les revenus SHALL être les revenus attendus du mois : pour chaque source de revenu active due dans le mois, le montant confirmé pour ce mois s'il existe, sinon le montant prévu de la source (jamais les deux). Les transactions positives sans lien à une source ne SHALL pas être comptées. La tuile se nomme « Revenus prévus ». Les échéances du mois SHALL être requêtées à la source pour le mois préparé. Le total des charges SHALL réutiliser le calcul de budget mensuel existant, sans double comptage des provisions. Les paiements annulés (`CANCELLED`) ou échoués (`FAILED`) SHALL ne pas compter dans les charges. Une provision SHALL ne compter que dans les mois compris entre le début et la fin de sa charge (mois de la date de fin inclus), et SHALL être convertie en EUR au taux du foyer quand la charge est en CHF. Pour un même mois, le total des charges du budget, du Sankey et du donut SHALL être identique.
 
 #### Scenario: Calcul du reste à vivre
 
@@ -162,6 +162,24 @@ Le récapitulatif SHALL afficher les revenus du mois, le total des échéances d
 - **GIVEN** une charge annuelle provisionnée dont la facture tombe hors du mois préparé
 - **WHEN** le récapitulatif est calculé
 - **THEN** seule la provision mensuelle est comptée dans les charges
+
+#### Scenario: Provision bornée par les dates de la charge
+
+- **GIVEN** une charge provisionnée qui débute en septembre 2026 et se termine le 31 décembre 2026
+- **WHEN** le budget d'août 2026, de décembre 2026 puis de janvier 2027 est calculé
+- **THEN** la provision est absente en août 2026 et en janvier 2027, et présente en décembre 2026
+
+#### Scenario: Provision en CHF convertie
+
+- **GIVEN** une charge provisionnée de 335 CHF
+- **WHEN** le budget est calculé avec un taux de change
+- **THEN** la provision mensuelle est la somme convertie en EUR divisée par 12 et arrondie au centime (29,31 pour 351,75 EUR)
+
+#### Scenario: Paiement annulé
+
+- **GIVEN** un paiement `CANCELLED` ou `FAILED` dans le mois
+- **WHEN** le budget du mois est calculé
+- **THEN** ce paiement n'entre pas dans le total des charges
 
 #### Scenario: Charges créées pendant le parcours
 

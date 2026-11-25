@@ -54,14 +54,22 @@ describe('computeDueCharges', () => {
     ).toBe(0);
   });
 
-  it('ignores payments of other months', () => {
+  it('ignores payments of later months', () => {
     const payments = [
-      payment({ id: 'p1', dueDate: '2026-10-31T00:00:00.000Z' }),
-      payment({ id: 'p2', dueDate: '2026-12-01T00:00:00.000Z' }),
+      payment({ id: 'p1', dueDate: '2026-12-01T00:00:00.000Z' }),
     ];
     expect(
       computeDueCharges(payments, [charge({ id: 'c1' })], TODAY, 0.9)
     ).toBe(0);
+  });
+
+  it('keeps an overdue PENDING payment of a past month due (spec 35)', () => {
+    const payments = [
+      payment({ id: 'p1', amount: 60, dueDate: '2026-10-31T00:00:00.000Z' }),
+    ];
+    expect(
+      computeDueCharges(payments, [charge({ id: 'c1' })], TODAY, 0.9)
+    ).toBe(60);
   });
 
   it('excludes payments of provisioned charges (no double count)', () => {

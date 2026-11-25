@@ -9,7 +9,11 @@
 
 import { useMemo, type JSX } from 'react';
 import type { Account, Charge } from '@mbongo/shared';
-import { chargeOwner, monthlyProvision } from '@mbongo/shared';
+import {
+  chargeOwner,
+  isChargeActiveInMonth,
+  monthlyProvision,
+} from '@mbongo/shared';
 import {
   ShowMoreList,
   DetailRow,
@@ -25,15 +29,21 @@ import { Separator } from '@/components/ui/separator';
 interface ProvisionsCardProps {
   charges: Charge[];
   accountsById: Map<string, Account>;
+  /** Selected month `YYYY-MM`. */
+  monthKey: string;
 }
 
 export function ProvisionsCard({
   charges,
   accountsById,
+  monthKey,
 }: ProvisionsCardProps): JSX.Element {
   const provisionedCharges = useMemo(
-    () => charges.filter((c) => c.provisioned),
-    [charges]
+    () =>
+      charges.filter(
+        (c) => c.provisioned && isChargeActiveInMonth(c, monthKey)
+      ),
+    [charges, monthKey]
   );
   const totalMonthly = useMemo(
     () => monthlyProvision(provisionedCharges),

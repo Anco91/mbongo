@@ -8,13 +8,19 @@ TBD - created from delta of change m3-maquette-refactor-features.
 
 ### Requirement: Provision mensuelle sur charge annuelle ou échelonnée
 
-Le système SHALL permettre d'activer un provision sur une charge à échéance annuelle (ou échelonnée longue) : la provision mensuelle est le total de la charge divisé par 12, arrondi au centime. L'UI de création/édition SHALL proposer l'option « lisser sur 12 mois » pour ces types de charges.
+Le système SHALL permettre d'activer un provision sur une charge à échéance annuelle (ou échelonnée longue) : la provision mensuelle est le total de la charge divisé par 12, arrondi au centime, quels que soient le type et la fréquence de la charge (une taxe de 600 donne 50). Une charge en CHF SHALL être convertie en EUR avant la division. La provision SHALL ne compter que du mois de début au mois de fin de la charge, mois de fin inclus ; sans date de fin, elle reste ouverte. L'UI de création/édition SHALL proposer l'option « lisser sur 12 mois » pour ces types de charges.
 
 #### Scenario: SERAFE provisionnée
 
 - **GIVEN** une charge annuelle de 335 CHF
 - **WHEN** le provision est activé
 - **THEN** la provision mensuelle affichée est 27,92 CHF
+
+#### Scenario: Provision hors période
+
+- **GIVEN** une charge provisionnée qui se termine le 31 décembre 2026
+- **WHEN** le budget de décembre 2026 puis celui de janvier 2027 est calculé
+- **THEN** la provision compte en décembre 2026 et plus en janvier 2027
 
 #### Scenario: Provision désactivée
 
@@ -43,7 +49,7 @@ Le budget d'un mois SHALL compter les échéances du mois plus les provisions du
 
 ### Requirement: Pagination des provisions du dashboard
 
-La carte « Provisions · lissage mensuel » du dashboard SHALL limiter l'affichage initial aux 3 premières charges provisionnées du mois choisi et proposer « afficher les autres » qui révèle le reste par paquets de 5 (geste mobile natif). Le total provisionné SHALL rester visible quelle que soit la pagination. Chaque provision SHALL porter le badge « qui paie » de son compte débité.
+La carte « Provisions · lissage mensuel » du dashboard SHALL limiter l'affichage initial aux 3 premières charges provisionnées du mois choisi et proposer « afficher les autres » qui révèle le reste par paquets de 5 (geste mobile natif). Le total provisionné SHALL rester visible quelle que soit la pagination. Chaque provision SHALL porter le badge « qui paie » de son compte débité. Seules les charges actives dans le mois choisi SHALL y figurer, et le total provisionné SHALL en suivre la liste.
 
 #### Scenario: Quelques provisions
 

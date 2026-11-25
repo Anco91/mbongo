@@ -15,6 +15,7 @@ import { Payment } from '../../schemas/payment';
 import { Transaction } from '../../schemas/transaction';
 import { Transfer } from '../../schemas/transfer';
 import { counterValue } from '../../domain/conversion';
+import { isChargeActiveInMonth } from '../../domain/schedule';
 import {
   computeMonthExpectedIncome,
   type ConfirmedIncomeEntry,
@@ -213,11 +214,27 @@ export function computeSankeyFlows(params: {
     }
 
     const charge = chargeMap.get(p.chargeId);
+    if (charge?.provisioned) continue;
     const account = charge ? accountMap.get(charge.accountId) : undefined;
     const accountName = account ? account.name : 'Compte débité';
     const categoryName = charge?.category ?? 'Charges';
 
     addLink(accountName, categoryName, p.amount, p.currency, planned);
+  }
+
+  // Provisions : une seule flèche compte → catégorie, au lissage mensuel
+  for (const charge of charges) {
+    if (!charge.provisioned || !isChargeActiveInMonth(charge, monthKey)) {
+      continue;
+    }
+    const account = accountMap.get(charge.accountId);
+    addLink(
+      account ? account.name : 'Compte débité',
+      charge.category ?? 'Charges',
+      round2(charge.amount / 12),
+      charge.currency,
+      true
+    );
   }
 
   // 4. Dépenses de transactions (hors transferts et hors réconciliations) : compte → catégorie

@@ -201,7 +201,11 @@ export function DashboardContent(): JSX.Element {
       )}
 
       {/* 5. Charges lissées chaque mois */}
-      <ProvisionsCard charges={charges} accountsById={accountsById} />
+      <ProvisionsCard
+        charges={charges}
+        accountsById={accountsById}
+        monthKey={selectedMonth}
+      />
 
       {/* 6. Plein écran charts */}
       {fullscreenChart && (

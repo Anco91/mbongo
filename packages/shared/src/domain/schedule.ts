@@ -14,6 +14,7 @@ import {
   addYears,
   compareAsc,
   endOfMonth,
+  format,
   getDaysInMonth,
   isAfter,
   isBefore,
@@ -298,10 +299,33 @@ function round2(n: number): number {
  * // 335 / 12 = 27.916... ≈ 27.92
  * ```
  */
-export function monthlyProvision(charges: Charge[]): number {
-  const provisionedCharges = charges.filter((c) => c.provisioned);
-  const total = provisionedCharges.reduce((sum, c) => sum + c.amount, 0);
+export function monthlyProvision(
+  charges: Charge[],
+  month?: Date,
+  convert?: CurrencyConverter
+): number {
+  const monthKey = month ? format(month, 'yyyy-MM') : null;
+  const total = charges
+    .filter((c) => c.provisioned)
+    .filter((c) => monthKey === null || isChargeActiveInMonth(c, monthKey))
+    .reduce(
+      (sum, c) => sum + (convert ? convert(c.amount, c.currency) : c.amount),
+      0
+    );
   return round2(total / 12);
+}
+
+/**
+ * Une charge compte dans le mois `monthKey` (`YYYY-MM`) si ce mois est compris
+ * entre le mois de `startDate` et celui de `endDate` (sans fin = ouvert).
+ * Comparaison de chaînes `YYYY-MM`, jamais d'instants.
+ */
+export function isChargeActiveInMonth(
+  charge: Charge,
+  monthKey: string
+): boolean {
+  if (charge.startDate.slice(0, 7) > monthKey) return false;
+  return !charge.endDate || monthKey <= charge.endDate.slice(0, 7);
 }
 
 /**
@@ -521,11 +545,12 @@ export function computeMonthlyBudget(
 
   const paymentsTotal = round2(
     regularPayments.reduce((sum, p) => {
+      if (p.status === 'CANCELLED' || p.status === 'FAILED') return sum;
       const amount = convert ? convert(p.amount, p.currency) : p.amount;
       return sum + amount;
     }, 0)
   );
-  const provisionsTotal = monthlyProvision(charges);
+  const provisionsTotal = monthlyProvision(charges, month, convert);
   const total = round2(paymentsTotal + provisionsTotal);
 
   return {

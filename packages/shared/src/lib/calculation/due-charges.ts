@@ -1,21 +1,23 @@
 /**
- * Due charges: unpaid payments of the current month, in EUR.
+ * Due charges: unpaid payments due up to the end of the current month
+ * (overdue ones included, later months excluded), in EUR.
  * Provisioned charges are excluded (already set aside, no double count).
  *
  * @packageDocumentation
  */
+import { parseISO } from 'date-fns';
 import type { Charge } from '../../schemas/charge';
 import type { Payment } from '../../schemas/payment';
 import { counterValue } from '../../domain/conversion';
 import type { ConsolidatedBalance } from './consolidated';
-import { isInMonth, monthRange } from './month';
+import { monthRange } from './month';
 
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
 /**
- * Sum of PENDING payments due in the month of `today`, in EUR.
+ * Sum of PENDING payments due on or before the end of the month of `today`, in EUR.
  * `null` when a CHF payment needs a missing rate.
  *
  * @param rate - CHF → EUR rate, or null when unknown
@@ -33,7 +35,7 @@ export function computeDueCharges(
   let total = 0;
   for (const payment of payments) {
     if (payment.status !== 'PENDING') continue;
-    if (!isInMonth(payment.dueDate, range)) continue;
+    if (parseISO(payment.dueDate) > range.end) continue;
     if (provisioned.has(payment.chargeId)) continue;
     if (payment.currency === 'CHF') {
       if (rate === null) return null;

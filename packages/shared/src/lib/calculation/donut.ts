@@ -11,6 +11,7 @@ import { Charge } from '../../schemas/charge';
 import { Payment } from '../../schemas/payment';
 import { Transaction } from '../../schemas/transaction';
 import { counterValue } from '../../domain/conversion';
+import { isChargeActiveInMonth } from '../../domain/schedule';
 
 /** Ligne de ventilation d'un segment : une sous-catégorie, en EUR consolidé. */
 export interface SubcategoryExpense {
@@ -143,8 +144,15 @@ export function computeDonutExpenses(params: {
   charges?: Charge[];
   transactions?: Transaction[];
   rate?: number | null;
+  monthKey?: string;
 }): CategoryExpense[] {
-  const { payments = [], charges = [], transactions = [], rate = 1 } = params;
+  const {
+    payments = [],
+    charges = [],
+    transactions = [],
+    rate = 1,
+    monthKey,
+  } = params;
   const effectiveRate = rate && rate > 0 ? rate : 1;
 
   const chargeMap = new Map<string, Charge>();
@@ -193,6 +201,7 @@ export function computeDonutExpenses(params: {
       reconciledTxIds.add(p.transactionId);
     }
     const charge = chargeMap.get(p.chargeId);
+    if (charge?.provisioned) continue;
     const category = charge?.category ?? 'Autres';
     addExpense(
       category,
@@ -200,6 +209,19 @@ export function computeDonutExpenses(params: {
       p.currency,
       planned,
       charge?.subcategory ?? OTHER_SUBCATEGORY
+    );
+  }
+
+  // Provisions : lissage mensuel sous la catégorie de la charge
+  for (const charge of charges) {
+    if (!charge.provisioned) continue;
+    if (monthKey && !isChargeActiveInMonth(charge, monthKey)) continue;
+    addExpense(
+      charge.category ?? 'Autres',
+      round2(charge.amount / 12),
+      charge.currency,
+      true,
+      charge.subcategory ?? OTHER_SUBCATEGORY
     );
   }
 

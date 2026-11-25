@@ -19,6 +19,7 @@ import {
   listNetWorthTerms,
   scopeToMember,
   computeMonthlyBudget,
+  counterValue,
   computeDueCharges,
   computeNetOfDue,
   computeRemainingToLive,
@@ -103,6 +104,7 @@ function buildCharts(
       charges: scope.charges,
       transactions: scope.transactions,
       rate,
+      monthKey,
     }),
   };
 }
@@ -187,9 +189,19 @@ export function useDashboardData(
   // Uses computeMonthlyBudget with the month's payments to get the correct total.
   const totalCharges = useMemo(() => {
     const monthDate = monthKeyToDate(selectedMonth);
-    const { total } = computeMonthlyBudget(charges, payments, monthDate);
+    // CHF at the current rate; without a rate, amounts stay unconverted.
+    const convert = (amount: number, currency: string): number =>
+      currency === 'CHF' && consolidated.rate
+        ? counterValue(amount, consolidated.rate)
+        : amount;
+    const { total } = computeMonthlyBudget(
+      charges,
+      payments,
+      monthDate,
+      convert
+    );
     return total;
-  }, [charges, payments, selectedMonth]);
+  }, [charges, payments, selectedMonth, consolidated.rate]);
 
   // Charts only: closed accounts (and what points at them) are hidden unless
   // asked for. Balances, consolidated and totalCharges stay untouched.
