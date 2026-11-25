@@ -24,6 +24,18 @@ export function useSnapshots(): UseQueryResult<BalanceSnapshot[], Error> {
   return useQuery(snapshotQueries.list());
 }
 
+/** Delete a snapshot (a mistaken statement), then refresh the snapshots. */
+export function useDeleteSnapshot(): UseMutationResult<void, Error, string> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => snapshotsRepository.remove(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: snapshotQueries.all() });
+    },
+  });
+}
+
 /** Create a snapshot (statement balance), then refresh the snapshots. */
 export function useCreateSnapshot(): UseMutationResult<
   BalanceSnapshot,

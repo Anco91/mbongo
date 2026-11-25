@@ -90,4 +90,4 @@ situation (second CHF salary) needs no model rewrite. Full context: `cdc.md` (ar
 
 | 44 | (fast-track) | Sankey : un virement externe est une dépense du compte source vers le nœud « Virements externes » (devise du compte source). Suite de 37 | done | PR (fast-track) |
 | 45 | `specs/45-import-screen.md` | Import BNP, écran : dépôt local du CSV, aperçu validé, `BalanceSnapshot` depuis le banner, table commerçant → catégorie persistée, rapport du mois. Needs 36 | done | — || 46 | `specs/46-merchant-category-server.md` | Correspondance commerçant → catégorie persistée côté serveur (`MerchantCategory`, migration additive) au lieu de localStorage. Needs 45 | draft | — |
-| 47 | `specs/47-delete-snapshot.md` | `DELETE /api/snapshots/{id}` + hook `useDeleteSnapshot` (pas d UI : aucune liste de relevés). Verrouillé : 2 tests rouges. Needs 45 | ready | — |
+| 47 | `specs/47-delete-snapshot.md` | `DELETE /api/snapshots/{id}` + hook `useDeleteSnapshot` (pas d UI : aucune liste de relevés). Verrouillé : 2 tests rouges. Needs 45 | done | — |
