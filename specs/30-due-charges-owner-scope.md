@@ -41,3 +41,4 @@ One change = one branch = one PR = one session. Order: A, then B.
 ## Handoffs
 
 - `docs/handoffs/20261125-0130-30-due-charges-owner-scope.md`
+- `docs/handoffs/20261125-0135-30-due-charges-owner-scope.md`
