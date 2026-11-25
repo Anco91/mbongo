@@ -1,6 +1,6 @@
 ---
 id: charge-owner-scope
-status: ready
+status: review
 branch: feat/charge-owner-scope
 tier: medium
 locked_at: 3b02a6e
@@ -85,3 +85,4 @@ Proof of failure: `cd apps/web && npx jest charge-owner member-scope` → 21 fai
 ## Handoffs
 
 - `docs/handoffs/20261125-0138-charge-owner-scope.md`
+- `docs/handoffs/20261125-0144-charge-owner-scope.md`
