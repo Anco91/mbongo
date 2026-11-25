@@ -15,7 +15,7 @@ import type {
 } from '@mbongo/shared';
 import { useDisplayCurrency } from '@/components/providers/display-currency-provider';
 import { formatAmount, formatDate } from '@/lib/format';
-import { monthLongLabel } from '@/lib/month-navigation';
+import { monthNameLabel } from '@/lib/month-navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { JSX } from 'react';
 
@@ -76,7 +76,7 @@ export function WealthCard({
       <CardContent className="pt-5">
         <p className="text-xs text-slate-500">
           {isProjected && selectedMonth
-            ? `Projeté fin ${monthLongLabel(selectedMonth).split(' ')[0]}`
+            ? `Projeté fin ${monthNameLabel(selectedMonth)}`
             : 'Patrimoine consolidé'}
           {consolidated.rateDate &&
             (rateSource === 'live'
