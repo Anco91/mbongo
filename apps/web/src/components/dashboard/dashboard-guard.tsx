@@ -12,6 +12,8 @@ import { transactionService } from '@/server/transactions/transaction.service';
 import { chargeService } from '@/server/charges/charge.service';
 import { paymentService } from '@/server/payments/payment.service';
 import { transferService } from '@/server/transfers/transfer.service';
+import { monthStartBalanceService } from '@/server/month-start-balances/month-start-balance.service';
+import { monthStartBalanceQueries } from '@/queries/month-start-balances';
 import { memberService } from '@/server/members/member.service';
 import { currentMonthKey } from '@/lib/month-navigation';
 import { monthPaymentsQuery } from '@/lib/month-queries';
@@ -32,6 +34,8 @@ export function DashboardGuard({
   const monthQuery = monthPaymentsQuery(currentMonthKey());
 
   const pendingQuery = pendingUntilQuery(currentMonthKey());
+
+  const startMonth = currentMonthKey();
 
   const entries: PrefetchEntry[] = [
     {
@@ -57,6 +61,10 @@ export function DashboardGuard({
     {
       queryKey: ['transfers', {}],
       queryFn: () => transferService.findMany({}),
+    },
+    {
+      queryKey: monthStartBalanceQueries.byMonth(startMonth).queryKey,
+      queryFn: () => monthStartBalanceService.findByMonth(startMonth),
     },
     {
       queryKey: ['members'],

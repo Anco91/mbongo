@@ -41,6 +41,7 @@ export function useMonthStart(month: string): MonthStart {
   const incomes = useIncomes();
   const payments = useQuery(paymentQueries.pendingUntil(previous));
   const savedRows = useMonthStartBalances(month);
+  const previousRows = useMonthStartBalances(previous);
   const { rate } = useDisplayCurrency();
   const now = useMemo(() => new Date(), []);
 
@@ -52,6 +53,7 @@ export function useMonthStart(month: string): MonthStart {
     incomes,
     payments,
     savedRows,
+    previousRows,
   ].some((q) => q.isLoading);
 
   const suggested = useMemo(() => {
@@ -65,6 +67,9 @@ export function useMonthStart(month: string): MonthStart {
       today: now,
       monthKey: previous,
       rate,
+      startOverrides: Object.fromEntries(
+        (previousRows.data ?? []).map((row) => [row.accountId, row.balance])
+      ),
     }).balances;
     return suggestMonthStart(accounts.data ?? [], previousEnd);
   }, [
@@ -77,6 +82,7 @@ export function useMonthStart(month: string): MonthStart {
     now,
     previous,
     rate,
+    previousRows.data,
   ]);
 
   const saved = useMemo(
