@@ -77,6 +77,14 @@ L'Advisor valide d'abord les chiffres attendus à la main (mois par mois, dans u
 
 ## Sous-spec 36 — import bancaire (spec seulement)
 
+**Révision 2026-11-25 (décision humaine, remplace les points contraires ci-dessous).** Usage : deux moments par mois, début de mois (situation, reste à vivre, carte différée déjà prélevée) et fin de mois (analyse du mois passé). Pas de temps réel. Import = champ de dépôt de fichier sur le site, calcul dans le navigateur, rien d'écrit avant l'aperçu validé. Montants : débit négatif, crédit positif, somme directe.
+
+Périmètre V1 réduit à deux livrables :
+1. **Ancrage** : `Solde au` de la ligne 1 devient un `BalanceSnapshot` ; écart affiché via `computeStatementGap`.
+2. **Analyse du mois passé** : dépenses par catégorie, par commerçant (restaurants en tête), charges fixes séparées des variables. Table de correspondance commerçant → `CHARGE_CATEGORIES`, apprise une fois et réutilisée, jamais devinée.
+
+Hors V1 : rapprochement automatique avec échéances et revenus (`findUnmatchedIncome`, `checkIncomeLink`, `planPaymentDebit`), création de virements (D9). Les charges fixes viennent de celles déjà saisies. Dédoublonnage par empreinte gardé (les fichiers se chevauchent).
+
 Questions à trancher dans la spec, avec la recommandation :
 
 - Format : CSV BNP, parse local. Séparateur, encodage (probablement `;` et ISO-8859-1/Windows-1252), format de date et signe des montants à relever sur un fichier réel : **l'utilisateur dépose un export CSV dans `exports-xls/`** avant la rédaction de la spec. Parse par une bibliothèque CSV éprouvée (à choisir et enregistrer dans `ARCHITECTURE.md` ; nouvelle dépendance = porte humaine GIT-7) ; le `.xls` fourni sert seulement à confirmer les colonnes.
