@@ -48,9 +48,9 @@ describe('monthStartBalanceSchema', () => {
   });
 
   it.each([NaN, Infinity, -Infinity])('rejects balance %p', (balance) => {
-    expect(
-      monthStartBalanceSchema.safeParse({ ...row, balance }).success
-    ).toBe(false);
+    expect(monthStartBalanceSchema.safeParse({ ...row, balance }).success).toBe(
+      false
+    );
   });
 });
 
