@@ -126,7 +126,7 @@ describe('budget journey — salary confirmed early', () => {
       transactions: [T_SALARY_DEC_EARLY],
       transfers: [],
       payments: [],
-      charges: CHARGES,
+      charges: [],
       incomes: INCOMES,
       rate: RATE,
     };
