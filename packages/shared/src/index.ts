@@ -67,5 +67,6 @@ export * from './lib/calculation/active-accounts';
 export * from './domain/transfer-accounts';
 export * from './domain/transfer-legs';
 export * from './domain/transfer-external';
+export * from './domain/bank-import';
 export * from './domain/payment-debit';
 export * from './lib/calculation/member-scope';
