@@ -64,6 +64,7 @@ incomes, transfers, monthly budgets, alerts). Mobile-first PWA.
 | `apps/web/src/queries/` | client | `memberQueries`, `accountQueries`, `transactionQueries`, `chargeQueries`, `paymentQueries`, `incomeQueries`, `transferQueries`, `monthlyBudgetQueries`, `exchangeRateQueries`, `snapshotQueries`: query keys + `queryOptions`; reuse, never hardcode keys |
 | `apps/web/src/hooks/` | client | TanStack Query hooks per resource |
 | `apps/web/src/lib/` | util | `api.ts` request, `format.ts`, `routes.ts`, month navigation/queries, filters, PWA |
+| `apps/web/src/lib/month-navigation.ts` → `monthNameLabel` | util | Month name alone from `YYYY-MM` (date-fns, French), e.g. « novembre ». Used by « Projeté fin <mois> » in `WealthCard` |
 | `apps/web/src/components/ui/` | ui | Primitives: Button, Card, Badge, StatusBadge, TypeBadge, AccountChip, Sheet, Skeleton, Progress, icons |
 | `apps/web/src/components/form/` | ui | Form kit: Form, TextInput, SelectInput, ToggleInput, AmountInput, FormActions, FormError, FormSuccess |
 | `apps/web/src/components/patterns/prefetch-guard.tsx` → `PrefetchGuard`, `PrefetchEntry` | ui | Generic server guard: prefetches `entries` (`queryKey` + `queryFn`) on a new `QueryClient`, hydrates children; domain guards only declare entries |
