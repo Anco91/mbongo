@@ -166,6 +166,32 @@ Le système SHALL pouvoir enregistrer, pour un couple (mois `AAAA-MM`, compte), 
 - **WHEN** l'enregistrement cible un compte inexistant
 - **THEN** il est refusé avec une erreur « introuvable » et rien n'est écrit
 
+### Requirement: Solde de départ et projection du dashboard
+
+Pour un mois courant ou futur, le solde projeté d'un compte actif qui a un solde de départ enregistré SHALL être égal à ce solde de départ plus les flux datés dans ce mois (transactions, revenus attendus non confirmés, échéances en attente, jambe cible manquante d'un virement estimé, facturation de carte). Les flux des mois précédents SHALL ne pas être comptés : ils sont déjà dans le solde de départ saisi. Un compte sans solde de départ enregistré, un mois passé, un compte clos ou inconnu SHALL garder le calcul réel actuel. La suggestion de départ du mois suivant SHALL tenir compte du départ enregistré du mois précédent.
+
+#### Scenario: Compte ancré
+
+- **GIVEN** un solde de départ de 1 000 CHF enregistré en novembre pour un compte avec 30 CHF et 1 200 CHF d'échéances en attente ce mois
+- **WHEN** le dashboard projette la fin de novembre
+- **THEN** le solde projeté du compte est −230 CHF
+
+#### Scenario: Retards déjà dans le départ
+
+- **GIVEN** un loyer en retard d'octobre et un solde de départ enregistré en novembre
+- **WHEN** le dashboard projette la fin de novembre
+- **THEN** le loyer d'octobre n'est pas déduit une seconde fois
+
+#### Scenario: Sans solde de départ
+
+- **WHEN** aucun solde de départ n'est enregistré pour le compte
+- **THEN** la projection part du solde réel du jour, comme avant
+
+#### Scenario: Mois passé
+
+- **WHEN** le dashboard affiche un mois passé
+- **THEN** le solde réel en fin de mois est affiché, le solde de départ enregistré est ignoré
+
 ### Requirement: Récapitulatif du mois préparé
 
 Le récapitulatif SHALL afficher les revenus du mois, le total des échéances du mois hors provisions, le total des provisions, le total des charges du mois et le « Reste à vivre (budget) » (revenus − charges ; distinct du « Reste à vivre (comptes) » du dashboard). Les revenus SHALL être les revenus attendus du mois : pour chaque source de revenu active due dans le mois, le montant confirmé pour ce mois s'il existe, sinon le montant prévu de la source (jamais les deux). Les transactions positives sans lien à une source ne SHALL pas être comptées. La tuile se nomme « Revenus prévus ». Les échéances du mois SHALL être requêtées à la source pour le mois préparé. Le total des charges SHALL réutiliser le calcul de budget mensuel existant, sans double comptage des provisions. Les paiements annulés (`CANCELLED`) ou échoués (`FAILED`) SHALL ne pas compter dans les charges. Une provision SHALL ne compter que dans les mois compris entre le début et la fin de sa charge (mois de la date de fin inclus), et SHALL être convertie en EUR au taux du foyer quand la charge est en CHF. Pour un même mois, le total des charges du budget, du Sankey et du donut SHALL être identique.

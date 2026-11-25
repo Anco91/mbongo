@@ -12,6 +12,7 @@
 import { useMemo } from 'react';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { paymentQueries } from '@/queries/payments';
+import { monthStartBalanceQueries } from '@/queries/month-start-balances';
 import {
   balanceAsOf,
   computeProjectedBalance,
@@ -135,6 +136,14 @@ export function useDashboardData(
   const { data: projectionPayments } = useSuspenseQuery(
     paymentQueries.pendingUntil(selectedMonth)
   );
+  // Départs enregistrés du mois choisi : ancrent la projection par compte.
+  const { data: startRows } = useSuspenseQuery(
+    monthStartBalanceQueries.byMonth(selectedMonth)
+  );
+  const startOverrides = useMemo(
+    () => Object.fromEntries(startRows.map((r) => [r.accountId, r.balance])),
+    [startRows]
+  );
   const { data: transfers = [] } = useTransfers();
   const { data: incomes = [] } = useIncomes();
   // Devise d'affichage partagée + taux courant (live prioritaire, fallback transferts).
@@ -186,6 +195,7 @@ export function useDashboardData(
         today: now,
         monthKey: selectedMonth,
         rate,
+        startOverrides,
       }),
     [
       accounts,
@@ -197,6 +207,7 @@ export function useDashboardData(
       now,
       selectedMonth,
       rate,
+      startOverrides,
     ]
   );
 

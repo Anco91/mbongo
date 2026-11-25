@@ -31,6 +31,11 @@ export interface ProjectionInput {
   monthKey: string;
   /** CHF → EUR rate, or null when unknown. */
   rate: number | null;
+  /**
+   * Saved start balance per account id. For a current/future month an ACTIVE
+   * account listed here is anchored: start + flows dated in `monthKey` only.
+   */
+  startOverrides?: Record<string, number>;
 }
 
 export interface ProjectedBalance {
@@ -86,17 +91,44 @@ function addDelta(deltas: Deltas, accountId: string, amount: number): void {
   deltas.set(accountId, (deltas.get(accountId) ?? 0) + amount);
 }
 
-/** Cash flows after today and up to the end of `monthKey`. */
-function futureFlows(input: ProjectionInput): Deltas {
-  const { transactions, today, monthKey } = input;
-  const todayDay = toDay(today.toISOString());
+/** Lower bounds (exclusive days, inclusive month) of the flows counted. */
+interface FlowWindow {
+  /** Transactions dated strictly after this day. */
+  txAfter: string;
+  /** Payments, transfers and card billings dated strictly after this day. */
+  after: string;
+  /** First month of the unconfirmed incomes. */
+  fromMonth: string;
+}
+
+/** Real-to-date path: flows after today, overdue items included. */
+function sinceToday(input: ProjectionInput): FlowWindow {
+  return {
+    txAfter: toDay(input.today.toISOString()),
+    after: '',
+    fromMonth: toMonth(input.today.toISOString()),
+  };
+}
+
+/** Anchored path: flows of the target month only (`-00` sorts before `-01`). */
+function monthOnly(input: ProjectionInput): FlowWindow {
+  return {
+    txAfter: `${input.monthKey}-00`,
+    after: `${input.monthKey}-00`,
+    fromMonth: input.monthKey,
+  };
+}
+
+/** Cash flows inside the window, up to the end of `monthKey`. */
+function futureFlows(input: ProjectionInput, window: FlowWindow): Deltas {
+  const { transactions, monthKey } = input;
   const lastDay = `${monthKey}${LAST_DAY_SUFFIX}`;
-  const deltas: Deltas = new Map();
+  const deltas: Deltas = new Map<string, number>();
 
   // 1. Transactions dated after today (confirmed income, SOURCE legs, ahead).
   for (const tx of transactions) {
     const day = toDay(tx.date);
-    if (day > todayDay && day <= lastDay)
+    if (day > window.txAfter && day <= lastDay)
       addDelta(deltas, tx.accountId, tx.amount);
   }
 
@@ -109,7 +141,7 @@ function futureFlows(input: ProjectionInput): Deltas {
       amount: tx.amount,
     }));
   const incomeAccount = new Map(input.incomes.map((i) => [i.id, i.accountId]));
-  for (const key of monthsBetween(toMonth(today.toISOString()), monthKey)) {
+  for (const key of monthsBetween(window.fromMonth, monthKey)) {
     const { entries } = computeMonthExpectedIncome(
       input.incomes,
       confirmed,
@@ -127,15 +159,17 @@ function futureFlows(input: ProjectionInput): Deltas {
   for (const payment of input.payments) {
     const accountId = chargeAccount.get(payment.chargeId);
     if (payment.status !== 'PENDING' || !accountId) continue;
-    if (toDay(payment.dueDate) <= lastDay)
+    const due = toDay(payment.dueDate);
+    if (due > window.after && due <= lastDay)
       addDelta(deltas, accountId, -payment.amount);
   }
 
   return deltas;
 }
 
-/** Transfer and card flows after today. */
-function settlementFlows(input: ProjectionInput, deltas: Deltas): void {
+/** Transfer and card flows inside the window. */
+function settlementFlows(input: ProjectionInput, window: FlowWindow): Deltas {
+  const deltas: Deltas = new Map<string, number>();
   const { accounts, transactions, today, monthKey } = input;
   const lastDay = `${monthKey}${LAST_DAY_SUFFIX}`;
   const byId = new Map(accounts.map((a) => [a.id, a]));
@@ -150,7 +184,8 @@ function settlementFlows(input: ProjectionInput, deltas: Deltas): void {
     const source = byId.get(tr.sourceAccountId);
     const target = byId.get(tr.targetAccountId);
     if (tr.status !== 'ESTIMATED' || withTarget.has(tr.id) || !target) continue;
-    if (toDay(tr.sentAt) > lastDay) continue;
+    const sentDay = toDay(tr.sentAt);
+    if (sentDay <= window.after || sentDay > lastDay) continue;
     const amount = transferLegAmount(
       tr,
       source?.currency ?? target.currency,
@@ -167,10 +202,19 @@ function settlementFlows(input: ProjectionInput, deltas: Deltas): void {
     const billing = cardBilling(card, own, today);
     if (!billing.nextBillingDate || billing.encours <= 0) continue;
     const billingDay = format(billing.nextBillingDate, 'yyyy-MM-dd');
-    if (billingDay > lastDay) continue;
+    if (billingDay <= window.after || billingDay > lastDay) continue;
     addDelta(deltas, card.id, billing.encours);
     addDelta(deltas, card.linkedAccountId, -billing.encours);
   }
+  return deltas;
+}
+
+/** All flows of a window (cash flows, then transfers and cards). */
+function windowFlows(input: ProjectionInput, window: FlowWindow): Deltas {
+  const deltas = futureFlows(input, window);
+  for (const [id, amount] of settlementFlows(input, window))
+    addDelta(deltas, id, amount);
+  return deltas;
 }
 
 const roundCents = (value: number): number => Math.round(value * 100) / 100 + 0;
@@ -183,16 +227,23 @@ export function computeProjectedBalance(
   const active = accounts.filter((a) => a.status === 'ACTIVE');
 
   const asOf = state === 'past' ? endOfMonthDate(monthKey) : today;
-  const deltas: Deltas = new Map();
-  if (state !== 'past') {
-    for (const [id, amount] of futureFlows(input)) addDelta(deltas, id, amount);
-    settlementFlows(input, deltas);
-  }
+  const overrides = state === 'past' ? {} : (input.startOverrides ?? {});
+  const isAnchored = (id: string): boolean => id in overrides;
+  const deltas: Deltas =
+    state === 'past'
+      ? new Map<string, number>()
+      : windowFlows(input, sinceToday(input));
+  const anchoredDeltas: Deltas = active.some((a) => isAnchored(a.id))
+    ? windowFlows(input, monthOnly(input))
+    : new Map<string, number>();
 
   const balances: Record<string, number> = {};
   for (const account of active) {
     balances[account.id] = roundCents(
-      balanceAsOf(account, transactions, asOf) + (deltas.get(account.id) ?? 0)
+      isAnchored(account.id)
+        ? overrides[account.id] + (anchoredDeltas.get(account.id) ?? 0)
+        : balanceAsOf(account, transactions, asOf) +
+            (deltas.get(account.id) ?? 0)
     );
   }
 
