@@ -3,7 +3,7 @@ id: 35-budget-consistency
 status: ready
 branch: feat/35-budget-consistency
 tier: medium
-locked_at: 56fad68228c7c780b78269a8f6280e788f75a1d6
+locked_at: d63ddcfeff4b16cbacec9ff0f89fb8f3c624ab8c
 locked_tests:
   - apps/web/__tests__/scenarios/budget-journey.current.test.ts
   - apps/web/__tests__/due-charges.test.ts
@@ -44,13 +44,14 @@ Master: `specs/SPEC_MASTER.md` · Plan: `docs/plans/20261125-budget-projection-i
 | `packages/shared/src/lib/calculation/sankey.ts` | Section 3: skip payments of provisioned charges; add the provision links (rules above), CHF through `addLink`. |
 | `packages/shared/src/lib/calculation/donut.ts` | `computeDonutExpenses` params gain `monthKey?: string`; provision rule above. |
 | `apps/web/src/components/dashboard/use-dashboard-data.ts` | Pass `convert` (CHF at `consolidated.rate`, no rate: leave unconverted) to `computeMonthlyBudget` (~l.145); pass `monthKey: selectedMonth` to `computeDonutExpenses` in `buildCharts`. Do **not** touch the dues query (spec 38). |
-| `apps/web/src/components/dashboard/cards/provisions-card.tsx` | Filter with `isChargeActiveInMonth` for the selected month (new prop `monthKey: string`, passed by its parent); total through `monthlyProvision(charges, month)`. |
+| `apps/web/src/components/dashboard/dashboard-content.tsx` | Pass `monthKey={selectedMonth}` to `<ProvisionsCard>` (~l.204). Added at review: the prop is required, so the only parent must pass it. |
+| `apps/web/src/components/dashboard/cards/provisions-card.tsx` | Filter with `isChargeActiveInMonth` for the selected month (new **required** prop `monthKey: string`); total through `monthlyProvision(charges, month)`. |
 | `specs/current/monthly-budget/spec.md`, `specs/current/provisions/spec.md`, `specs/current/dashboard/spec.md` | **Advisor at review (SPEC-2/3)**, not the Executor. |
 | `ARCHITECTURE.md` | Registry row for `isChargeActiveInMonth` (CTX-3), same commit. |
 
 ### Read (allow-list)
 
-`ARCHITECTURE.md`, the six files above, `packages/shared/src/domain/conversion.ts`, `apps/web/__tests__/stubs/budget-journey-fixture.ts`, `apps/web/__tests__/scenarios/budget-journey.current.test.ts`, `apps/web/__tests__/due-charges.test.ts`.
+`ARCHITECTURE.md`, the seven files above, `packages/shared/src/domain/conversion.ts`, `apps/web/__tests__/stubs/budget-journey-fixture.ts`, `apps/web/__tests__/scenarios/budget-journey.current.test.ts`, `apps/web/__tests__/due-charges.test.ts`.
 
 ### Reuse
 
@@ -69,6 +70,11 @@ Advisor-modified existing test (already done, before the lock): `due-charges.tes
 ## Out of scope
 
 Dues for the cursor month and overdue payments query (38). `recap-step.tsx` null rate = 1 (own row). Two « Reste à vivre » labels (38).
+
+## Decisions
+
+- Test change request (Executor, 20261125-1510): `budget-journey.current.test.ts` « draws one realised Sankey leg… » fed provisioned `CHARGES` yet expected 1 link; the pinned rules add provision links. Accepted: the test now passes `charges: []` (income links only). Re-locked at `d63ddcf`.
+- Frame gap: `dashboard-content.tsx` added; `monthKey` required.
 
 ## Handoffs
 
