@@ -81,3 +81,4 @@ Rates other than the current one (flagged, not modelled); card cycles after the 
 
 - `docs/handoffs/20261125-1437-34-budget-journey-scenarios.md`
 - `docs/handoffs/20261125-1524-38-projected-balance.md`
+- `docs/handoffs/20261125-1614-38-projected-balance.md`
