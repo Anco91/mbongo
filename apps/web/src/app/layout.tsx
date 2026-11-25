@@ -16,6 +16,7 @@ import { ServiceWorkerRegister } from '@/components/providers/service-worker-reg
 import { AppShell } from '@/components/patterns/app-shell';
 import { APP_METADATA, APP_VIEWPORT } from '@/lib/pwa';
 import { JSX } from 'react';
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -44,11 +45,13 @@ export default function RootLayout({
     <html lang="fr">
       <body className={inter.className}>
         <ServiceWorkerRegister />
-        <QueryProvider>
-          <DisplayCurrencyProvider>
-            <AppShell>{children}</AppShell>
-          </DisplayCurrencyProvider>
-        </QueryProvider>
+        <NuqsAdapter>
+          <QueryProvider>
+            <DisplayCurrencyProvider>
+              <AppShell>{children}</AppShell>
+            </DisplayCurrencyProvider>
+          </QueryProvider>
+        </NuqsAdapter>
       </body>
     </html>
   );

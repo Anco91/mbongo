@@ -121,6 +121,7 @@ incomes, transfers, monthly budgets, alerts). Mobile-first PWA.
 | Server state | @tanstack/react-query 5 |
 | Forms | react-hook-form + @hookform/resolvers |
 | Dates | date-fns 3 |
+| URL state | nuqs 2 (dashboard member scope `?membre=`) |
 | Charts | recharts 3 |
 | Dialog / sheet | @radix-ui/react-dialog |
 | Icons | lucide-react |
