@@ -71,6 +71,7 @@ export function ImportContent(): JSX.Element {
       setError(null);
       setMonth('');
     } catch (e) {
+      setStatement(null);
       setError(errorMessage(e));
     }
   };
@@ -129,7 +130,12 @@ export function ImportContent(): JSX.Element {
           </ul>
         </>
       )}
-      {statement && <StatementSnapshotPanel statement={statement} />}
+      {statement && (
+        <StatementSnapshotPanel
+          key={`${statement.accountSuffix}-${statement.balanceDate}`}
+          statement={statement}
+        />
+      )}
     </div>
   );
 }
