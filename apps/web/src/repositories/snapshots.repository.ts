@@ -30,4 +30,8 @@ export const snapshotsRepository: SnapshotHttp = {
       await request('POST', '/snapshots', { body })
     );
   },
+
+  async remove(id: string): Promise<void> {
+    await request<void>('DELETE', `/snapshots/${id}`);
+  },
 };

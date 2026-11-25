@@ -6,6 +6,7 @@ import {
   toErrorResponse,
   toSuccessResponse,
   toCreatedResponse,
+  toNoContentResponse,
 } from '@/server/common/http';
 import { SnapshotService, snapshotService } from './snapshot.service';
 
@@ -30,6 +31,15 @@ export class SnapshotsController {
         note: input.note ?? null,
       });
       return toCreatedResponse(data);
+    } catch (error) {
+      return toErrorResponse(error);
+    }
+  }
+
+  async remove(id: string): Promise<NextResponse> {
+    try {
+      await this.snapshots.delete(id);
+      return toNoContentResponse();
     } catch (error) {
       return toErrorResponse(error);
     }

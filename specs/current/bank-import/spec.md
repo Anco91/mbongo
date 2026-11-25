@@ -28,3 +28,14 @@ Chaque commerçant SHALL pouvoir être associé à une catégorie de charge ; le
 
 ### Requirement: Ancrer le solde du relevé
 Le bouton « Enregistrer le solde du relevé » SHALL créer un relevé de solde (date et solde du bandeau) sur le compte choisi par l'utilisateur, puis afficher l'écart avec le solde calculé du compte. Aucune transaction ni virement n'est créé.
+
+### Requirement: Suppression d'un relevé de solde
+Un relevé de solde enregistré par erreur peut être supprimé par son identifiant ; seul ce relevé est supprimé.
+
+#### Scenario: Suppression
+- **WHEN** `DELETE /api/snapshots/{id}` est appelé avec un identifiant connu
+- **THEN** ce seul relevé est supprimé et la réponse est sans contenu
+
+#### Scenario: Identifiant inconnu
+- **WHEN** l'identifiant n'existe pas
+- **THEN** la réponse est 404 et rien n'est supprimé

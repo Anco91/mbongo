@@ -57,6 +57,12 @@ export class SnapshotService {
     return this.toSnapshot(row);
   }
 
+  async delete(id: string): Promise<void> {
+    const row = await prisma.balanceSnapshot.findUnique({ where: { id } });
+    if (!row) throw new NotFoundError('BalanceSnapshot', id);
+    await prisma.balanceSnapshot.delete({ where: { id } });
+  }
+
   private toSnapshot(
     row: Prisma.BalanceSnapshotGetPayload<object>
   ): BalanceSnapshot {
