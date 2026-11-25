@@ -3,7 +3,7 @@ id: 48-future-month-budget-only
 status: ready
 branch: spec/48-future-month-budget-only
 tier: medium
-locked_at: PENDING
+locked_at: e9850ba1f87e1f6c019985907282cbfc4c59e61f
 locked_tests:
   - apps/web/__tests__/scenarios/budget-coherence.test.ts
 ---
