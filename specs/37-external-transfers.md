@@ -1,9 +1,9 @@
 ---
 id: 37-external-transfers
-status: ready
+status: done
 branch: spec/37-external-transfers
 tier: medium
-locked_at: 0aa7f759e7c683e6a47a94f6b44c8731c6ed7399
+locked_at: 668e01a538046ed48fc676c8f9cc5959084d1ae5
 locked_tests:
   - apps/web/__tests__/transfer-external.test.ts
 ---
