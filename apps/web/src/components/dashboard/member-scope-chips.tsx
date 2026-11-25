@@ -58,7 +58,7 @@ export function MemberScopeChips({
       )}
       {value !== null && (
         <p className="text-xs text-slate-500">
-          Hors comptes joints (visibles sous Foyer)
+          Charges communes visibles sous Foyer
         </p>
       )}
     </div>
