@@ -3,7 +3,7 @@ id: 34-budget-journey-scenarios
 status: done
 branch: test/budget-journey-scenarios
 tier: small
-locked_at: 83e1767178a218a2a71327d397e57a09d0c939a5
+locked_at: 1944daa7ae56b68dc12f1a327e26254a82f43be6
 locked_tests:
   - apps/web/__tests__/scenarios/budget-journey.current.test.ts
 ---
