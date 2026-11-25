@@ -1,6 +1,6 @@
 ---
 id: 35-budget-consistency
-status: ready
+status: done
 branch: feat/35-budget-consistency
 tier: medium
 locked_at: d63ddcfeff4b16cbacec9ff0f89fb8f3c624ab8c
