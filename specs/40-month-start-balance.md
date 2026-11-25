@@ -3,7 +3,7 @@ id: 40-month-start-balance
 status: ready
 branch: spec/40-month-start-balance
 tier: medium
-locked_at:
+locked_at: 4bf700b86c7a040111829ff2a0e4a35fe94affa0
 locked_tests:
   - apps/web/__tests__/month-start-balance-schema.test.ts
 ---
@@ -80,7 +80,7 @@ Master: `specs/SPEC_MASTER.md` · Needs: 39 · Rules: WF-3, WF-7, TEST-1..5, BE-
 
 Locked (Advisor, TEST-1 : schémas purs) : `apps/web/__tests__/month-start-balance-schema.test.ts` — ligne valide, mois invalide, solde non fini, corps de sauvegarde (liste vide, doublon de compte, > 2 décimales, bruit flottant accepté, négatif accepté).
 
-Proof of failure (voir « Handoffs » pour le commit) : `cd apps/web && npx jest __tests__/month-start-balance-schema.test.ts` → tests rouges (`monthStartBalanceSchema` / `saveMonthStartBalancesSchema` absents de `@mbongo/shared`).
+Proof of failure (voir « Handoffs » pour le commit) : `cd apps/web && npx jest __tests__/month-start-balance-schema.test.ts` → 23 failed (`monthStartBalanceSchema` / `saveMonthStartBalancesSchema` absents de `@mbongo/shared`).
 
 Pas de test d'UI (TEST-2). Service, contrôleur et étape : vérification manuelle ; l'Executor peut proposer un test de service avec Prisma mocké (modèle `monthly-budget.service.test.ts`) dans un **nouveau** fichier, marqué `pending-review`.
 
