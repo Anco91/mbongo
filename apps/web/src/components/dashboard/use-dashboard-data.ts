@@ -10,12 +10,11 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { paymentQueries } from '@/queries/payments';
 import {
   balanceAsOf,
   computeProjectedBalance,
-  type ProjectedBalance,
   computeConsolidatedBalance,
   computeDonutExpenses,
   computeSankeyFlows,
@@ -36,6 +35,7 @@ import {
   type CategoryExpense,
   type NetWorthTerm,
   type SankeyData,
+  type ProjectedBalance,
 } from '@mbongo/shared';
 import { useAccounts } from '@/hooks/use-accounts';
 import { useTransactions } from '@/hooks/use-transactions';
@@ -128,11 +128,11 @@ export function useDashboardData(
   // la même requête que le prefetch serveur du guard.
   const { data: payments = [] } = useMonthPayments(selectedMonth);
   // Charges dues : PENDING jusqu'à la fin du mois courant (retards inclus).
-  const { data: currentPayments = [] } = useQuery(
+  const { data: currentPayments } = useSuspenseQuery(
     paymentQueries.pendingUntil(currentMonthKey())
   );
   // Projection : PENDING jusqu'à la fin du mois choisi.
-  const { data: projectionPayments = [] } = useQuery(
+  const { data: projectionPayments } = useSuspenseQuery(
     paymentQueries.pendingUntil(selectedMonth)
   );
   const { data: transfers = [] } = useTransfers();

@@ -4,6 +4,7 @@
  *
  * @packageDocumentation
  */
+import { format } from 'date-fns';
 import { cardBilling } from '../../domain/card-billing';
 import { balanceAsOf } from '../../domain/balance';
 import { computeMonthExpectedIncome } from '../../domain/income';
@@ -165,15 +166,7 @@ function settlementFlows(input: ProjectionInput, deltas: Deltas): void {
     const own = transactions.filter((t) => t.accountId === card.id);
     const billing = cardBilling(card, own, today);
     if (!billing.nextBillingDate || billing.encours <= 0) continue;
-    const billingDay = toDay(
-      new Date(
-        Date.UTC(
-          billing.nextBillingDate.getFullYear(),
-          billing.nextBillingDate.getMonth(),
-          billing.nextBillingDate.getDate()
-        )
-      ).toISOString()
-    );
+    const billingDay = format(billing.nextBillingDate, 'yyyy-MM-dd');
     if (billingDay > lastDay) continue;
     addDelta(deltas, card.id, billing.encours);
     addDelta(deltas, card.linkedAccountId, -billing.encours);
