@@ -26,6 +26,7 @@ const MAIN_ROUTES: Record<string, string> = {
   '/schedule': 'Échéances à venir',
   '/alerts': 'Alertes',
   '/incomes/unmatched': 'Revenus à lier',
+  '/import': 'Import du relevé',
 };
 
 const CREATE_ROUTES: Record<string, string> = {
