@@ -9,8 +9,10 @@ import type { AccountScopedData } from './active-accounts';
 
 export function scopeToMember(
   input: AccountScopedData,
-  memberId: string | null
+  memberId: string | null,
+  accountId: string | null = null
 ): AccountScopedData {
+  void accountId;
   if (memberId === null) return input;
   const accounts = input.accounts.filter((a) => a.memberId === memberId);
   const ids = new Set(accounts.map((a) => a.id));
