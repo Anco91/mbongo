@@ -87,3 +87,5 @@ situation (second CHF salary) needs no model rewrite. Full context: `cdc.md` (ar
 | 41 | (fast-track) | Carte patrimoine : dues, patrimoine net, reste à vivre affichés au mois courant seulement (passé et futur les ont déjà dans la projection). Reste : vérifier en app la préparation de `/budget/2026-12` | done | — |
 | 42 | (fast-track) | Carte budget : total en EUR, pas « CHF » (`budget-preparation-card.tsx:96`) | done | — |
 | 43 | `specs/43-dashboard-start-balance.md` | Le solde de départ enregistré ancre la projection du dashboard (mois courant/futur, par compte). Verrouillé : 8 tests rouges. Needs 38, 40 | done | `docs/handoffs/20261125-2024-43-dashboard-start-balance.md` |
+
+| 44 | (fast-track) | Sankey : un virement externe est une dépense du compte source vers le nœud « Virements externes » (devise du compte source). Suite de 37 | done | PR (fast-track) |

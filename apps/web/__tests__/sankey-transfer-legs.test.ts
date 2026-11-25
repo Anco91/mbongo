@@ -145,3 +145,25 @@ describe('computeSankeyFlows transfer legs', () => {
     });
   });
 });
+
+describe('computeSankeyFlows external transfer', () => {
+  it('draws an external transfer as an expense of the source account, in its currency', () => {
+    const l = link(
+      flowsFor([
+        transfer({
+          sourceAccountId: 'eur-a',
+          targetAccountId: null,
+          amountSent: 1300,
+          amountReceived: null,
+        }),
+      ])
+    );
+
+    expect(l).toEqual({
+      from: 'eur-a',
+      to: 'Virements externes',
+      value: 1300,
+      currency: 'EUR',
+    });
+  });
+});
