@@ -10,12 +10,12 @@ Sub-spec delivered (pushed + PR #75); ~40 tool calls reached.
 
 - Tasks 1-10 done: ea50ac6 (migration `20261125003910_charge_owner`), ae85c16, edf446e, 734c99a, 8c70676, c2de0cd, d3e890c. PR #75 open.
 - Human go-ahead for migration logged 9fa6e63.
-- Reviewer agent dispatched on PR #75 (report pending at handoff time).
+- Reviewer: approve, no blocking or medium findings. Deviations logged in `design.md` > Frame amendments (schema optional kept, `index.ts` export, resolver cast).
 
 ## Left
 
-1. Read reviewer report; fix CRITICAL/HIGH.
-2. Decide deviation 1: `schemas/charge.ts` uses `.nullable().optional()` / `.optional()` instead of `.default(null)` / `.default(false)` (defaults break typecheck of 6 unlocked fixtures: donut-subcategories, m3-calculations, m5-filters, schedule.due-day, schedule.missing-payments, schedule.test). Keep, or widen Frame to update fixtures.
+1. (Done) Review approved.
+2. (Done, keep optional) Deviation 1: `schemas/charge.ts` uses `.nullable().optional()` / `.optional()` instead of `.default(null)` / `.default(false)` (defaults break typecheck of 6 unlocked fixtures: donut-subcategories, m3-calculations, m5-filters, schedule.due-day, schedule.missing-payments, schedule.test). Keep, or widen Frame to update fixtures.
 3. SPEC-3: update `specs/current/charge-management` and `specs/current/dashboard`.
 4. Manual UI check of owner select and `?compte=` chips.
 5. Merge on green, archive change, set row 31 done.
@@ -38,7 +38,7 @@ Sub-spec delivered (pushed + PR #75); ~40 tool calls reached.
 
 ## Next action
 
-Read the reviewer report on PR #75, decide deviation 1, do SPEC-3, merge on green.
+Do SPEC-3, manual UI check, merge on green.
 
 ## Resume block
 
@@ -49,6 +49,6 @@ NEXT SESSION
 Role: advisor
 Read: AGENTS.md, ARCHITECTURE.md, docs/handoffs/20261125-0144-charge-owner-scope.md
 Sub-spec: openspec/changes/charge-owner-scope/frame.md (master: specs/SPEC_MASTER.md)
-First action: read reviewer report on PR #75, decide deviation 1, do SPEC-3 update, merge on green
+First action: do SPEC-3 update, manual UI check, merge on green
 Stop: none
 ```

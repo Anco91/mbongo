@@ -23,3 +23,9 @@ Go-ahead received from the human on 2026-11-25: migration `charge_owner` approve
 ## Reuse analysis
 
 `scopeToMember`, `excludeClosedAccounts`, `OwnerBadge`/`ownerLabel`, `MemberScopeChips` + `FilterChips`, nuqs `useQueryState` (dashboard-content), `SelectInput` pattern of `account-edit-form.tsx`. No new dependency.
+
+## Frame amendments (review of PR #75)
+
+- `schemas/charge.ts`: `memberId` is `.nullable().optional()` and `shared` is `.optional()`, not `.default(...)`. Defaults make both fields required in the output type and break typecheck of 6 unlocked fixtures. The service maps `?? null` / `?? false`. Accepted: keep.
+- `packages/shared/src/index.ts`: adds `export * from './domain/charge-owner'`. Needed, not listed in the Frame. Accepted.
+- `charge-create-form.tsx`: resolver cast `as unknown as Resolver<ChargeFormValues>`, the owner mapping lives in the resolver instead of a schema transform. Accepted; optional cleanup later.
