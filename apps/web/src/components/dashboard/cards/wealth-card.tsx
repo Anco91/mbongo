@@ -67,6 +67,9 @@ export function WealthCard({
   const { rateSource } = useDisplayCurrency();
   const totalEur = projection ? projection.totalEur : consolidated.totalEur;
   const isProjected = projection !== undefined && projection.state !== 'past';
+  // Dues, net worth and reste à vivre describe today: shown on the current
+  // month only. A past or future month already nets its own charges.
+  const showTodayLines = !projection || projection.state === 'current';
 
   return (
     <Card
@@ -104,7 +107,7 @@ export function WealthCard({
             </p>
           </div>
         </div>
-        {dueChargesEur !== null && dueChargesEur > 0 && (
+        {showTodayLines && dueChargesEur !== null && dueChargesEur > 0 && (
           <dl className="mt-3 space-y-0.5 border-t border-slate-100 pt-3 text-xs text-slate-600">
             <div className="flex justify-between">
               <dt>dont charges dues</dt>
