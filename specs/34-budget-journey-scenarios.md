@@ -74,4 +74,4 @@ Nov budget is 1080 = rent 900 + phone 30 + provisions 150 (insurance 100 + tempo
 
 ## Handoffs
 
-(none yet)
+- `docs/handoffs/20261125-1437-34-budget-journey-scenarios.md`
