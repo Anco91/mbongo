@@ -38,7 +38,11 @@ export function ToggleInput({
 }: ToggleInputProps): JSX.Element {
   const form = useFormContext();
   const raw: unknown = currentValue ?? form.watch(name);
-  const value = booleanValue ? String(Boolean(raw)) : String(raw ?? '');
+  // Controlled mode already carries the option string ('true'/'false').
+  const value =
+    booleanValue && currentValue === undefined
+      ? String(Boolean(raw))
+      : String(raw ?? '');
   const select = (optionValue: string): void => {
     if (onChange) {
       onChange(optionValue);
