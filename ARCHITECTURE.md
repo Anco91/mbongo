@@ -91,6 +91,7 @@ incomes, transfers, monthly budgets, alerts). Mobile-first PWA.
 | `packages/shared/src/lib/calculation/member-scope.ts` → `scopeToMember` | domain | Restricts chart inputs to one member: their accounts' data, charges they own (`chargeOwner`: explicit member, else account owner; common charges only in household); optional `accountId` narrows to one account of that member (ignored for household); transfers need both ends; null = household. Used by `useDashboardData` |
 | `packages/shared/src/domain/charge-owner.ts` → `chargeOwner`, `ownerChoiceToFields`, `fieldsToOwnerChoice` | domain | Owner member of a charge (`shared` → null, else `memberId`, else debited account's member); maps the « Propriétaire / débiteur » select ↔ `{ memberId, shared }`. Replayed by charge badge, member filter, scope, forms; server re-checks exclusivity (422) |
 | `apps/web/src/components/dashboard/member-scope-chips.tsx` → `MemberScopeChips` | ui | « Foyer / <membre> » chips (on `FilterChips`) plus per-account sub-chips (`?compte=`, no `SAVINGS`), fullscreen charts only; page cards stay Foyer |
+| `packages/shared/src/domain/schedule.ts` → `isChargeActiveInMonth` | domain | Charge counts in month `YYYY-MM` iff `startDate`..`endDate` month bounds contain it (string compare, no end = open). Used by `monthlyProvision(charges, month?, convert?)`, Sankey and donut provisions, `ProvisionsCard` |
 | `apps/web/src/components/charts/` | ui | Sankey, donut, fullscreen chart |
 | `apps/web/src/components/providers/` | ui | QueryProvider, DisplayCurrencyProvider, service worker register |
 
