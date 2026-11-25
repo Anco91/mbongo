@@ -25,7 +25,7 @@ Master: `specs/SPEC_MASTER.md` · Needs: 33 · Rules: WF-3, WF-7, TEST-1..5, BE-
 - `checkTransferLegs` : un externe `COMPLETED` sans `amountReceived` est cohérent ; une jambe `TARGET` est `TARGET_UNEXPECTED`.
 - Patrimoine : la jambe source est une transaction réelle, la sortie est déjà dans les soldes. Sankey/budget (sortie non catégorisée, pas neutre) : ligne 44 ; d'ici là Sankey ignore les virements externes.
 - Édition du mémo après création : hors périmètre (ligne ultérieure) ; affichage seulement.
-- **Porte humaine GIT-7** : migration Prisma (colonne `target_account_id` nullable + `external_label`). L'Executor s'arrête avant `prisma migrate` tant que l'humain n'a pas levé la porte ; le code et les tests purs avancent sans.
+- **Porte humaine GIT-7 levée le 2026-11-25** (PM, objectif utilisateur « ne t'arrête pas »). Migration Prisma (colonne `target_account_id` nullable + `external_label`). L'Executor s'arrête avant `prisma migrate` tant que l'humain n'a pas levé la porte ; le code et les tests purs avancent sans.
 
 ## Acceptance criteria
 
