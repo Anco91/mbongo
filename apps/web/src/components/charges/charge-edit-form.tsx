@@ -17,10 +17,14 @@ import { parseISO } from 'date-fns';
 import {
   updateChargeSchema,
   listSubcategories,
+  fieldsToOwnerChoice,
+  ownerChoiceToFields,
+  type ChargeOwnerChoice,
   type Charge,
   type UpdateChargeInput,
 } from '@mbongo/shared';
 import { useAccounts } from '@/hooks/use-accounts';
+import { useMembers } from '@/hooks/use-members';
 import { DUE_DAY_OPTIONS } from '@/lib/charges';
 import {
   useCharge,
@@ -59,6 +63,9 @@ const FREQUENCIES = [
   { value: 'yearly', label: 'Annuelle' },
 ] as const;
 
+/** Form values: the persisted fields plus the single owner select. */
+type ChargeEditValues = UpdateChargeInput & { owner?: ChargeOwnerChoice };
+
 export function ChargeEditForm({
   chargeId,
 }: {
@@ -67,6 +74,7 @@ export function ChargeEditForm({
   const router = useRouter();
   const { data: charge, isLoading } = useCharge(chargeId);
   const { data: accounts = [] } = useAccounts();
+  const { data: members = [] } = useMembers();
   const {
     mutate: update,
     isPending: isSaving,
@@ -78,9 +86,10 @@ export function ChargeEditForm({
   // Validates through the shared schema after clearing `dueDay` outside the
   // monthly recurrence: the hidden selector must not block the submission
   // (spec charge-management — due day is monthly-only).
-  const resolver: Resolver<UpdateChargeInput> = (values, context, options) =>
+  const resolver: Resolver<ChargeEditValues> = (values, context, options) =>
     zodResolver(updateChargeSchema)(
       {
+        ...ownerChoiceToFields(values.owner ?? ''),
         ...(values.type === 'FIXED_RECURRING' &&
         (values.frequency ?? charge?.frequency) === 'monthly'
           ? values
@@ -97,7 +106,7 @@ export function ChargeEditForm({
       options
     );
 
-  const form = useForm<UpdateChargeInput>({
+  const form = useForm<ChargeEditValues>({
     resolver,
     values: charge ? defaultsOf(charge) : undefined,
   });
@@ -114,6 +123,12 @@ export function ChargeEditForm({
   const activeAccounts = accounts
     .filter((a) => a.status === 'ACTIVE')
     .map((a) => ({ value: a.id, label: `${a.name} (${a.currency})` }));
+
+  const ownerOptions = [
+    { value: '', label: 'Suivre le compte' },
+    { value: 'shared', label: 'Commun' },
+    ...members.map((m) => ({ value: m.id, label: m.firstName })),
+  ];
 
   if (isLoading || !charge) {
     return (
@@ -168,6 +183,11 @@ export function ChargeEditForm({
           name="accountId"
           label="Compte débité"
           options={activeAccounts}
+        />
+        <SelectInput
+          name="owner"
+          label="Propriétaire / débiteur"
+          options={ownerOptions}
         />
       </FormSection>
 
@@ -243,8 +263,9 @@ export function ChargeEditForm({
 }
 
 /** Edit defaults derived from the persisted charge (dates trimmed to ISO day). */
-function defaultsOf(charge: Charge): UpdateChargeInput {
+function defaultsOf(charge: Charge): ChargeEditValues {
   return {
+    owner: fieldsToOwnerChoice(charge),
     label: charge.label,
     type: charge.type,
     amount: charge.amount,

@@ -9,7 +9,7 @@
 
 import { useMemo, type JSX } from 'react';
 import type { Account, Charge } from '@mbongo/shared';
-import { monthlyProvision } from '@mbongo/shared';
+import { chargeOwner, monthlyProvision } from '@mbongo/shared';
 import {
   ShowMoreList,
   DetailRow,
@@ -63,7 +63,7 @@ export function ProvisionsCard({
                             {c.label}
                           </p>
                           <div className="mt-1 flex items-center gap-1.5">
-                            <OwnerBadge memberId={account?.memberId ?? null} />
+                            <OwnerBadge memberId={chargeOwner(c, account)} />
                             {account && <AccountChip name={account.name} />}
                           </div>
                         </div>
@@ -79,7 +79,7 @@ export function ProvisionsCard({
                     }
                   >
                     <div className="flex items-center gap-2">
-                      <OwnerBadge memberId={account?.memberId ?? null} />
+                      <OwnerBadge memberId={chargeOwner(c, account)} />
                       <StatusBadge status="Provisionnée" />
                       {account && <AccountChip name={account.name} />}
                     </div>

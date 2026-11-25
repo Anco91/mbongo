@@ -5,6 +5,7 @@
  * @module Lib/Filters
  */
 
+import { chargeOwner } from '@mbongo/shared';
 import type { Account, Charge, Payment } from '@mbongo/shared';
 import type { ChargeFilter } from '@/lib/charges';
 
@@ -64,7 +65,8 @@ export function filterCharges(
 ): Charge[] {
   return charges.filter((charge) => {
     const account = accountsById.get(charge.accountId);
-    if (!matchesMemberFilter(account?.memberId, selectedMember)) return false;
+    if (!matchesMemberFilter(chargeOwner(charge, account), selectedMember))
+      return false;
     if (filter === 'Toutes') return true;
     if (filter === 'Fixes') return charge.type === 'FIXED_RECURRING';
     if (filter === 'Échelonnées') return charge.type === 'INSTALLMENT';

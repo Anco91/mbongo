@@ -14,7 +14,7 @@ import {
   DonutLegend,
   type DonutDatum,
 } from '@/components/charts/donut-categories-chart';
-import type { Member, SankeyData } from '@mbongo/shared';
+import type { Account, Member, SankeyData } from '@mbongo/shared';
 import { MemberScopeChips } from './member-scope-chips';
 import { JSX } from 'react';
 
@@ -28,6 +28,9 @@ interface DashboardFullscreenChartsProps {
   members: Member[];
   memberId: string | null;
   onMemberChange: (memberId: string | null) => void;
+  accounts: Account[];
+  accountId: string | null;
+  onAccountChange: (accountId: string | null) => void;
   onClose: () => void;
 }
 
@@ -39,6 +42,9 @@ export function DashboardFullscreenCharts({
   members,
   memberId,
   onMemberChange,
+  accounts,
+  accountId,
+  onAccountChange,
   onClose,
 }: DashboardFullscreenChartsProps): JSX.Element {
   return (
@@ -53,6 +59,9 @@ export function DashboardFullscreenCharts({
             members={members}
             value={memberId}
             onChange={onMemberChange}
+            accounts={accounts}
+            accountId={accountId}
+            onAccountChange={onAccountChange}
           />
         </div>
       }

@@ -10,7 +10,11 @@
 
 import type { JSX } from 'react';
 import type { Account, Charge, Payment } from '@mbongo/shared';
-import { paymentDisplayStatus, paymentStatusLabel } from '@mbongo/shared';
+import {
+  chargeOwner,
+  paymentDisplayStatus,
+  paymentStatusLabel,
+} from '@mbongo/shared';
 import {
   ShowMoreList,
   DetailRow,
@@ -63,7 +67,13 @@ export function MonthPaymentsCard({
                             {label}
                           </p>
                           <div className="mt-1 flex items-center gap-1.5">
-                            <OwnerBadge memberId={account?.memberId ?? null} />
+                            <OwnerBadge
+                              memberId={
+                                charge
+                                  ? chargeOwner(charge, account)
+                                  : (account?.memberId ?? null)
+                              }
+                            />
                             {account && <AccountChip name={account.name} />}
                             <span className="text-[11px] text-slate-400">
                               {formatDate(p.dueDate)}
@@ -80,7 +90,13 @@ export function MonthPaymentsCard({
                     }
                   >
                     <div className="flex items-center gap-2">
-                      <OwnerBadge memberId={account?.memberId ?? null} />
+                      <OwnerBadge
+                        memberId={
+                          charge
+                            ? chargeOwner(charge, account)
+                            : (account?.memberId ?? null)
+                        }
+                      />
                       <StatusBadge status={status} />
                       {account && <AccountChip name={account.name} />}
                     </div>

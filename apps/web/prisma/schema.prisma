@@ -23,6 +23,7 @@ model Member {
   lastName  String? // M4 : nom optionnel (vue foyer)
   accounts  Account[]
   incomes   Income[]
+  charges   Charge[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
@@ -158,11 +159,15 @@ model Charge {
   provisioned  Boolean   @default(false)
   accountId    String
   account      Account   @relation(fields: [accountId], references: [id])
+  memberId     String? // Owner/debtor member; null = follows the account
+  member       Member?   @relation(fields: [memberId], references: [id])
+  shared       Boolean   @default(false) // Common charge: no member owner
   payments     Payment[]
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
   @@index([accountId])
+  @@index([memberId])
   @@index([type])
   @@index([category])
   @@index([startDate])

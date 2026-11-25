@@ -17,10 +17,13 @@ import { startOfMonth, format } from 'date-fns';
 import {
   createChargeSchema,
   listSubcategories,
+  ownerChoiceToFields,
+  type ChargeOwnerChoice,
   type CreateChargeInput,
   type Charge,
 } from '@mbongo/shared';
 import { useAccounts } from '@/hooks/use-accounts';
+import { useMembers } from '@/hooks/use-members';
 import { useCreateCharge } from '@/hooks/use-charges';
 import { DUE_DAY_OPTIONS } from '@/lib/charges';
 import {
@@ -70,6 +73,9 @@ const FREQUENCIES = [
   { value: 'yearly', label: 'Annuelle' },
 ] as const;
 
+/** Form values: the persisted fields plus the single owner select. */
+type ChargeFormValues = CreateChargeInput & { owner: ChargeOwnerChoice };
+
 /**
  * Validates through the shared schema after clearing `dueDay` outside the
  * monthly recurrence: the hidden selector must not block the submission
@@ -78,6 +84,7 @@ const FREQUENCIES = [
 const resolver: Resolver<CreateChargeInput> = (values, context, options) =>
   zodResolver(createChargeSchema)(
     {
+      ...ownerChoiceToFields((values as ChargeFormValues).owner),
       ...(values.type === 'FIXED_RECURRING' && values.frequency === 'monthly'
         ? values
         : { ...values, dueDay: null }),
@@ -110,6 +117,7 @@ export function ChargeCreateForm({
 }): JSX.Element {
   const router = useRouter();
   const { data: accounts = [] } = useAccounts();
+  const { data: members = [] } = useMembers();
   const {
     mutate: createCharge,
     isPending: isCreating,
@@ -117,8 +125,9 @@ export function ChargeCreateForm({
     error,
   } = useCreateCharge();
 
-  const form = useForm<CreateChargeInput>({
-    resolver,
+  const form = useForm<ChargeFormValues>({
+    // The owner select is read by the resolver, which maps it to the schema fields.
+    resolver: resolver as unknown as Resolver<ChargeFormValues>,
     defaultValues: {
       label: '',
       type: 'FIXED_RECURRING',
@@ -134,6 +143,7 @@ export function ChargeCreateForm({
       installments: null,
       dueDay: 1,
       provisioned: false,
+      owner: '',
     },
   });
 
@@ -148,6 +158,12 @@ export function ChargeCreateForm({
   const activeAccounts = accounts
     .filter((a) => a.status === 'ACTIVE')
     .map((a) => ({ value: a.id, label: `${a.name} (${a.currency})` }));
+
+  const ownerOptions = [
+    { value: '', label: 'Suivre le compte' },
+    { value: 'shared', label: 'Commun' },
+    ...members.map((m) => ({ value: m.id, label: m.firstName })),
+  ];
 
   const onSubmit = form.handleSubmit((data) =>
     // Le jour de prélèvement n'existe que pour le mensuel (422 sinon).
@@ -206,6 +222,11 @@ export function ChargeCreateForm({
           label="Compte débité"
           options={activeAccounts}
           placeholder="— Choisir un compte —"
+        />
+        <SelectInput
+          name="owner"
+          label="Propriétaire / débiteur"
+          options={ownerOptions}
         />
       </FormSection>
 

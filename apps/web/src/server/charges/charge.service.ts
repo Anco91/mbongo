@@ -56,6 +56,7 @@ export class ChargeService {
     if (subcategoryIssue) {
       throw new HttpError(422, { message: subcategoryIssue });
     }
+    await this.assertOwner(input.memberId ?? null, input.shared ?? false);
     // M2 (design D5) : création TRANSACTIONNELLE — la charge et ses
     // échéances sont persistées tout-ou-rien. Un échec ne laisse
     // ni charge ni échéance orpheline.
@@ -75,6 +76,8 @@ export class ChargeService {
           installments: input.installments,
           dueDay: input.dueDay ?? null,
           provisioned: input.provisioned ?? false,
+          memberId: input.memberId ?? null,
+          shared: input.shared ?? false,
         },
       });
       await this.generateAndStorePayments(
@@ -92,6 +95,10 @@ export class ChargeService {
     if (!existing) throw new NotFoundError('Charge', id);
 
     const subcategory = this.resolveSubcategory(existing, input);
+    await this.assertOwner(
+      input.memberId !== undefined ? input.memberId : existing.memberId,
+      input.shared ?? existing.shared
+    );
 
     if (!this.touchesSchedule(input)) {
       const row = await prisma.charge.update({
@@ -216,6 +223,23 @@ export class ChargeService {
     return resolved ?? null;
   }
 
+  /** 422 on a common charge with an owner, or an unknown owner member. */
+  private async assertOwner(
+    memberId: string | null,
+    shared: boolean
+  ): Promise<void> {
+    if (shared && memberId) {
+      throw new HttpError(422, {
+        message: 'A common charge cannot have an owner member',
+      });
+    }
+    if (!memberId) return;
+    const member = await prisma.member.findUnique({ where: { id: memberId } });
+    if (!member) {
+      throw new HttpError(422, { message: `Unknown member: ${memberId}` });
+    }
+  }
+
   private toPrisma(
     input: CreateChargeInput | UpdateChargeInput,
     subcategory?: string | null
@@ -236,6 +260,8 @@ export class ChargeService {
     if (input.dueDay !== undefined) data.dueDay = input.dueDay;
     if (input.provisioned !== undefined) data.provisioned = input.provisioned;
     if (input.accountId !== undefined) data.accountId = input.accountId;
+    if (input.memberId !== undefined) data.memberId = input.memberId;
+    if (input.shared !== undefined) data.shared = input.shared;
     if (subcategory !== undefined) data.subcategory = subcategory;
     return data;
   }

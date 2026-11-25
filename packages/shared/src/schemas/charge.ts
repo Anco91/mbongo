@@ -75,6 +75,8 @@ export const chargeSchema = z.object({
   installments: z.number().int().positive().nullable().default(null),
   dueDay: dueDaySchema,
   provisioned: z.boolean().default(false),
+  memberId: z.string().min(1).nullable().optional(),
+  shared: z.boolean().optional(),
   createdAt: isoDate,
   updatedAt: isoDate,
 });
@@ -119,6 +121,13 @@ export const createChargeSchema = chargeSchema
         code: 'custom',
         path: ['dueDay'],
         message: 'Due day is only allowed for monthly charges',
+      });
+    }
+    if (charge.shared && charge.memberId) {
+      context.addIssue({
+        code: 'custom',
+        path: ['memberId'],
+        message: 'A common charge cannot have an owner member',
       });
     }
     const subcategoryIssue = checkChargeSubcategory(
