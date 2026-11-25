@@ -1,6 +1,6 @@
 ---
 id: 39-month-journey
-status: ready
+status: done
 branch: spec/39-month-journey
 tier: medium
 locked_at: 7e75473479b77efee9c3d00a33ec2facbf601479
