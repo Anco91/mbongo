@@ -1,6 +1,6 @@
 ---
 id: 40-month-start-balance
-status: review
+status: done
 branch: spec/40-month-start-balance
 tier: medium
 locked_at: 48481340ef6dc38c6f0d8bdec4a3d97ed64ad782
