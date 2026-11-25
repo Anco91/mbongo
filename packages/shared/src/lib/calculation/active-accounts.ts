@@ -35,7 +35,8 @@ export function excludeClosedAccounts(
     transactions: input.transactions.filter((t) => !closedIds.has(t.accountId)),
     transfers: input.transfers.filter(
       (t) =>
-        !closedIds.has(t.sourceAccountId) && !closedIds.has(t.targetAccountId)
+        !closedIds.has(t.sourceAccountId) &&
+        (t.targetAccountId === null || !closedIds.has(t.targetAccountId))
     ),
     charges: input.charges.filter((c) => !droppedChargeIds.has(c.id)),
     payments: input.payments.filter((p) => !droppedChargeIds.has(p.chargeId)),

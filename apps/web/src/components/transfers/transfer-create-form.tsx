@@ -17,6 +17,7 @@ import {
   createTransferSchema,
   counterValue,
   isSameCurrencyTransfer,
+  isExternalTransfer,
   checkTransferAccounts,
   type Account,
   type CreateTransferInput,
@@ -31,11 +32,12 @@ import {
   FormHint,
   TextInput,
   SelectInput,
+  ToggleInput,
   AmountInput,
 } from '@/components/form';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import { JSX } from 'react';
+import { JSX, useState } from 'react';
 import type { z } from 'zod';
 
 /**
@@ -80,6 +82,14 @@ export function buildTransferFormResolver(
   const resolve = zodResolver(buildTransferFormSchema(accounts));
   return (values, context, options) => {
     const source = accounts.find((a) => a.id === values.sourceAccountId);
+    if (isExternalTransfer(values)) {
+      // External: no rate field; rate 1 dated at the send date.
+      return resolve(
+        { ...values, rateEstimated: 1, rateDate: values.sentAt },
+        context,
+        options
+      );
+    }
     const target = accounts.find((a) => a.id === values.targetAccountId);
     const sameCurrency =
       source !== undefined &&
@@ -106,11 +116,13 @@ export function TransferCreateForm(): JSX.Element {
     error,
   } = useCreateTransfer();
 
+  const [isExternal, setIsExternal] = useState(false);
   const form = useForm<CreateTransferInput>({
     resolver: buildTransferFormResolver(accounts),
     defaultValues: {
       sourceAccountId: '',
       targetAccountId: '',
+      externalLabel: null,
       amountSent: 0,
       rateEstimated: 0,
       rateDate: new Date().toISOString().slice(0, 10),
@@ -139,6 +151,7 @@ export function TransferCreateForm(): JSX.Element {
   // Live estimated counter-value preview (shared domain function).
   const hasPreview =
     !sameCurrency &&
+    !isExternal &&
     typeof amountSent === 'number' &&
     amountSent > 0 &&
     typeof rateEstimated === 'number' &&
@@ -146,13 +159,19 @@ export function TransferCreateForm(): JSX.Element {
   const preview = hasPreview ? counterValue(amountSent, rateEstimated) : null;
 
   // The resolver already normalises the rate for same-currency pairs.
+  const changeRecipientKind = (value: string): void => {
+    const external = value === 'external';
+    setIsExternal(external);
+    form.setValue('targetAccountId', external ? null : '');
+    form.setValue('externalLabel', null);
+  };
   const onSubmit = form.handleSubmit((data) => createTransfer(data));
 
   if (isSuccess) {
     return (
       <FormSuccess
         message={
-          sameCurrency
+          sameCurrency || isExternal
             ? 'Transfert enregistré et crédité.'
             : 'Transfert enregistré (estimé). Enregistrez le crédit reçu depuis la liste des transferts.'
         }
@@ -177,12 +196,26 @@ export function TransferCreateForm(): JSX.Element {
           options={accountOptions}
           placeholder="— Choisir un compte —"
         />
-        <SelectInput
+        <ToggleInput
           name="targetAccountId"
-          label="Compte cible"
-          options={accountOptions}
-          placeholder="— Choisir un compte —"
+          label="Destinataire"
+          options={[
+            { value: 'internal', label: 'Compte du foyer' },
+            { value: 'external', label: 'Compte externe' },
+          ]}
+          currentValue={isExternal ? 'external' : 'internal'}
+          onChange={changeRecipientKind}
         />
+        {isExternal ? (
+          <TextInput name="externalLabel" label="Destinataire (libellé)" />
+        ) : (
+          <SelectInput
+            name="targetAccountId"
+            label="Compte cible"
+            options={accountOptions}
+            placeholder="— Choisir un compte —"
+          />
+        )}
         {pairRefusal && source?.id === target?.id && (
           <p className="text-xs text-red-600">
             Le compte cible doit être différent du compte source.
@@ -190,12 +223,14 @@ export function TransferCreateForm(): JSX.Element {
         )}
       </FormSection>
 
-      <FormSection title={sameCurrency ? 'Montant' : 'Montant & taux'}>
+      <FormSection
+        title={sameCurrency || isExternal ? 'Montant' : 'Montant & taux'}
+      >
         <AmountInput
           name="amountSent"
           label={`Montant envoyé${source ? ` (${source.currency})` : ''}`}
         />
-        {!sameCurrency && (
+        {!sameCurrency && !isExternal && (
           <AmountInput
             name="rateEstimated"
             label="Taux de référence (devise cible pour 1 devise source)"
@@ -216,11 +251,13 @@ export function TransferCreateForm(): JSX.Element {
       </FormSection>
 
       <FormSection title="Dates & mémo">
-        <TextInput
-          name="rateDate"
-          label="Date du taux de référence"
-          type="date"
-        />
+        {!isExternal && (
+          <TextInput
+            name="rateDate"
+            label="Date du taux de référence"
+            type="date"
+          />
+        )}
         <TextInput name="sentAt" label="Date d'envoi" type="date" />
         <TextInput name="memo" label="Mémo (optionnel)" />
         <FormHint>
@@ -231,7 +268,7 @@ export function TransferCreateForm(): JSX.Element {
 
       <FormActions
         submitLabel={
-          sameCurrency
+          sameCurrency || isExternal
             ? 'Enregistrer le transfert'
             : 'Enregistrer le transfert (estimé)'
         }

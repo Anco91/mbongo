@@ -8,16 +8,16 @@
 
 import type { TransferAccountRef } from './transfer-accounts';
 
-/** Stub locked with spec 37: the Executor replaces the bodies. */
-export function isExternalTransfer(_transfer: {
+/** True when the transfer has no target account (recipient outside the household). */
+export function isExternalTransfer(transfer: {
   targetAccountId: string | null;
 }): boolean {
-  throw new Error('not implemented');
+  return transfer.targetAccountId === null;
 }
 
-/** Stub locked with spec 37: the Executor replaces the body. */
+/** Refusal reason for the source of an external transfer, or null when allowed. */
 export function checkExternalTransferSource(
-  _source: TransferAccountRef
+  source: TransferAccountRef
 ): string | null {
-  throw new Error('not implemented');
+  return source.status === 'CLOSED' ? 'Source account is closed' : null;
 }

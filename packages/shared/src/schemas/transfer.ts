@@ -48,7 +48,13 @@ export type TransferStatus = z.infer<typeof transferStatusSchema>;
 export const transferSchema = z.object({
   id: z.string().min(1),
   sourceAccountId: z.string().min(1),
-  targetAccountId: z.string().min(1),
+  targetAccountId: z.string().min(1).nullable(),
+  externalLabel: z
+    .string()
+    .trim()
+    .min(1, 'Recipient label must not be blank')
+    .nullable()
+    .optional(),
   amountSent: z.number().positive('Amount sent must be positive'),
   rateEstimated: z.number().positive('Estimated rate must be positive'),
   rateDate: isoDate,
@@ -90,7 +96,23 @@ export const createTransferSchema = transferSchema
     updatedAt: true,
   })
   .superRefine((transfer, context) => {
-    if (transfer.sourceAccountId === transfer.targetAccountId) {
+    const hasTarget = transfer.targetAccountId !== null;
+    const hasLabel = transfer.externalLabel != null;
+    if (hasTarget && hasLabel) {
+      context.addIssue({
+        code: 'custom',
+        path: ['externalLabel'],
+        message: 'External label is only for a transfer without target account',
+      });
+    }
+    if (!hasTarget && !hasLabel) {
+      context.addIssue({
+        code: 'custom',
+        path: ['externalLabel'],
+        message: 'Recipient label is required without a target account',
+      });
+    }
+    if (hasTarget && transfer.sourceAccountId === transfer.targetAccountId) {
       context.addIssue({
         code: 'custom',
         path: ['targetAccountId'],

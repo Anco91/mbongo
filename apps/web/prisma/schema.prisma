@@ -102,8 +102,9 @@ model Transfer {
   id              String        @id @default(uuid())
   sourceAccountId String
   sourceAccount   Account       @relation("TransferSourceAccount", fields: [sourceAccountId], references: [id])
-  targetAccountId String
-  targetAccount   Account       @relation("TransferTargetAccount", fields: [targetAccountId], references: [id])
+  targetAccountId String?
+  externalLabel   String?
+  targetAccount   Account?      @relation("TransferTargetAccount", fields: [targetAccountId], references: [id])
   amountSent      Float
   rateEstimated   Float
   rateDate        DateTime

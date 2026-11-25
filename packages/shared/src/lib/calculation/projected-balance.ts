@@ -182,7 +182,8 @@ function settlementFlows(input: ProjectionInput, window: FlowWindow): Deltas {
   );
   for (const tr of input.transfers) {
     const source = byId.get(tr.sourceAccountId);
-    const target = byId.get(tr.targetAccountId);
+    const target =
+      tr.targetAccountId === null ? undefined : byId.get(tr.targetAccountId);
     if (tr.status !== 'ESTIMATED' || withTarget.has(tr.id) || !target) continue;
     const sentDay = toDay(tr.sentAt);
     if (sentDay <= window.after || sentDay > lastDay) continue;
