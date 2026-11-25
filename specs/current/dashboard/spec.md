@@ -38,6 +38,28 @@ L'UI du dashboard SHALL afficher le total consolidé en EUR au taux courant (tau
 - **WHEN** le dashboard se charge avec un taux disponible
 - **THEN** le montant principal est affiché en CHF et le contre-total en EUR en parallèle
 
+### Requirement: Patrimoine projeté à la fin du mois
+
+La carte patrimoine SHALL suivre le curseur mensuel. Le solde d'un compte « du jour » SHALL ne compter que les transactions datées d'aujourd'hui ou avant ; une transaction future ne SHALL pas modifier le patrimoine du jour. Pour un mois passé, la carte SHALL afficher le patrimoine réel à la fin de ce mois, sans libellé de projection. Pour le mois courant et les mois futurs, elle SHALL afficher « Projeté fin <mois> » (mois en toutes lettres, sans l'année) : soldes d'aujourd'hui, plus les transactions futures, les revenus dus non confirmés (au montant prévu, jamais en double d'un revenu confirmé), les paiements `PENDING` échus jusqu'à la fin du mois (retards et charges provisionnées compris), les jambes cibles estimées des transferts non encore reçues et le prochain règlement de chaque carte à débit différé. Seuls les comptes actifs SHALL compter.
+
+#### Scenario: Mois futur
+
+- **GIVEN** le curseur sur décembre
+- **WHEN** le dashboard s'affiche
+- **THEN** la carte patrimoine indique « Projeté fin décembre » avec le solde projeté
+
+#### Scenario: Mois passé
+
+- **GIVEN** le curseur sur un mois passé
+- **WHEN** le dashboard s'affiche
+- **THEN** la carte affiche le patrimoine réel à la fin de ce mois, sans mention « Projeté »
+
+#### Scenario: Transaction future
+
+- **GIVEN** une transaction de -100 EUR datée dans le futur
+- **WHEN** le curseur est sur le mois courant, avant sa date
+- **THEN** le patrimoine du jour ne change pas, le solde projeté de fin de mois la compte
+
 ### Requirement: Détail du patrimoine consolidé
 
 Au survol ou au focus clavier de la carte « Patrimoine consolidé », l'UI SHALL lister chaque terme du patrimoine : un compte actif par ligne, avec son nom, sa devise native et son solde signé. Les actifs sont triés par solde décroissant, puis les découverts du plus négatif au moins négatif ; les soldes nuls et les comptes clos sont exclus.
@@ -204,7 +226,7 @@ Le sélecteur EUR/CHF du header SHALL être visible uniquement sur le dashboard 
 
 ### Requirement: Navigation mensuelle
 
-Le dashboard SHALL permettre de consulter les mois passés et futurs : un curseur « ‹ mois › » dans la carte, et un swipe horizontal (geste tactile natif PWA) pour changer de mois. Sankey, donut, échéances, provisions et totaux du mois SHALL se recalculer pour le mois choisi ; le patrimoine consolidé et les alertes restent l'état du jour. Le curseur SHALL démarrer sur le mois courant. Les données du mois SHALL être requêtées pour le mois choisi (fenêtre sur la date d'échéance), sans dépendre d'un volume global tronqué ; les données préchargées côté serveur et les requêtes client SHALL utiliser la même requête du mois.
+Le dashboard SHALL permettre de consulter les mois passés et futurs : un curseur « ‹ mois › » dans la carte, et un swipe horizontal (geste tactile natif PWA) pour changer de mois. Sankey, donut, échéances, provisions et totaux du mois SHALL se recalculer pour le mois choisi ; la carte patrimoine suit le mois choisi (voir « Patrimoine projeté ») ; les alertes restent l'état du jour. Le curseur SHALL démarrer sur le mois courant. Les données du mois SHALL être requêtées pour le mois choisi (fenêtre sur la date d'échéance), sans dépendre d'un volume global tronqué ; les données préchargées côté serveur et les requêtes client SHALL utiliser la même requête du mois.
 
 #### Scenario: Mois précédent
 
@@ -286,7 +308,7 @@ Le plein écran du Sankey et du donut SHALL proposer un bouton « Foyer » (déf
 
 ### Requirement: Patrimoine net des charges dues
 
-La carte patrimoine SHALL, dès que des charges du mois courant restent à payer (paiements `PENDING`, hors charges provisionnées), afficher « dont charges dues », le « Patrimoine net » (patrimoine consolidé moins ces charges) et le « Reste à vivre (comptes) » (soldes des comptes actifs hors épargne, cartes de crédit comprises, moins ces charges). Ces lignes SHALL ignorer le curseur mensuel et rester masquées sans charge due ou sans taux de change utile.
+La carte patrimoine SHALL, dès que des charges du mois courant restent à payer (paiements `PENDING` échus jusqu'à la fin du mois courant, retards compris, hors charges provisionnées), afficher « dont charges dues », le « Patrimoine net » (patrimoine consolidé moins ces charges) et le « Reste à vivre (comptes) » (soldes des comptes actifs hors épargne, cartes de crédit comprises, moins ces charges). Ces lignes SHALL ignorer le curseur mensuel et rester masquées sans charge due ou sans taux de change utile.
 
 #### Scenario: Charges dues ce mois
 
