@@ -71,7 +71,8 @@ export function buildStatementSnapshot(
 ): CreateSnapshotInput {
   return {
     accountId,
-    date: statement.balanceDate,
+    // Noon UTC: a bare date is parsed as local midnight and lands on the day before.
+    date: `${statement.balanceDate}T12:00:00.000Z`,
     balance: statement.balance,
     note: `Relevé BNP ${statement.accountSuffix}`,
   };

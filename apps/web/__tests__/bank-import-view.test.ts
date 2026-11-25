@@ -94,7 +94,7 @@ describe('buildStatementSnapshot', () => {
     const body = buildStatementSnapshot(statement, 'acc-1');
     expect(body).toEqual({
       accountId: 'acc-1',
-      date: '2026-11-24',
+      date: '2026-11-24T12:00:00.000Z',
       balance: 296.6,
       note: 'Relevé BNP 2319',
     });
