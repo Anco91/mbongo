@@ -72,11 +72,11 @@ function FutureBudgetCard({
           Budget de {month ? monthNameLabel(month) : 'ce mois'} · le solde des
           comptes n&apos;est pas connu avant le début du mois
         </p>
-        <dl className="mt-2 space-y-1 text-sm text-slate-600">
+        <dl className="mt-3 space-y-0.5 border-t border-slate-100 pt-3 text-xs text-slate-600">
           {rows.map(([label, amount, strong]) => (
             <div
               key={label}
-              className={`flex justify-between ${strong ? 'text-xl font-semibold text-slate-900' : ''}`}
+              className={`flex justify-between ${strong ? 'font-medium text-slate-900' : ''}`}
             >
               <dt>{label}</dt>
               <dd className="tabular-nums">
