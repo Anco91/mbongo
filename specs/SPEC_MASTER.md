@@ -86,4 +86,4 @@ situation (second CHF salary) needs no model rewrite. Full context: `cdc.md` (ar
 | 40 | `specs/40-month-start-balance.md` | Solde logique de départ par mois, persisté (`MonthStartBalance`, migration additive, porte humaine levée), étape « comptes » de la préparation. Verrouillé : tests de schémas. Needs 39 | done | `docs/handoffs/20261125-2002-40-month-start-balance.md` |
 | 41 | (fast-track) | Carte patrimoine : dues, patrimoine net, reste à vivre affichés au mois courant seulement (passé et futur les ont déjà dans la projection). Reste : vérifier en app la préparation de `/budget/2026-12` | done | — |
 | 42 | (fast-track) | Carte budget : total en EUR, pas « CHF » (`budget-preparation-card.tsx:96`) | done | — |
-| 43 | `specs/43-dashboard-start-balance.md` | Le solde de départ enregistré ancre la projection du dashboard (mois courant/futur, par compte). Verrouillé : 8 tests rouges. Needs 38, 40 | done | — |
+| 43 | `specs/43-dashboard-start-balance.md` | Le solde de départ enregistré ancre la projection du dashboard (mois courant/futur, par compte). Verrouillé : 8 tests rouges. Needs 38, 40 | done | `docs/handoffs/20261125-2024-43-dashboard-start-balance.md` |
