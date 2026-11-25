@@ -15,6 +15,7 @@ import { transferService } from '@/server/transfers/transfer.service';
 import { memberService } from '@/server/members/member.service';
 import { currentMonthKey } from '@/lib/month-navigation';
 import { monthPaymentsQuery } from '@/lib/month-queries';
+import { pendingUntilQuery } from '@/queries/payments';
 import {
   PrefetchGuard,
   type PrefetchEntry,
@@ -29,6 +30,8 @@ export function DashboardGuard({
   // Le mois du curseur démarre sur le mois courant : la fenêtre d'échéances
   // du guard est exactement celle du hook client (design D5).
   const monthQuery = monthPaymentsQuery(currentMonthKey());
+
+  const pendingQuery = pendingUntilQuery(currentMonthKey());
 
   const entries: PrefetchEntry[] = [
     {
@@ -46,6 +49,10 @@ export function DashboardGuard({
     {
       queryKey: ['payments', monthQuery],
       queryFn: () => paymentService.findMany(monthQuery),
+    },
+    {
+      queryKey: ['payments', pendingQuery],
+      queryFn: () => paymentService.findMany(pendingQuery),
     },
     {
       queryKey: ['transfers', {}],

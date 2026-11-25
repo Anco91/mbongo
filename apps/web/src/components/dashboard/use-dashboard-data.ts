@@ -10,8 +10,12 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { paymentQueries } from '@/queries/payments';
 import {
-  computeBalance,
+  balanceAsOf,
+  computeProjectedBalance,
+  type ProjectedBalance,
   computeConsolidatedBalance,
   computeDonutExpenses,
   computeSankeyFlows,
@@ -49,6 +53,8 @@ interface DashboardData {
   chargesById: Map<string, Charge>;
   consolidated: ReturnType<typeof computeConsolidatedBalance>;
   rate: number | null;
+  /** Balances at the end of the selected month (real if past, else projected). */
+  projection: ProjectedBalance;
   netWorthTerms: NetWorthTerm[];
   sankeyData: SankeyData;
   donutData: CategoryExpense[];
@@ -121,8 +127,14 @@ export function useDashboardData(
   // Échéances requêtées pour le mois choisi (fenêtre dueDate, design D5) —
   // la même requête que le prefetch serveur du guard.
   const { data: payments = [] } = useMonthPayments(selectedMonth);
-  // Charges dues : toujours le mois courant, indépendamment du curseur.
-  const { data: currentPayments = [] } = useMonthPayments(currentMonthKey());
+  // Charges dues : PENDING jusqu'à la fin du mois courant (retards inclus).
+  const { data: currentPayments = [] } = useQuery(
+    paymentQueries.pendingUntil(currentMonthKey())
+  );
+  // Projection : PENDING jusqu'à la fin du mois choisi.
+  const { data: projectionPayments = [] } = useQuery(
+    paymentQueries.pendingUntil(selectedMonth)
+  );
   const { data: transfers = [] } = useTransfers();
   const { data: incomes = [] } = useIncomes();
   // Devise d'affichage partagée + taux courant (live prioritaire, fallback transferts).
@@ -138,15 +150,16 @@ export function useDashboardData(
     [charges]
   );
 
-  // Soldes par compte (état du jour — patrimoine global).
+  const now = useMemo(() => new Date(), []);
+
+  // Soldes par compte à aujourd'hui (les opérations futures sont exclues).
   const balances = useMemo(() => {
     const map: Record<string, number> = {};
     for (const acc of accounts) {
-      const accTxs = transactions.filter((t) => t.accountId === acc.id);
-      map[acc.id] = computeBalance(acc, accTxs);
+      map[acc.id] = balanceAsOf(acc, transactions, now);
     }
     return map;
-  }, [accounts, transactions]);
+  }, [accounts, transactions, now]);
 
   // Patrimoine consolidé — au taux courant (live prioritaire, fallback transferts).
   const consolidated = useMemo(
@@ -158,6 +171,33 @@ export function useDashboardData(
         rate != null && rateDate != null ? { rate, rateDate } : null
       ),
     [accounts, balances, transfers, rate, rateDate]
+  );
+
+  // Solde au dernier jour du mois choisi : réel (passé) ou projeté.
+  const projection = useMemo(
+    () =>
+      computeProjectedBalance({
+        accounts,
+        transactions,
+        transfers,
+        payments: projectionPayments,
+        charges,
+        incomes,
+        today: now,
+        monthKey: selectedMonth,
+        rate,
+      }),
+    [
+      accounts,
+      transactions,
+      transfers,
+      projectionPayments,
+      charges,
+      incomes,
+      now,
+      selectedMonth,
+      rate,
+    ]
   );
 
   // Termes du patrimoine (détail au survol de la carte).
@@ -263,8 +303,6 @@ export function useDashboardData(
     ]
   );
 
-  const now = useMemo(() => new Date(), []);
-
   const dueChargesEur = useMemo(
     () => computeDueCharges(currentPayments, charges, now, rate),
     [currentPayments, charges, now, rate]
@@ -285,6 +323,7 @@ export function useDashboardData(
     chargesById,
     consolidated,
     rate,
+    projection,
     netWorthTerms,
     sankeyData: pageCharts.sankeyData,
     donutData: pageCharts.donutData,

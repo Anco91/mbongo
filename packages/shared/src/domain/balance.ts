@@ -124,11 +124,10 @@ export function computeStatementGap(
   if (!latest) return null;
 
   const snapshotDay = toDay(latest.date);
-  const calculated = computeBalance(
+  const calculated = balanceAsOf(
     account,
-    transactions.filter(
-      (tx) => tx.accountId === account.id && toDay(tx.date) <= snapshotDay
-    )
+    transactions,
+    new Date(`${snapshotDay}T12:00:00.000Z`)
   );
   const gap =
     Math.round(computeSnapshotGap(latest, calculated) * 100) / 100 + 0; // + 0 turns -0 into 0
@@ -137,16 +136,21 @@ export function computeStatementGap(
 }
 
 /**
- * ADVISOR STUB (spec 38): balance of an account at the end of `asOf`'s UTC day.
- * Opening balance plus the account's transactions dated on or before that day.
+ * Solde d'un compte à la fin du jour UTC de `asOf` : `openingBalance` plus les
+ * transactions du compte datées au plus tard ce jour-là, arrondi au centime
+ * (jamais -0).
  */
 export function balanceAsOf(
   account: { id: string; openingBalance: number },
   transactions: Array<{ accountId: string; date: string; amount: number }>,
   asOf: Date
 ): number {
-  void account;
-  void transactions;
-  void asOf;
-  throw new Error('balanceAsOf: not implemented (spec 38)');
+  const asOfDay = toDay(asOf.toISOString());
+  const balance = computeBalance(
+    account,
+    transactions.filter(
+      (tx) => tx.accountId === account.id && toDay(tx.date) <= asOfDay
+    )
+  );
+  return Math.round(balance * 100) / 100 + 0; // + 0 turns -0 into 0
 }
