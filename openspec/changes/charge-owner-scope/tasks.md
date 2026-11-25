@@ -10,4 +10,4 @@
 - [x] 7. `OwnerBadge` call sites (charge row, detail, month-payments, provisions cards) use `chargeOwner`; `use-charges-view.ts` filter
 - [x] 8. Dashboard: `?compte=` sub-chips, `useDashboardData` accountId, fullscreen charts
 - [x] 9. `docs/LEXIQUE.md`, `ARCHITECTURE.md` registry rows
-- [ ] 10. `npm run test`, `typecheck`, `lint`, `build`
+- [x] 10. `npm run test`, `typecheck`, `lint`, `build`

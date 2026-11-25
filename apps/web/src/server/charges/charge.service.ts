@@ -97,7 +97,7 @@ export class ChargeService {
     const subcategory = this.resolveSubcategory(existing, input);
     await this.assertOwner(
       input.memberId !== undefined ? input.memberId : existing.memberId,
-      input.shared !== undefined ? input.shared : existing.shared
+      input.shared ?? existing.shared
     );
 
     if (!this.touchesSchedule(input)) {

@@ -8,7 +8,7 @@ import type { Account } from '../schemas/account';
 import type { Charge } from '../schemas/charge';
 
 /** Value of the « Propriétaire / débiteur » select. */
-export type ChargeOwnerChoice = '' | 'shared' | (string & {});
+export type ChargeOwnerChoice = string;
 
 /** Owner member id, or `null` when the charge is common to the household. */
 export function chargeOwner(

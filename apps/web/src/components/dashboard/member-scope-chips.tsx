@@ -21,7 +21,7 @@ interface MemberScopeChipsProps {
   value: string | null;
   onChange: (memberId: string | null) => void;
   /** Accounts of the selected member (sub-scope row). */
-  accounts?: readonly Pick<Account, 'id' | 'name'>[];
+  accounts?: ReadonlyArray<Pick<Account, 'id' | 'name'>>;
   accountId?: string | null;
   onAccountChange?: (accountId: string | null) => void;
 }
