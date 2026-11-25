@@ -1,6 +1,6 @@
 ---
 id: 43-dashboard-start-balance
-status: ready
+status: done
 branch: spec/43-dashboard-start-balance
 tier: medium
 locked_at: fbf2b285f98a02394ae5e9cdeda171296a046c5a
