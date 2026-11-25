@@ -18,9 +18,8 @@ export function chargeOwner(
   },
   account: Pick<Account, 'memberId'> | undefined
 ): string | null {
-  void charge;
-  void account;
-  throw new Error('not implemented');
+  if (charge.shared === true) return null;
+  return charge.memberId ?? account?.memberId ?? null;
 }
 
 /** Select value → persisted fields: `''` follows the account, `'shared'` is common. */
@@ -28,8 +27,9 @@ export function ownerChoiceToFields(choice: ChargeOwnerChoice): {
   memberId: string | null;
   shared: boolean;
 } {
-  void choice;
-  throw new Error('not implemented');
+  if (choice === 'shared') return { memberId: null, shared: true };
+  if (choice === '') return { memberId: null, shared: false };
+  return { memberId: choice, shared: false };
 }
 
 /** Persisted fields → select value (inverse of `ownerChoiceToFields`). */
@@ -37,6 +37,6 @@ export function fieldsToOwnerChoice(charge: {
   memberId?: string | null;
   shared?: boolean;
 }): ChargeOwnerChoice {
-  void charge;
-  throw new Error('not implemented');
+  if (charge.shared === true) return 'shared';
+  return charge.memberId ?? '';
 }
