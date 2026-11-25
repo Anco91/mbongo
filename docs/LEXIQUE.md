@@ -9,7 +9,9 @@ l'identique dans tous les écrans.
 | Terme retenu | Ancien terme | Usage | Écrans |
 |---|---|---|---|
 | Reste à vivre (comptes) | — | Soldes des comptes hors épargne (cartes incluses) moins les charges dues du mois ; différent du « Reste à vivre » du récapitulatif budget (revenus moins charges) | Dashboard (carte patrimoine) |
-| dont charges dues | — | Échéances en attente du mois courant, hors charges provisionnées | Dashboard (carte patrimoine) |
+| Reste à vivre (budget) | Reste à vivre | Revenus moins charges du mois choisi ; différent du « Reste à vivre (comptes) » du dashboard | Récapitulatif du budget |
+| Projeté fin <mois> | Patrimoine consolidé (état du jour) | Patrimoine à la fin du mois choisi (réel pour un mois passé, sans libellé) : soldes du jour plus flux attendus jusqu'à la fin du mois | Dashboard (carte patrimoine) |
+| dont charges dues | — | Échéances en attente jusqu'à la fin du mois courant, retards inclus, hors charges provisionnées | Dashboard (carte patrimoine) |
 | Patrimoine net | — | Patrimoine consolidé moins les charges dues | Dashboard (carte patrimoine) |
 | Charges lissées chaque mois | Provisions · lissage mensuel | Le mécanisme de provision mensuelle d'une charge annuelle | Dashboard (carte des provisions) |
 | Provisionner (réparti chaque mois) | Provisionner (lissage mensuel) | Case à cocher d'une charge à venir | Création et édition de charge |

@@ -1,6 +1,6 @@
 ---
 id: 38-projected-balance
-status: ready
+status: review
 branch: feat/38-projected-balance
 tier: medium
 locked_at: 56fad68228c7c780b78269a8f6280e788f75a1d6
@@ -56,6 +56,8 @@ Master: `specs/SPEC_MASTER.md` · Plan: `docs/plans/20261125-budget-projection-i
 | `apps/web/src/components/dashboard/dashboard-guard.tsx` | Prefetch the `pendingUntil` entry under the same key. |
 | `apps/web/src/components/dashboard/cards/wealth-card.tsx` | Show `projection.totalEur`; label « Projeté fin <mois> » when the state is `current` or `future`, no label for `past`; rename the two « Reste à vivre ». |
 | `docs/LEXIQUE.md`, `specs/current/{dashboard,monthly-budget}/spec.md` | LEXIQUE by the Executor; capability specs by the **Advisor at review**. `dashboard/spec.md:207` (« patrimoine ignore le mois ») must be reversed. |
+| `apps/web/src/components/dashboard/dashboard-content.tsx` | Frame amended at execution (PM): destructure `projection` from `useDashboardData`, pass `projection` and `selectedMonth` to `<WealthCard>`. |
+| `apps/web/src/components/budget/steps/recap-step.tsx` | Frame amended at execution (PM): line 110 label « Reste à vivre » becomes « Reste à vivre (budget) ». |
 | `ARCHITECTURE.md` | Registry rows for `balanceAsOf`, `computeProjectedBalance`, `computeMonthState`, `paymentQueries.pendingUntil`. |
 
 ### Read (allow-list)
@@ -78,3 +80,4 @@ Rates other than the current one (flagged, not modelled); card cycles after the 
 ## Handoffs
 
 - `docs/handoffs/20261125-1437-34-budget-journey-scenarios.md`
+- `docs/handoffs/20261125-1524-38-projected-balance.md`

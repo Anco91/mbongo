@@ -107,7 +107,7 @@ export function RecapStep({ month }: RecapStepProps): JSX.Element {
           tone="negative"
         />
         <SummaryTile
-          label="Reste à vivre"
+          label="Reste à vivre (budget)"
           value={`${remaining.toFixed(2)} ${displayCurrency}`}
           tone={remaining >= 0 ? 'neutral' : 'warning'}
         />

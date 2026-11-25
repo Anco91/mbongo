@@ -65,7 +65,7 @@ export function sankeyNodeTotals(data: SankeyData): number[] {
  * Reçu réel si connu ; sinon estimation : même devise = montant envoyé,
  * CHF → EUR = contre-valeur au taux effectif, EUR → CHF = montant × taux estimé.
  */
-function transferLegAmount(
+export function transferLegAmount(
   tr: Transfer,
   sourceCurrency: string,
   targetCurrency: string,

@@ -8,9 +8,14 @@
 
 'use client';
 
-import type { ConsolidatedBalance, NetWorthTerm } from '@mbongo/shared';
+import type {
+  ConsolidatedBalance,
+  NetWorthTerm,
+  ProjectedBalance,
+} from '@mbongo/shared';
 import { useDisplayCurrency } from '@/components/providers/display-currency-provider';
 import { formatAmount, formatDate } from '@/lib/format';
+import { monthLongLabel } from '@/lib/month-navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { JSX } from 'react';
 
@@ -26,6 +31,10 @@ interface WealthCardProps {
   netOfDueEur: number | null;
   /** Reste à vivre des comptes (hors épargne), EUR. */
   remainingToLiveEur: number | null;
+  /** Solde à la fin du mois choisi ; absent : patrimoine du jour. */
+  projection?: ProjectedBalance;
+  /** Mois du curseur, `YYYY-MM` (libellé « Projeté fin <mois> »). */
+  selectedMonth?: string;
 }
 
 function NetWorthTermRow({ term }: { term: NetWorthTerm }): JSX.Element {
@@ -51,9 +60,13 @@ export function WealthCard({
   dueChargesEur,
   netOfDueEur,
   remainingToLiveEur,
+  projection,
+  selectedMonth,
 }: WealthCardProps): JSX.Element {
   const { displayCurrency, convert } = useDisplayCurrency();
   const { rateSource } = useDisplayCurrency();
+  const totalEur = projection ? projection.totalEur : consolidated.totalEur;
+  const isProjected = projection !== undefined && projection.state !== 'past';
 
   return (
     <Card
@@ -62,7 +75,9 @@ export function WealthCard({
     >
       <CardContent className="pt-5">
         <p className="text-xs text-slate-500">
-          Patrimoine consolidé
+          {isProjected && selectedMonth
+            ? `Projeté fin ${monthLongLabel(selectedMonth).split(' ')[0]}`
+            : 'Patrimoine consolidé'}
           {consolidated.rateDate &&
             (rateSource === 'live'
               ? ` · au taux du ${formatDate(consolidated.rateDate)} · BCE`
@@ -71,8 +86,8 @@ export function WealthCard({
         <div className="mt-1 flex items-end justify-between">
           <div>
             <p className="text-3xl font-semibold tracking-tight text-slate-900">
-              {consolidated.isAvailable && consolidated.totalEur !== null
-                ? formatAmount(convert(consolidated.totalEur), displayCurrency)
+              {consolidated.isAvailable && totalEur !== null
+                ? formatAmount(convert(totalEur), displayCurrency)
                 : 'Taux indisponible'}
             </p>
             <p className="mt-0.5 text-xs text-slate-500">
@@ -80,7 +95,7 @@ export function WealthCard({
               {formatAmount(
                 displayCurrency === 'EUR'
                   ? rate && rate > 0
-                    ? convert(consolidated.totalEur ?? 0) / rate
+                    ? convert(totalEur ?? 0) / rate
                     : (consolidated.totalChf ?? 0)
                   : (consolidated.totalEur ?? 0),
                 displayCurrency === 'EUR' ? 'CHF' : 'EUR'

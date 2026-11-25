@@ -9,9 +9,20 @@
 
 import { queryOptions } from '@tanstack/react-query';
 import { paymentsRepository } from '@/repositories/payments.repository';
+import { monthBounds } from '@/lib/month-navigation';
+import { PAYMENTS_WINDOW_LIMIT } from '@/lib/month-queries';
 import type { PaymentQuery } from '@mbongo/shared';
 
 const KEY = 'payments' as const;
+
+/** PENDING payments due up to the end of a month ('YYYY-MM'), overdue included. */
+export function pendingUntilQuery(monthKey: string): PaymentQuery {
+  return {
+    status: { eq: 'PENDING' },
+    dueDate: { lte: monthBounds(monthKey).end.toISOString() },
+    limit: PAYMENTS_WINDOW_LIMIT,
+  };
+}
 
 export const paymentQueries = {
   all: () => [KEY] as const,
@@ -25,6 +36,11 @@ export const paymentQueries = {
       queryKey: [KEY, id] as const,
       queryFn: () => paymentsRepository.findOne(id),
       enabled: Boolean(id),
+    }),
+  pendingUntil: (monthKey: string) =>
+    queryOptions({
+      queryKey: [KEY, pendingUntilQuery(monthKey)] as const,
+      queryFn: () => paymentsRepository.findMany(pendingUntilQuery(monthKey)),
     }),
   byCharge: (chargeId: string) =>
     queryOptions({
