@@ -65,7 +65,8 @@ interface DashboardData {
 export function useDashboardData(
   selectedMonth: string,
   showClosed = false,
-  memberId: string | null = null
+  memberId: string | null = null,
+  accountId: string | null = null
 ): DashboardData {
   const { data: accounts = [] } = useAccounts();
   const { data: transactions = [] } = useTransactions();
@@ -179,8 +180,8 @@ export function useDashboardData(
 
   // Member scope applies after the closed-accounts filter (charts only).
   const chartScope = useMemo(
-    () => scopeToMember(closedScope, memberId),
-    [closedScope, memberId]
+    () => scopeToMember(closedScope, memberId, accountId),
+    [closedScope, memberId, accountId]
   );
 
   // Confirmed incomes match on budgetMonth, not on date: add the income-linked

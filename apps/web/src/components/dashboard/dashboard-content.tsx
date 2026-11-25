@@ -34,6 +34,7 @@ import { currentMonthKey, shiftMonthKey } from '@/lib/month-navigation';
 import { useDashboardData } from './use-dashboard-data';
 import { MemberScopeChips } from './member-scope-chips';
 import { useMembers } from '@/hooks/use-members';
+import { useAccounts } from '@/hooks/use-accounts';
 import { UnmatchedIncomeBanner } from './unmatched-income-banner';
 import {
   SkeletonCard,
@@ -56,17 +57,41 @@ export function DashboardContent(): JSX.Element {
     'membre',
     parseAsString.withOptions({ history: 'replace' })
   );
+  // Sub-scope: one account of the selected member (`?compte=`).
+  const [accountParam, setAccountParam] = useQueryState(
+    'compte',
+    parseAsString.withOptions({ history: 'replace' })
+  );
+  // Changing the member clears the account here, in the setter (no effect).
   const selectMember = useCallback(
     (id: string | null): void => {
       void setMemberId(id);
+      void setAccountParam(null);
     },
-    [setMemberId]
+    [setMemberId, setAccountParam]
+  );
+  const selectAccount = useCallback(
+    (id: string | null): void => {
+      void setAccountParam(id);
+    },
+    [setAccountParam]
   );
   const { data: members = [] } = useMembers();
+  const { data: allAccounts = [] } = useAccounts();
   // A scoped member that no longer exists falls back to the household.
   const effectiveMemberId =
     memberId !== null && members.some((m) => m.id === memberId)
       ? memberId
+      : null;
+  const memberAccounts = allAccounts.filter(
+    (a) =>
+      a.memberId === effectiveMemberId && (showClosed || a.status !== 'CLOSED')
+  );
+  // An account that is not one of the selected member's is ignored.
+  const effectiveAccountId =
+    effectiveMemberId !== null &&
+    memberAccounts.some((a) => a.id === accountParam)
+      ? accountParam
       : null;
 
   useEffect(() => {
@@ -88,7 +113,12 @@ export function DashboardContent(): JSX.Element {
     monthPayments,
     totalCharges,
     now,
-  } = useDashboardData(selectedMonth, showClosed, effectiveMemberId);
+  } = useDashboardData(
+    selectedMonth,
+    showClosed,
+    effectiveMemberId,
+    effectiveAccountId
+  );
 
   const { displayCurrency, convert } = useDisplayCurrency();
 
@@ -136,6 +166,9 @@ export function DashboardContent(): JSX.Element {
         members={members}
         value={effectiveMemberId}
         onChange={selectMember}
+        accounts={memberAccounts}
+        accountId={effectiveAccountId}
+        onAccountChange={selectAccount}
       />
 
       <SwipeZone onSwipe={changeMonth}>
@@ -186,6 +219,9 @@ export function DashboardContent(): JSX.Element {
           members={members}
           memberId={effectiveMemberId}
           onMemberChange={selectMember}
+          accounts={memberAccounts}
+          accountId={effectiveAccountId}
+          onAccountChange={selectAccount}
           formatValue={formatDisplay}
           onClose={() => setFullscreenChart(null)}
         />
