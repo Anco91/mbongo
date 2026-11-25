@@ -93,6 +93,7 @@ incomes, transfers, monthly budgets, alerts). Mobile-first PWA.
 | `packages/shared/src/domain/transfer-accounts.ts` → `checkTransferAccounts`, `isSameCurrencyTransfer`, `settleSameCurrencyTransfer` | domain | Transfer between any two distinct open accounts; same currency = rate 1, no fee, credited at once. Replayed by `transferService.create` (422) and `buildTransferFormSchema` |
 | `packages/shared/src/domain/transfer-external.ts` → `isExternalTransfer`, `checkExternalTransferSource` | domain | Transfer without target account (`targetAccountId` null + `externalLabel`): SOURCE leg only, `COMPLETED` at once, no rate/fee; only the source can be refused (closed). Replayed by `transferService.create`, legs check, scope/projection/Sankey guards (spec 37) |
 | `packages/shared/src/domain/transfer-legs.ts` → `checkTransferLegs` | domain | Issue codes for a transfer's legs against its record (SOURCE = -amountSent, TARGET = +amountReceived, fees explain estimated minus received); empty when consistent. Not wired to any screen (row 15) |
+| `packages/shared/src/domain/bank-import.ts` → `parseBnpCsv`, `extractMerchant`, `dedupeRows`, `analyzeSpending`, `UNCATEGORIZED` | domain | BNP CSV (decoded text, `;`, French amounts, banner anchor) → rows with real day, merchant and stable fingerprint (rank of identical lines); dedupe against known fingerprints; month spending by category/merchant from a passed mapping, never guessed. Pure; screen is row 45 |
 | `apps/web/src/components/patterns/show-closed-toggle.tsx` | ui | `ShowClosedToggle`: checkbox, default label « Afficher les comptes clôturés », optional `label` (dashboard, accounts, transfers) |
 | `packages/shared/src/domain/charge-category.ts` → `CHARGE_CATEGORIES`, `listSubcategories`, `checkChargeSubcategory`, `resolveChargeSubcategory` | domain | Single charge category/sub-category taxonomy (bank-app style, additive; Divers last) and rule; replayed by `createChargeSchema` and `ChargeService` (422); category change alone resets sub-category |
 | `apps/web/src/components/charges/charge-category-fields.tsx` → `ChargeCategoryFields` | ui | Category + dependent « Sous-catégorie » selects, shared by charge create and edit forms |
@@ -134,6 +135,7 @@ incomes, transfers, monthly budgets, alerts). Mobile-first PWA.
 | Server state | @tanstack/react-query 5 |
 | Forms | react-hook-form + @hookform/resolvers |
 | Dates | date-fns 3 |
+| Bank CSV | papaparse (`packages/shared`, `delimiter: ';'`) |
 | URL state | nuqs 2 (dashboard member scope `?membre=`) |
 | Charts | recharts 3 |
 | Dialog / sheet | @radix-ui/react-dialog |

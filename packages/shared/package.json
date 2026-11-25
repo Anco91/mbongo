@@ -19,10 +19,12 @@
   },
   "dependencies": {
     "date-fns": "^3.0.0",
+    "papaparse": "^5.7.1",
     "zod": "^3.22.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.5",
+    "@types/papaparse": "^5.5.2",
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
     "eslint": "^8.56.0",
@@ -44,7 +46,11 @@
   },
   "eslintConfig": {
     "root": true,
-    "ignorePatterns": ["dist", "node_modules", "*.d.ts"],
+    "ignorePatterns": [
+      "dist",
+      "node_modules",
+      "*.d.ts"
+    ],
     "env": {
       "node": true,
       "jest": true
@@ -69,30 +75,45 @@
       "prettier"
     ],
     "rules": {
-      "@typescript-eslint/explicit-function-return-type": ["error", {
-        "allowExpressions": true,
-        "allowConciseArrowFunctionExpressionsStartingWithVoid": true
-      }],
+      "@typescript-eslint/explicit-function-return-type": [
+        "error",
+        {
+          "allowExpressions": true,
+          "allowConciseArrowFunctionExpressionsStartingWithVoid": true
+        }
+      ],
       "@typescript-eslint/no-explicit-any": "error",
-      "@typescript-eslint/no-unused-vars": ["error", {
-        "argsIgnorePattern": "^_"
-      }],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          "argsIgnorePattern": "^_"
+        }
+      ],
       "@typescript-eslint/no-non-null-assertion": "warn",
       "@typescript-eslint/prefer-nullish-coalescing": "error",
       "@typescript-eslint/prefer-optional-chain": "error",
       "@typescript-eslint/prefer-readonly": "error",
       "@typescript-eslint/explicit-module-boundary-types": "off",
       "@typescript-eslint/no-inferrable-types": "error",
-      "no-console": ["error", {
-        "allow": ["warn", "error"]
-      }],
+      "no-console": [
+        "error",
+        {
+          "allow": [
+            "warn",
+            "error"
+          ]
+        }
+      ],
       "prefer-const": "error",
       "no-var": "error",
       "no-implicit-coercion": "error",
       "no-param-reassign": "error",
-      "no-plusplus": ["error", {
-        "allowForLoopAfterthoughts": true
-      }],
+      "no-plusplus": [
+        "error",
+        {
+          "allowForLoopAfterthoughts": true
+        }
+      ],
       "no-throw-literal": "error",
       "require-await": "error",
       "prettier/prettier": [

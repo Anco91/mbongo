@@ -1,6 +1,6 @@
 ---
 id: 36-bank-import-core
-status: ready
+status: done
 branch: spec/36-bank-import-core
 tier: medium
 locked_at: 6f07930f7c28e3835e626935aa39c235a19b14ad
