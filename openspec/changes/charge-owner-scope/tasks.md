@@ -1,6 +1,6 @@
 # Tasks
 
-- [ ] 0. HUMAN GATE: go-ahead received for the Prisma migration
+- [x] 0. HUMAN GATE: go-ahead received for the Prisma migration
 - [ ] 1. `schema.prisma` + migration `charge-owner` (`Charge.memberId`, `Charge.shared`); `prisma generate`
 - [ ] 2. `schemas/charge.ts`: `memberId`, `shared` in base, create refine (exclusive), update
 - [ ] 3. `charge.service.ts`: persist, map, validate member and exclusivity (create + update)

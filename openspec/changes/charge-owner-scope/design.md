@@ -18,6 +18,8 @@
 
 The Prisma migration is created and applied by the Executor only after the human says go. Advisor stops at that point (session handoff `human-gate`).
 
+Go-ahead received from the human on 2026-11-25: migration `charge_owner` approved.
+
 ## Reuse analysis
 
 `scopeToMember`, `excludeClosedAccounts`, `OwnerBadge`/`ownerLabel`, `MemberScopeChips` + `FilterChips`, nuqs `useQueryState` (dashboard-content), `SelectInput` pattern of `account-edit-form.tsx`. No new dependency.
