@@ -259,12 +259,18 @@ L'invitation au budget SHALL concerner uniquement le mois courant. La navigation
 
 ### Requirement: Portée par membre des graphiques
 
-Le dashboard SHALL proposer, au-dessus du Sankey et du donut, un bouton « Foyer » (défaut, tous les comptes) et un bouton par membre du foyer. Choisir un membre SHALL restreindre le Sankey et le donut aux comptes de ce membre (et à leurs revenus, charges, échéances, transactions ; un transfert n'est gardé que si ses deux comptes sont à ce membre). Les comptes sans membre (compte joint) n'apparaissent que dans « Foyer » : un indice « hors comptes joints » SHALL être affiché près des boutons dès qu'un membre est choisi. Le membre choisi SHALL vivre dans l'URL (`?membre=<id>`, absent = Foyer) : l'URL partagée ou rechargée restitue la vue, et un identifiant inconnu retombe sur « Foyer ». Les mêmes boutons SHALL être disponibles en plein écran. Le patrimoine, les alertes et les échéances du mois restent ceux du foyer.
+Le dashboard SHALL proposer, au-dessus du Sankey et du donut, un bouton « Foyer » (défaut, tous les comptes) et un bouton par membre du foyer. Choisir un membre SHALL restreindre le Sankey et le donut aux comptes de ce membre (et à leurs revenus, charges, échéances, transactions ; un transfert n'est gardé que si ses deux comptes sont à ce membre). Les comptes sans membre (compte joint) n'apparaissent que dans « Foyer » : un indice « hors comptes joints » SHALL être affiché près des boutons dès qu'un membre est choisi. Le membre choisi SHALL vivre dans l'URL (`?membre=<id>`, absent = Foyer) : l'URL partagée ou rechargée restitue la vue, et un identifiant inconnu retombe sur « Foyer ». Les charges suivent leur propriétaire effectif (membre choisi sur la charge, sinon membre du compte ; les charges « Commun » n'apparaissent que dans « Foyer »), et non plus seulement leur compte. Quand un membre est choisi, une seconde rangée SHALL proposer « Tous les comptes » et un bouton par compte de ce membre ; le compte choisi vit dans l'URL (`?compte=<id>`) et restreint comptes, transactions, revenus, transferts et charges (débitées sur ce compte) à ce compte. `?compte=` est ignoré s'il n'est pas un compte du membre choisi, et remis à zéro quand le membre change. Les mêmes boutons SHALL être disponibles en plein écran. Le patrimoine, les alertes et les échéances du mois restent ceux du foyer.
 
 #### Scenario: Dépenses d'un seul membre
 
 - **WHEN** l'utilisateur choisit un membre
 - **THEN** le donut et le Sankey ne montrent que les dépenses des comptes de ce membre, et « Foyer » rétablit la vue complète
+
+#### Scenario: Un seul compte d'un membre
+
+- **GIVEN** un membre choisi ayant deux comptes
+- **WHEN** l'utilisateur choisit l'un des comptes
+- **THEN** l'URL porte `?compte=<id>` et le donut et le Sankey ne montrent que ce compte ; changer de membre remet « Tous les comptes »
 
 ### Requirement: Patrimoine net des charges dues
 

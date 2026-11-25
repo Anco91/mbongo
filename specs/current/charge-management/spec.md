@@ -178,3 +178,28 @@ Les formulaires de création et d'édition SHALL proposer, sous la catégorie, u
 
 - **WHEN** l'utilisateur choisit « Assurances »
 - **THEN** le sélecteur propose Auto, Habitation, Responsabilité civile, Garantie, Vie
+
+### Requirement: Propriétaire d'une charge
+
+Une charge SHALL pouvoir porter un propriétaire / débiteur : un membre du foyer, ou « Commun » (charge du foyer), ou rien (« Suivre le compte », défaut). Le propriétaire effectif est : aucun si la charge est commune ; sinon le membre choisi ; sinon le membre du compte débité. Le badge de la charge, le filtre par membre de la liste et la portée par membre du dashboard SHALL utiliser ce propriétaire effectif. Les formulaires de création et d'édition SHALL proposer un sélecteur « Propriétaire / débiteur » (« Suivre le compte », « Commun », un choix par membre). Le serveur SHALL refuser (422) un membre inconnu et la combinaison « Commun » + membre, en tenant compte des valeurs effectives lors d'une modification. Les charges existantes SHALL rester en « Suivre le compte », sans migration de données.
+
+#### Scenario: Charge d'un autre membre sur un compte joint
+
+- **GIVEN** une charge débitée sur un compte joint, propriétaire « Alice »
+- **WHEN** l'utilisateur filtre la liste ou le dashboard sur Alice
+- **THEN** la charge apparaît, avec le badge d'Alice
+
+#### Scenario: Charge commune
+
+- **WHEN** une charge est marquée « Commun », même sur le compte d'Alice
+- **THEN** elle n'apparaît dans aucune portée de membre, seulement dans « Foyer »
+
+#### Scenario: Combinaison refusée
+
+- **WHEN** une requête envoie `shared` à vrai avec un `memberId`
+- **THEN** la réponse est 422
+
+#### Scenario: Charge existante
+
+- **GIVEN** une charge créée avant ce changement
+- **THEN** son propriétaire est celui de son compte, comme avant
