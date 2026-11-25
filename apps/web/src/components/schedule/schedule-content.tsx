@@ -18,7 +18,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { IconPlus } from '@/components/ui/icons';
 import { ScheduleRow } from '@/components/schedule/schedule-row';
-import { useScheduleRows } from '@/components/schedule/use-schedule-rows';
+import {
+  useScheduleRows,
+  type ScheduleRow as ScheduleRowData,
+} from '@/components/schedule/use-schedule-rows';
 
 export function ScheduleContent(): JSX.Element {
   const view = useScheduleRows();
@@ -36,6 +39,9 @@ export function ScheduleContent(): JSX.Element {
       />
     );
   }
+
+  const due = view.rows.filter((row) => row.status === 'DUE');
+  const upcoming = view.rows.filter((row) => row.status === 'UPCOMING');
 
   return (
     <div className="space-y-3">
@@ -58,14 +64,37 @@ export function ScheduleContent(): JSX.Element {
           </Link>
         </div>
       ) : (
-        <Card>
-          <CardContent className="divide-y divide-slate-100 pt-2">
-            {view.rows.map((row) => (
-              <ScheduleRow key={row.key} row={row} />
-            ))}
-          </CardContent>
-        </Card>
+        <>
+          <ScheduleSection title="À régler" rows={due} />
+          <ScheduleSection title="Échéances à venir" rows={upcoming} />
+        </>
       )}
     </div>
+  );
+}
+
+interface ScheduleSectionProps {
+  title: string;
+  rows: ScheduleRowData[];
+}
+
+function ScheduleSection({
+  title,
+  rows,
+}: ScheduleSectionProps): JSX.Element | null {
+  if (rows.length === 0) return null;
+  return (
+    <section aria-label={title} className="space-y-1">
+      <h3 className="text-xs font-semibold uppercase text-slate-500">
+        {title}
+      </h3>
+      <Card>
+        <CardContent className="divide-y divide-slate-100 pt-2">
+          {rows.map((row) => (
+            <ScheduleRow key={row.key} row={row} />
+          ))}
+        </CardContent>
+      </Card>
+    </section>
   );
 }
