@@ -265,3 +265,12 @@ Le dashboard SHALL proposer, au-dessus du Sankey et du donut, un bouton « Foyer
 
 - **WHEN** l'utilisateur choisit un membre
 - **THEN** le donut et le Sankey ne montrent que les dépenses des comptes de ce membre, et « Foyer » rétablit la vue complète
+
+### Requirement: Patrimoine net des charges dues
+
+La carte patrimoine SHALL, dès que des charges du mois courant restent à payer (paiements `PENDING`, hors charges provisionnées), afficher « dont charges dues », le « Patrimoine net » (patrimoine consolidé moins ces charges) et le « Reste à vivre (comptes) » (soldes des comptes actifs hors épargne, cartes de crédit comprises, moins ces charges). Ces lignes SHALL ignorer le curseur mensuel et rester masquées sans charge due ou sans taux de change utile.
+
+#### Scenario: Charges dues ce mois
+
+- **WHEN** le mois courant a 500 EUR de paiements `PENDING` et que le patrimoine est de 10 000 EUR
+- **THEN** la carte affiche 500 EUR de charges dues et un patrimoine net de 9 500 EUR

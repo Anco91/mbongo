@@ -1,6 +1,6 @@
 ---
 id: due-charges-net-worth
-status: ready
+status: done
 branch: feat/due-charges-net-worth
 tier: medium
 locked_at: 48f9302
