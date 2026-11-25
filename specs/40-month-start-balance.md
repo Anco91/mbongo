@@ -1,6 +1,6 @@
 ---
 id: 40-month-start-balance
-status: ready
+status: review
 branch: spec/40-month-start-balance
 tier: medium
 locked_at: 48481340ef6dc38c6f0d8bdec4a3d97ed64ad782
@@ -110,3 +110,4 @@ Pas de test d'UI (TEST-2). Service, contrôleur et étape : vérification manuel
 ## Handoffs
 
 - `docs/handoffs/20261125-1955-39-month-journey.md`
+- `docs/handoffs/20261125-2002-40-month-start-balance.md`
