@@ -78,6 +78,9 @@ export function DashboardContent(): JSX.Element {
     accountsById,
     chargesById,
     consolidated,
+    dueChargesEur,
+    netOfDueEur,
+    remainingToLiveEur,
     rate,
     netWorthTerms,
     sankeyData,
@@ -112,6 +115,9 @@ export function DashboardContent(): JSX.Element {
         consolidated={consolidated}
         rate={rate}
         terms={netWorthTerms}
+        dueChargesEur={dueChargesEur}
+        netOfDueEur={netOfDueEur}
+        remainingToLiveEur={remainingToLiveEur}
       />
 
       {/* Budget preparation card — only for current month */}

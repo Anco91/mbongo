@@ -19,6 +19,9 @@ import {
   listNetWorthTerms,
   scopeToMember,
   computeMonthlyBudget,
+  computeDueCharges,
+  computeNetOfDue,
+  computeRemainingToLive,
   monthRange,
   isInMonth,
   type Account,
@@ -35,7 +38,7 @@ import { useMonthPayments } from '@/hooks/use-schedule';
 import { useTransfers } from '@/hooks/use-transfers';
 import { useIncomes } from '@/hooks/use-incomes';
 import { useDisplayCurrency } from '@/components/providers/display-currency-provider';
-import { monthKeyToDate } from '@/lib/month-navigation';
+import { currentMonthKey, monthKeyToDate } from '@/lib/month-navigation';
 
 interface DashboardData {
   accounts: Account[];
@@ -50,6 +53,12 @@ interface DashboardData {
   monthPayments: Payment[];
   /** Total charges for the selected month (for BudgetPreparationCard). */
   totalCharges: number;
+  /** Unpaid, non-provisioned charges of the current month, EUR (null: rate missing). */
+  dueChargesEur: number | null;
+  /** Net worth minus due charges, EUR. */
+  netOfDueEur: number | null;
+  /** Non-savings account balances minus due charges, EUR. */
+  remainingToLiveEur: number | null;
   now: Date;
 }
 
@@ -64,6 +73,8 @@ export function useDashboardData(
   // Échéances requêtées pour le mois choisi (fenêtre dueDate, design D5) —
   // la même requête que le prefetch serveur du guard.
   const { data: payments = [] } = useMonthPayments(selectedMonth);
+  // Charges dues : toujours le mois courant, indépendamment du curseur.
+  const { data: currentPayments = [] } = useMonthPayments(currentMonthKey());
   const { data: transfers = [] } = useTransfers();
   const { data: incomes = [] } = useIncomes();
   // Devise d'affichage partagée + taux courant (live prioritaire, fallback transferts).
@@ -212,6 +223,19 @@ export function useDashboardData(
 
   const now = useMemo(() => new Date(), []);
 
+  const dueChargesEur = useMemo(
+    () => computeDueCharges(currentPayments, charges, now, rate),
+    [currentPayments, charges, now, rate]
+  );
+  const netOfDueEur = useMemo(
+    () => computeNetOfDue(consolidated, dueChargesEur),
+    [consolidated, dueChargesEur]
+  );
+  const remainingToLiveEur = useMemo(
+    () => computeRemainingToLive(accounts, balances, dueChargesEur, rate),
+    [accounts, balances, dueChargesEur, rate]
+  );
+
   return {
     accounts,
     charges,
@@ -224,6 +248,9 @@ export function useDashboardData(
     donutData,
     monthPayments,
     totalCharges,
+    dueChargesEur,
+    netOfDueEur,
+    remainingToLiveEur,
     now,
   };
 }

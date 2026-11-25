@@ -20,6 +20,12 @@ interface WealthCardProps {
   rate: number | null;
   /** Termes du patrimoine (un par compte actif), détaillés au survol/focus. */
   terms: NetWorthTerm[];
+  /** Charges dues du mois courant, EUR (null : inconnu). */
+  dueChargesEur: number | null;
+  /** Patrimoine net des charges dues, EUR. */
+  netOfDueEur: number | null;
+  /** Reste à vivre des comptes (hors épargne), EUR. */
+  remainingToLiveEur: number | null;
 }
 
 function NetWorthTermRow({ term }: { term: NetWorthTerm }): JSX.Element {
@@ -42,6 +48,9 @@ export function WealthCard({
   consolidated,
   rate,
   terms,
+  dueChargesEur,
+  netOfDueEur,
+  remainingToLiveEur,
 }: WealthCardProps): JSX.Element {
   const { displayCurrency, convert } = useDisplayCurrency();
   const { rateSource } = useDisplayCurrency();
@@ -80,6 +89,32 @@ export function WealthCard({
             </p>
           </div>
         </div>
+        {dueChargesEur !== null && dueChargesEur > 0 && (
+          <dl className="mt-3 space-y-0.5 border-t border-slate-100 pt-3 text-xs text-slate-600">
+            <div className="flex justify-between">
+              <dt>dont charges dues</dt>
+              <dd className="tabular-nums">
+                {formatAmount(convert(dueChargesEur), displayCurrency)}
+              </dd>
+            </div>
+            {netOfDueEur !== null && (
+              <div className="flex justify-between font-medium text-slate-900">
+                <dt>Patrimoine net</dt>
+                <dd className="tabular-nums">
+                  {formatAmount(convert(netOfDueEur), displayCurrency)}
+                </dd>
+              </div>
+            )}
+            {remainingToLiveEur !== null && (
+              <div className="flex justify-between">
+                <dt>Reste à vivre (comptes)</dt>
+                <dd className="tabular-nums">
+                  {formatAmount(convert(remainingToLiveEur), displayCurrency)}
+                </dd>
+              </div>
+            )}
+          </dl>
+        )}
         {terms.length > 0 && (
           <ul
             aria-label="Détail du patrimoine"
