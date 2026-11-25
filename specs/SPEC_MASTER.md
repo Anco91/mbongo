@@ -95,4 +95,4 @@ situation (second CHF salary) needs no model rewrite. Full context: `cdc.md` (ar
 | 49 | (fast-track) | Bascule Oui/Non contrôlée (`ToggleInput`) : « Non » sélectionné ; `Boolean("false")` était vrai | done | PR 112 |
 | 50 | (fast-track) | Propriétaire « Foyer (commun) » enregistré en `null` (création et édition) | done | PR 112 |
 | 51 | (fast-track) | Échéances : « À régler » (dues) séparé de « Échéances à venir » | done | PR 112 |
-| 52 | à écrire | Tests de scénario du budget (`__tests__/scenarios/`) : mois courant S + X − Y = Z ; mois suivant sans report ; achat carte différée le jour même, débit groupé non compté ; prélèvement direct le jour même. Auditer `budget-journey.*`, `budget-coherence*`, `month-journey` d abord | open | — |
+| 52 | `specs/53-budget-day-balances.md` | Tests de scénario du budget (`__tests__/scenarios/`) : mois courant S + X − Y = Z ; mois suivant sans report ; achat carte différée le jour même, débit groupé non compté ; prélèvement direct le jour même. Auditer `budget-journey.*`, `budget-coherence*`, `month-journey` d abord. Audit fait : « mois suivant sans report » déjà couvert par `budget-coherence` | done | PR |
