@@ -72,3 +72,4 @@ Locked: `apps/web/__tests__/scenarios/month-journey.test.ts`. Proof of failure a
 ## Handoffs
 
 - `docs/handoffs/20261125-1700-38-projected-balance.md`
+- `docs/handoffs/20261125-1944-39-month-journey.md`
