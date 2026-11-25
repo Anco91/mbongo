@@ -222,3 +222,23 @@ Le récapitulatif SHALL proposer l'action principale « Terminer ». Terminer SH
 
 - **WHEN** l'utilisateur rouvre un mois déjà préparé
 - **THEN** les étapes s'ouvrent sur les données existantes et terminer à nouveau ne crée aucun doublon
+
+### Requirement: Plan d'un mois préparé en début de mois
+
+Le système SHALL calculer le plan d'un mois à partir des échéances attendues : les charges fixes sans date de fin sont reprises chaque mois, une charge ponctuelle n'apparaît que dans son mois, une charge terminée est absente. Une échéance déjà enregistrée SHALL être rapprochée par sa date (`AAAA-MM-JJ`) et ne SHALL pas être comptée deux fois. Le solde logique de départ d'un compte SHALL reporter un découvert ordinaire, mais un compte à débit différé qui finit le mois en négatif SHALL repartir à 0 le mois suivant.
+
+#### Scenario: Fixe sans fin repris
+
+- **WHEN** un mois sans échéance enregistrée est préparé et une charge fixe n'a pas de date de fin
+- **THEN** cette charge figure dans les échéances attendues du mois
+
+#### Scenario: Échéance enregistrée non doublée
+
+- **WHEN** une échéance du mois existe déjà en base à la même date que celle attendue
+- **THEN** elle est comptée une seule fois dans le total
+
+#### Scenario: Débit différé négatif
+
+- **WHEN** un compte à débit différé termine le mois en négatif
+- **THEN** son solde logique de départ du mois suivant est 0 ; un compte ordinaire à découvert garde son solde négatif
+

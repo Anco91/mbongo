@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useMonthlyBudget } from '@/hooks/use-monthly-budget';
 import { useAccounts } from '@/hooks/use-accounts';
+import { formatAmount } from '@/lib/format';
 import { currentMonthKey, monthLongLabel } from '@/lib/month-navigation';
 import Link from 'next/link';
 import { JSX } from 'react';
@@ -90,7 +91,8 @@ export function BudgetPreparationCard({
       </CardHeader>
       <CardContent>
         <p className="text-sm text-slate-600 mb-2">
-          Total des charges : <strong>{totalCharges.toFixed(2)} CHF</strong>
+          Total des charges :{' '}
+          <strong>{formatAmount(totalCharges, 'EUR')}</strong>
         </p>
         <p className="text-sm text-slate-600 mb-4">
           Préparez votre budget mensuel en confirmant vos revenus et en ajustant
