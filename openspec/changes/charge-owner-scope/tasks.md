@@ -6,7 +6,7 @@
 - [x] 3. `charge.service.ts`: persist, map, validate member and exclusivity (create + update)
 - [x] 4. Implement `chargeOwner` (`domain/charge-owner.ts`)
 - [x] 5. `scopeToMember`: owner attribution + optional `accountId`
-- [ ] 6. Charge create/edit forms: « Propriétaire / débiteur » select
+- [x] 6. Charge create/edit forms: « Propriétaire / débiteur » select
 - [ ] 7. `OwnerBadge` call sites (charge row, detail, month-payments, provisions cards) use `chargeOwner`; `use-charges-view.ts` filter
 - [ ] 8. Dashboard: `?compte=` sub-chips, `useDashboardData` accountId, fullscreen charts
 - [ ] 9. `docs/LEXIQUE.md`, `ARCHITECTURE.md` registry rows
