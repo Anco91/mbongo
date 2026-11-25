@@ -259,7 +259,7 @@ L'invitation au budget SHALL concerner uniquement le mois courant. La navigation
 
 ### Requirement: Portée par membre des graphiques
 
-Le dashboard SHALL proposer, au-dessus du Sankey et du donut, un bouton « Foyer » (défaut, tous les comptes) et un bouton par membre du foyer. Choisir un membre SHALL restreindre le Sankey et le donut aux comptes de ce membre (et à leurs revenus, charges, échéances, transactions ; un transfert n'est gardé que si ses deux comptes sont à ce membre). Les comptes sans membre (compte joint) n'apparaissent que dans « Foyer » : un indice « hors comptes joints » SHALL être affiché près des boutons dès qu'un membre est choisi. Le membre choisi SHALL vivre dans l'URL (`?membre=<id>`, absent = Foyer) : l'URL partagée ou rechargée restitue la vue, et un identifiant inconnu retombe sur « Foyer ». Les charges suivent leur propriétaire effectif (membre choisi sur la charge, sinon membre du compte ; les charges « Commun » n'apparaissent que dans « Foyer »), et non plus seulement leur compte. Quand un membre est choisi, une seconde rangée SHALL proposer « Tous les comptes » et un bouton par compte de ce membre ; le compte choisi vit dans l'URL (`?compte=<id>`) et restreint comptes, transactions, revenus, transferts et charges (débitées sur ce compte) à ce compte. `?compte=` est ignoré s'il n'est pas un compte du membre choisi, et remis à zéro quand le membre change. Les mêmes boutons SHALL être disponibles en plein écran. Le patrimoine, les alertes et les échéances du mois restent ceux du foyer.
+Le plein écran du Sankey et du donut SHALL proposer un bouton « Foyer » (défaut, tous les comptes) et un bouton par membre du foyer ; la page du dashboard n'affiche aucun de ces boutons et ses cartes Sankey et donut restent toujours celles du foyer, même si l'URL porte `?membre=`. Choisir un membre en plein écran SHALL restreindre le Sankey et le donut aux comptes de ce membre (et à leurs revenus, charges, échéances, transactions ; un transfert n'est gardé que si ses deux comptes sont à ce membre). Les comptes sans membre (compte joint) n'apparaissent que dans « Foyer » : un indice « hors comptes joints » SHALL être affiché près des boutons dès qu'un membre est choisi. Le membre choisi SHALL vivre dans l'URL (`?membre=<id>`, absent = Foyer) : l'URL partagée ou rechargée restitue la vue, et un identifiant inconnu retombe sur « Foyer ». Les charges suivent leur propriétaire effectif (membre choisi sur la charge, sinon membre du compte ; les charges « Commun » n'apparaissent que dans « Foyer »), et non plus seulement leur compte. Quand un membre est choisi, une seconde rangée SHALL proposer « Tous les comptes » et un bouton par compte courant de ce membre (les comptes d'épargne ne sont pas proposés) ; le compte choisi vit dans l'URL (`?compte=<id>`) et restreint comptes, transactions, revenus, transferts et charges (débitées sur ce compte) à ce compte. `?compte=` est ignoré s'il n'est pas un compte du membre choisi, et remis à zéro quand le membre change. Le patrimoine, les alertes et les échéances du mois restent ceux du foyer.
 
 #### Scenario: Dépenses d'un seul membre
 
@@ -271,6 +271,18 @@ Le dashboard SHALL proposer, au-dessus du Sankey et du donut, un bouton « Foyer
 - **GIVEN** un membre choisi ayant deux comptes
 - **WHEN** l'utilisateur choisit l'un des comptes
 - **THEN** l'URL porte `?compte=<id>` et le donut et le Sankey ne montrent que ce compte ; changer de membre remet « Tous les comptes »
+
+#### Scenario: Cartes de la page toujours Foyer
+
+- **GIVEN** l'URL porte `?membre=<id>`
+- **WHEN** le dashboard se charge
+- **THEN** aucun bouton Foyer / membre n'est affiché sur la page et le Sankey et le donut de la page montrent le foyer ; le plein écran applique le membre
+
+#### Scenario: Comptes d'épargne non proposés
+
+- **GIVEN** un membre choisi en plein écran ayant un compte courant et un compte d'épargne
+- **WHEN** la rangée de comptes s'affiche
+- **THEN** elle propose « Tous les comptes » et le compte courant, pas le compte d'épargne
 
 ### Requirement: Patrimoine net des charges dues
 

@@ -28,7 +28,7 @@ l'identique dans tous les écrans.
 | N revenus à lier | — | Bandeau du tableau de bord : nombre d'entrées d'argent sans source (« 1 revenu à lier » au singulier) | Dashboard (bandeau), lien « Lier » |
 | Propriétaire / débiteur | — | Qui porte une charge : suivre le compte (défaut), un membre, ou Commun ; pilote le badge, le filtre membre et les graphiques par membre | Création et édition de charge |
 | Commun | — | Valeur de « Propriétaire / débiteur » : charge du foyer, jamais dans le périmètre d'un membre | Création et édition de charge |
-| Tous les comptes | — | Puce de sous-périmètre : tous les comptes du membre sélectionné | Dashboard (périmètre membre) |
+| Tous les comptes | — | Puce de sous-périmètre : tous les comptes du membre sélectionné | Plein écran Sankey / donut (périmètre membre) |
 | Aucun revenu à lier | — | État vide de l'écran Revenus à lier | `/incomes/unmatched` |
 | Afficher plus | — | Charger la page suivante d'une liste | Revenus à lier |
 | Montant conforme | — | Écart nul entre le montant prévu et reçu | Revenus à lier |

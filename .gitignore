@@ -118,3 +118,6 @@ prisma/dev.db-journal
 
 # SQLite dev backups
 *.db.bak*
+
+# Bank exports (names, references): never commit
+exports-xls/
