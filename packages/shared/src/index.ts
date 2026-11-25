@@ -59,6 +59,7 @@ export * from './lib/calculation/consolidated';
 export * from './lib/calculation/month';
 export * from './lib/calculation/due-charges';
 export * from './lib/calculation/projected-balance';
+export * from './lib/calculation/month-journey';
 export * from './lib/calculation/remaining-to-live';
 export * from './lib/calculation/active-accounts';
 export * from './domain/transfer-accounts';
