@@ -32,7 +32,6 @@ import {
 } from './dashboard-fullscreen-charts';
 import { currentMonthKey, shiftMonthKey } from '@/lib/month-navigation';
 import { useDashboardData } from './use-dashboard-data';
-import { MemberScopeChips } from './member-scope-chips';
 import { useMembers } from '@/hooks/use-members';
 import { useAccounts } from '@/hooks/use-accounts';
 import { UnmatchedIncomeBanner } from './unmatched-income-banner';
@@ -52,7 +51,8 @@ export function DashboardContent(): JSX.Element {
   const [selectedMonth, setSelectedMonth] = useState(currentMonthKey);
   // Closed accounts are hidden from the charts by default.
   const [showClosed, setShowClosed] = useState(false);
-  // Charts scope: null = whole household, else one member's accounts.
+  // Fullscreen charts scope: null = whole household, else one member's
+  // accounts. Page cards stay household.
   const [memberId, setMemberId] = useQueryState(
     'membre',
     parseAsString.withOptions({ history: 'replace' })
@@ -110,6 +110,8 @@ export function DashboardContent(): JSX.Element {
     netWorthTerms,
     sankeyData,
     donutData,
+    scopedSankeyData,
+    scopedDonutData,
     monthPayments,
     totalCharges,
     now,
@@ -162,15 +164,6 @@ export function DashboardContent(): JSX.Element {
       {/* 2 + 3 : zone swipe — geste horizontal natif PWA pour changer de mois */}
       <ShowClosedToggle checked={showClosed} onChange={setShowClosed} />
 
-      <MemberScopeChips
-        members={members}
-        value={effectiveMemberId}
-        onChange={selectMember}
-        accounts={memberAccounts}
-        accountId={effectiveAccountId}
-        onAccountChange={selectAccount}
-      />
-
       <SwipeZone onSwipe={changeMonth}>
         {mounted ? (
           <>
@@ -214,8 +207,8 @@ export function DashboardContent(): JSX.Element {
       {fullscreenChart && (
         <DashboardFullscreenCharts
           chart={fullscreenChart}
-          sankeyData={sankeyData}
-          donutData={donutData}
+          sankeyData={scopedSankeyData}
+          donutData={scopedDonutData}
           members={members}
           memberId={effectiveMemberId}
           onMemberChange={selectMember}

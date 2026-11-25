@@ -27,6 +27,7 @@ import {
   type Account,
   type Charge,
   type Payment,
+  type Transaction,
   type CategoryExpense,
   type NetWorthTerm,
   type SankeyData,
@@ -50,6 +51,9 @@ interface DashboardData {
   netWorthTerms: NetWorthTerm[];
   sankeyData: SankeyData;
   donutData: CategoryExpense[];
+  /** Same charts narrowed to the member/account scope (fullscreen only). */
+  scopedSankeyData: SankeyData;
+  scopedDonutData: CategoryExpense[];
   monthPayments: Payment[];
   /** Total charges for the selected month (for BudgetPreparationCard). */
   totalCharges: number;
@@ -60,6 +64,47 @@ interface DashboardData {
   /** Non-savings account balances minus due charges, EUR. */
   remainingToLiveEur: number | null;
   now: Date;
+}
+
+type ChartScope = ReturnType<typeof scopeToMember>;
+
+interface Charts {
+  sankeyData: SankeyData;
+  donutData: CategoryExpense[];
+}
+
+/** Sankey + donut of one scope; confirmed incomes match on budgetMonth, so
+ * income-linked transactions of other months are added (positive only). */
+function buildCharts(
+  scope: ChartScope,
+  allTransactions: Transaction[],
+  monthKey: string,
+  rate: number | null
+): Charts {
+  const inScope = new Set(scope.accounts.map((a) => a.id));
+  const inMonth = new Set(scope.transactions.map((t) => t.id));
+  const linked = allTransactions.filter(
+    (t) =>
+      t.incomeId &&
+      t.amount > 0 &&
+      !inMonth.has(t.id) &&
+      inScope.has(t.accountId)
+  );
+  return {
+    sankeyData: computeSankeyFlows({
+      ...scope,
+      transactions: [...scope.transactions, ...linked],
+      incomes: scope.incomes ?? [],
+      monthKey,
+      rate,
+    }),
+    donutData: computeDonutExpenses({
+      payments: scope.payments,
+      charges: scope.charges,
+      transactions: scope.transactions,
+      rate,
+    }),
+  };
 }
 
 export function useDashboardData(
@@ -178,48 +223,32 @@ export function useDashboardData(
     ]
   );
 
-  // Member scope applies after the closed-accounts filter (charts only).
-  const chartScope = useMemo(
-    () => scopeToMember(closedScope, memberId, accountId),
-    [closedScope, memberId, accountId]
-  );
-
-  // Confirmed incomes match on budgetMonth, not on date: add the income-linked
-  // transactions of other months (positive, so never an expense link).
-  const sankeyTransactions = useMemo(() => {
-    const inScope = new Set(chartScope.accounts.map((a) => a.id));
-    const inMonth = new Set(chartScope.transactions.map((t) => t.id));
-    const linked = transactions.filter(
-      (t) =>
-        t.incomeId &&
-        t.amount > 0 &&
-        !inMonth.has(t.id) &&
-        inScope.has(t.accountId)
-    );
-    return [...chartScope.transactions, ...linked];
-  }, [chartScope, transactions]);
-
-  const sankeyData = useMemo(
+  // Page cards are always household; the fullscreen view applies the member
+  // scope (same closed-accounts filter, no second fetch).
+  const pageCharts = useMemo(
     () =>
-      computeSankeyFlows({
-        ...chartScope,
-        transactions: sankeyTransactions,
-        incomes: chartScope.incomes ?? [],
-        monthKey: selectedMonth,
-        rate: consolidated.rate,
-      }),
-    [chartScope, sankeyTransactions, consolidated.rate, selectedMonth]
+      buildCharts(closedScope, transactions, selectedMonth, consolidated.rate),
+    [closedScope, transactions, selectedMonth, consolidated.rate]
   );
-
-  const donutData = useMemo(
+  const scopedCharts = useMemo(
     () =>
-      computeDonutExpenses({
-        payments: chartScope.payments,
-        charges: chartScope.charges,
-        transactions: chartScope.transactions,
-        rate: consolidated.rate,
-      }),
-    [chartScope, consolidated.rate]
+      memberId === null
+        ? pageCharts
+        : buildCharts(
+            scopeToMember(closedScope, memberId, accountId),
+            transactions,
+            selectedMonth,
+            consolidated.rate
+          ),
+    [
+      pageCharts,
+      closedScope,
+      memberId,
+      accountId,
+      transactions,
+      selectedMonth,
+      consolidated.rate,
+    ]
   );
 
   const now = useMemo(() => new Date(), []);
@@ -245,8 +274,10 @@ export function useDashboardData(
     consolidated,
     rate,
     netWorthTerms,
-    sankeyData,
-    donutData,
+    sankeyData: pageCharts.sankeyData,
+    donutData: pageCharts.donutData,
+    scopedSankeyData: scopedCharts.sankeyData,
+    scopedDonutData: scopedCharts.donutData,
     monthPayments,
     totalCharges,
     dueChargesEur,
