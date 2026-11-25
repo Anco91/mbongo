@@ -26,3 +26,4 @@ Tests: aucun verrouillé (glue). Un `?membre=` persisté ne filtre pas les carte
 ## Handoffs
 
 - `docs/handoffs/20261125-1157-33-dashboard-scope-fullscreen-only.md`
+- `docs/handoffs/20261125-1430-33-dashboard-scope-fullscreen-only.md`
