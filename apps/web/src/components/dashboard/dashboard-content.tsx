@@ -108,6 +108,7 @@ export function DashboardContent(): JSX.Element {
     remainingToLiveEur,
     rate,
     netWorthTerms,
+    projection,
     sankeyData,
     donutData,
     scopedSankeyData,
@@ -150,6 +151,8 @@ export function DashboardContent(): JSX.Element {
         dueChargesEur={dueChargesEur}
         netOfDueEur={netOfDueEur}
         remainingToLiveEur={remainingToLiveEur}
+        projection={projection}
+        selectedMonth={selectedMonth}
       />
 
       {/* Budget preparation card — only for current month */}
